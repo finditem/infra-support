@@ -2,7 +2,8 @@
   "name": "infra-support",
   "version": "1.0.0",
   "private": true,
-  "description": "인프라 지원 중앙 모니터링 시스템",
+  "packageManager": "pnpm@10.33.0",
+  "description": "인프라 시스템",
   "type": "module",
   "scripts": {
     "dev": "turbo run dev",
