@@ -1,0 +1,19 @@
+{
+  "name": "infra-support",
+  "version": "1.0.0",
+  "private": true,
+  "description": "인프라 지원 중앙 모니터링 시스템",
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "turbo": "^2.0.0",
+    "typescript": "^5.0.0"
+  }
+}

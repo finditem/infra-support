@@ -1,0 +1,4 @@
+{
+  "tailwindCSS.experimental.configFile": "apps/monitor-web/tailwind.config.js",
+  "cSpell.words": ["jikwon"]
+}

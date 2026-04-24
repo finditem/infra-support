@@ -1,0 +1,23 @@
+{
+  "name": "@infra-support/monitor-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "check": "tsx src/index.ts",
+    "lint": "eslint src --ext ts",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@infra-support/shared": "workspace:*",
+    "axios": "^1.6.0",
+    "@supabase/supabase-js": "^2.38.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
+    "eslint": "^8.0.0"
+  }
+}

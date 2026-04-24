@@ -1,0 +1,3 @@
+if git diff --cached --name-only | grep -q '^apps/monitor-web/'; then
+  cd apps/monitor-web && pnpm exec lint-staged
+fi
