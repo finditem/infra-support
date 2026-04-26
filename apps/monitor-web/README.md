@@ -35,10 +35,11 @@
 - **Database:** `Supabase`
 - **Routing:** `React Router DOM v6`
 
-### **UI**
+### **UI & Tools**
 
 - **Chart:** `Recharts`
 - **Date:** `date-fns`
+- **Linting & Formatting:** `ESLint`, `Prettier`, `lint-staged`, `commitlint`
 
 ## 프로젝트 구조
 
