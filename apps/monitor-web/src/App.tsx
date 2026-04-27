@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import { Dashboard, Login, ErrorLog, ApiDetail, ApiEdit, ErrorDetail } from "./pages";
+import { Dashboard, Login, ErrorLog, ApiDetail, ApiEdit, ErrorDetail, NotFound } from "./pages";
 import { Nav } from "./components";
 
 export default function App() {
@@ -15,6 +15,7 @@ export default function App() {
           <Route path="/api/:apiId" element={<ApiDetail />} />
           <Route path="/api/:apiId/edit" element={<ApiEdit />} />
           <Route path="/api/:apiId/errors/:errorId" element={<ErrorDetail />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
     </div>
