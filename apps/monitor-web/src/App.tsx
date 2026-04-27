@@ -1,11 +1,22 @@
-import { cn } from "./utils";
+import { Routes, Route } from "react-router-dom";
+import { Dashboard, Login, ErrorLog, ApiDetail, ApiEdit, ErrorDetail } from "./pages";
+import { Nav } from "./components";
 
 export default function App() {
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold">infra-support Dashboard</h1>
-      <p className="mt-2 text-red-600">모니터링 대시보드</p>
-      <p className={cn("text-red-600", "md:mt-2", "lg:text-blue-600")}>안녕하세요</p>
+    <div className="flex h-screen">
+      <Nav />
+
+      <main className="flex-1 overflow-y-auto p-8">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/errors" element={<ErrorLog />} />
+          <Route path="/api/:apiId" element={<ApiDetail />} />
+          <Route path="/api/:apiId/edit" element={<ApiEdit />} />
+          <Route path="/api/:apiId/errors/:errorId" element={<ErrorDetail />} />
+        </Routes>
+      </main>
     </div>
   );
 }
