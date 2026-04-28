@@ -1,9 +1,18 @@
+// TODO(지권): 토스트 디자인 변경 필요
 import { useEffect } from "react";
 import type { Toast as ToastItem } from "@/types";
 import { cn } from "@/utils/cn";
 import { removeToast } from "@/hooks/useToast";
 
-// TODO(지권): 토스트 디자인 변경 필요
+/**
+ * 단일 토스트 아이템을 렌더링하는 컴포넌트입니다.
+ *
+ * @remarks
+ * - `duration` 이후 자동으로 제거되며, 닫기 버튼으로 즉시 제거할 수 있습니다.
+ * - 직접 사용하지 않고 `ToastContainer`를 통해 렌더링됩니다.
+ *
+ * @author jikwon
+ */
 
 const STYLE_MAP: Record<ToastItem["type"], string> = {
   success: "bg-green-500 text-white",
@@ -18,8 +27,18 @@ const ICON_MAP: Record<ToastItem["type"], string> = {
 };
 
 interface ToastProps {
+  /** 렌더링할 토스트 데이터 */
   toast: ToastItem;
 }
+
+/**
+ * @example
+ * ```tsx
+ * // ToastContainer 내부에서 자동으로 렌더링됩니다.
+ * // 직접 사용이 필요한 경우:
+ * <Toast toast={{ id: "1", type: "success", message: "저장되었습니다." }} />
+ * ```
+ */
 
 const Toast = ({ toast }: ToastProps) => {
   useEffect(() => {
