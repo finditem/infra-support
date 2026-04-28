@@ -50,6 +50,7 @@ interface ErrorBoundaryState {
  *
  * @author junyeol
  */
+
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { error: null };
 
