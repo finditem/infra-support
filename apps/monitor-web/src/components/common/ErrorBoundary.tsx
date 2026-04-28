@@ -51,7 +51,7 @@ interface ErrorBoundaryState {
  * @author junyeol
  */
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { error: null };
 
   /** 에러 발생 시 다음 렌더링에서 Fallback UI를 보이도록 상태를 업데이트합니다.*/
@@ -84,3 +84,5 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return children;
   }
 }
+
+export default ErrorBoundary;
