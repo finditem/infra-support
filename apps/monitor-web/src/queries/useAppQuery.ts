@@ -32,8 +32,10 @@ type UseAppQueryOptions<
 /**
  * @example
  * ```tsx
+ * import { apisQueryKeys, useAppQuery } from "@/queries";
+ *
  * const apisListQuery = useAppQuery(
- *   ["apis", "list"] as const,
+ *   apisQueryKeys.list(),
  *   () => fetchApisList(),
  *   {
  *     throwOnError: true,
