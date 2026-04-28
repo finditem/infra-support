@@ -35,7 +35,7 @@ interface ErrorBoundaryState {
 }
 
 /**
- *  * @example
+ * @example
  * ```tsx
  * <ErrorBoundary
  *  fallback={(error, reset) => (
