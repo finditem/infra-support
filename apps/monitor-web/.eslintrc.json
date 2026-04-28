@@ -13,7 +13,38 @@
       "files": ["*.ts", "*.tsx"],
       "parser": "@typescript-eslint/parser",
       "extends": ["plugin:@typescript-eslint/recommended"],
-      "plugins": ["@typescript-eslint"]
+      "plugins": ["@typescript-eslint", "perfectionist"],
+      "rules": {
+        "perfectionist/sort-jsx-props": [
+          "warn",
+          {
+            "type": "alphabetical",
+            "groups": ["reserved", "id", "accessibility", "styling", "unknown", "callback"],
+            "customGroups": [
+              {
+                "groupName": "reserved",
+                "elementNamePattern": "^(key|ref)$"
+              },
+              {
+                "groupName": "id",
+                "elementNamePattern": "^id$"
+              },
+              {
+                "groupName": "styling",
+                "elementNamePattern": "^(className|style)$"
+              },
+              {
+                "groupName": "accessibility",
+                "elementNamePattern": "^(aria-.*|role|tabIndex|alt)$"
+              },
+              {
+                "groupName": "callback",
+                "elementNamePattern": "^on[A-Z].*"
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }
