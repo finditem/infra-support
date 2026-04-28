@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useMemo } from "react";
 import type { Toast, ToastType } from "@/types";
 
 let toasts: Toast[] = [];
@@ -102,9 +102,12 @@ function toast(message: string, type: ToastType, duration?: number) {
  */
 
 export function useToast() {
-  return {
-    success: (message: string, duration?: number) => toast(message, "success", duration),
-    error: (message: string, duration?: number) => toast(message, "error", duration),
-    warning: (message: string, duration?: number) => toast(message, "warning", duration),
-  };
+  return useMemo(
+    () => ({
+      success: (message: string, duration?: number) => toast(message, "success", duration),
+      error: (message: string, duration?: number) => toast(message, "error", duration),
+      warning: (message: string, duration?: number) => toast(message, "warning", duration),
+    }),
+    []
+  );
 }
