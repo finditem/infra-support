@@ -20,7 +20,6 @@ const Nav = () => {
         {navItems.map(({ label, to }) => (
           <NavLink
             key={to}
-            aria-label={"asd"}
             className={({ isActive }) =>
               `rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                 isActive ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"
