@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/finditem">
-    <img src="https://fmi-project-s3-bucket.s3.ap-northeast-2.amazonaws.com/9e619169-f_default-share.png" width="100%" alt="Find My Item Banner" style="border-radius: 12px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);" />
+    <img src="https://fmi-project-s3-bucket.s3.ap-northeast-2.amazonaws.com/cc00e0db-7_default-support-share.png" width="100%" alt="Find Item Banner" style="border-radius: 12px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);" />
   </a>
 </p>
 
