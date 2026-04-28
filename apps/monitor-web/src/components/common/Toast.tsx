@@ -26,6 +26,13 @@ const ICON_MAP: Record<ToastItem["type"], string> = {
   warning: "",
 };
 
+// error, warning은 즉시 읽어야 하므로 assertive, success는 polite
+const ROLE_MAP: Record<ToastItem["type"], "alert" | "status"> = {
+  success: "status",
+  error: "alert",
+  warning: "alert",
+};
+
 interface ToastProps {
   /** 렌더링할 토스트 데이터 */
   toast: ToastItem;
@@ -51,18 +58,23 @@ const Toast = ({ toast }: ToastProps) => {
 
   return (
     <div
+      role={ROLE_MAP[toast.type]}
+      aria-atomic="true"
       className={cn(
         "animate-toast-in flex min-w-64 max-w-sm items-center gap-3 rounded-lg px-4 py-3 shadow-lg",
         STYLE_MAP[toast.type]
       )}
     >
-      <span className="text-base font-bold">{ICON_MAP[toast.type]}</span>
+      <span aria-hidden className="text-base font-bold">
+        {ICON_MAP[toast.type]}
+      </span>
       <p className="flex-1 text-sm">{toast.message}</p>
       <button
+        aria-label="닫기"
         className="ml-1 text-sm opacity-60 transition-opacity hover:opacity-100"
         onClick={() => removeToast(toast.id)}
       >
-        X
+        <span aria-hidden>X</span>
       </button>
     </div>
   );
