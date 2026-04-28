@@ -1,5 +1,16 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 
+/**
+ * 하위 컴포넌트 트리에서 발생한 렌더링 에러를 포착하고 Fallback UI를 제공하는 공통 Error Boundary 컴포넌트입니다.
+ *
+ * @remarks
+ * - 렌더링/라이프사이클 단계의 에러를 포착합니다.
+ * - 이벤트 핸들러 내부 에러와 비동기 콜백 에러는 포착하지 않습니다.
+ * - `fallback` 미지정 시 에러 발생 화면은 렌더링하지 않습니다.
+ *
+ * @author junyeol
+ */
+
 /** ErrorBoundary 컴포넌트의 Props */
 interface ErrorBoundaryProps {
   /** 보호할 하위 컴포넌트 트리입니다. */
@@ -24,14 +35,7 @@ interface ErrorBoundaryState {
 }
 
 /**
- * 하위 컴포넌트 트리에서 발생한 렌더링 에러를 포착하고 Fallback UI를 제공하는 공통 Error Boundary 컴포넌트입니다.
- *
- * @remarks
- * - 렌더링/라이프사이클 단계의 에러를 포착합니다.
- * - 이벤트 핸들러 내부 에러와 비동기 콜백 에러는 포착하지 않습니다.
- * - `fallback` 미지정 시 에러 발생 화면은 렌더링하지 않습니다.
- *
- * @example
+ *  * @example
  * ```tsx
  * <ErrorBoundary
  *  fallback={(error, reset) => (
@@ -47,8 +51,6 @@ interface ErrorBoundaryState {
  *   <MyComponent />
  * </ErrorBoundary>
  * ```
- *
- * @author junyeol
  */
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
