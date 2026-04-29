@@ -1,14 +1,10 @@
 import { useApisListQuery } from "@/queries";
 
 const Dashboard = () => {
-  const { data, isLoading, isError, error } = useApisListQuery();
+  const { data, isLoading } = useApisListQuery();
 
   if (isLoading) {
     return <div>로딩</div>;
-  }
-
-  if (isError) {
-    return <div>{error?.message}</div>;
   }
 
   return (
