@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Checkbox, Icon } from "@/components";
+import { Checkbox, ClearButton, Icon } from "@/components";
 import { useMockListQuery } from "@/queries";
 
 const Dashboard = () => {
@@ -40,6 +40,8 @@ const Dashboard = () => {
           Large
         </Checkbox>
       </div>
+
+      <ClearButton onClick={() => {}} />
     </div>
   );
 };
