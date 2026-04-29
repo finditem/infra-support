@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Checkbox, ClearButton, Icon } from "@/components";
+import { Checkbox, ClearButton, Icon, LoadingSpinner } from "@/components";
 import { useMockListQuery } from "@/queries";
 
 const Dashboard = () => {
@@ -42,6 +42,8 @@ const Dashboard = () => {
       </div>
 
       <ClearButton onClick={() => {}} />
+
+      <LoadingSpinner size={40} />
     </div>
   );
 };
