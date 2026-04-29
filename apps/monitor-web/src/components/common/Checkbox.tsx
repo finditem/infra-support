@@ -51,7 +51,7 @@ const Checkbox = ({
     <button
       aria-checked={checked}
       role="checkbox"
-      className={cn("flex cursor-pointer items-center gap-2", className)}
+      className={cn("flex items-center gap-2", className)}
       type="button"
       onClick={() => onCheckedChange?.(!checked)}
       {...props}
