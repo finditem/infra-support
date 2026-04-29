@@ -34,7 +34,7 @@ type UseAppQueryOptions<
  * ```tsx
  * import { apisQueryKeys, useAppQuery } from "@/queries";
  *
- * const apisListQuery = useAppQuery(
+ * const useApisListQuery = useAppQuery(
  *   apisQueryKeys.list(),
  *   () => fetchApisList(),
  *   {
