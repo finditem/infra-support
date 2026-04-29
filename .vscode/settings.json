@@ -1,4 +1,17 @@
 {
   "tailwindCSS.experimental.configFile": "apps/monitor-web/tailwind.config.js",
-  "cSpell.words": ["jikwon"]
+  "cSpell.words": ["jikwon", "supabase"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.workingDirectories": [
+    { "directory": "apps/monitor-web", "changeProcessCWD": true }
+  ],
+
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ]
 }

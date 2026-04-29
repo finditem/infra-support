@@ -10,13 +10,13 @@ export default function App() {
 
       <main className="flex-1 overflow-y-auto p-8">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/errors" element={<ErrorLog />} />
-          <Route path="/api/:apiId" element={<ApiDetail />} />
-          <Route path="/api/:apiId/edit" element={<ApiEdit />} />
-          <Route path="/api/:apiId/errors/:errorId" element={<ErrorDetail />} />
-          <Route path="*" element={<NotFound />} />
+          <Route element={<Dashboard />} path="/" />
+          <Route element={<Login />} path="/login" />
+          <Route element={<ErrorLog />} path="/errors" />
+          <Route element={<ApiDetail />} path="/api/:apiId" />
+          <Route element={<ApiEdit />} path="/api/:apiId/edit" />
+          <Route element={<ErrorDetail />} path="/api/:apiId/errors/:errorId" />
+          <Route element={<NotFound />} path="*" />
         </Routes>
       </main>
 
