@@ -1,2 +1,2 @@
 export { cn } from "./cn";
-export { supabase } from "./supabase";
+export { supabase } from "../lib/supabase";
