@@ -35,12 +35,9 @@ type UseAppQueryOptions<
  * import { apisQueryKeys, useAppQuery } from "@/queries";
  *
  * const useApisListQuery = useAppQuery(
- *   apisQueryKeys.list(),
- *   () => fetchApisList(),
- *   {
+ *   apisQueryKeys.list(), getApis, {
  *     throwOnError: true,
- *   }
- * );
+ *   });
  * ```
  */
 
