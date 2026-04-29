@@ -1,7 +1,7 @@
-import { useApisListQuery } from "@/queries";
+import { useMockListQuery } from "@/queries";
 
 const Dashboard = () => {
-  const { data, isLoading } = useApisListQuery();
+  const { data, isLoading } = useMockListQuery();
 
   if (isLoading) {
     return <div>로딩</div>;

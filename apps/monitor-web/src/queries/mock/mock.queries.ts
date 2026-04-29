@@ -1,6 +1,6 @@
-import { supabase } from "@/utils/supabase";
-import useAppQuery from "./useAppQuery";
-import { apisQueryKeys } from "./queryKeys";
+import { supabase } from "@/lib";
+import useAppQuery from "../base/useAppQuery";
+import { apisQueryKeys } from "../queryKeys";
 
 /**
  * `apis` 도메인 관련 React Query 함수들을 모아둔 파일입니다.
@@ -50,7 +50,7 @@ export const getApis = async (): Promise<ApiItem[]> => {
  *
  * @returns API 목록 조회 쿼리 결과 객체
  */
-export const useApisListQuery = () => {
+export const useMockListQuery = () => {
   return useAppQuery(apisQueryKeys.list(), getApis, {
     throwOnError: true,
   });
