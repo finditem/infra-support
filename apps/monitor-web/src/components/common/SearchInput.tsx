@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "@/utils";
 import ClearButton from "./ClearButton";
@@ -50,6 +50,10 @@ const SearchInput = ({
   const currentQuery = searchParams.get(paramKey) ?? "";
   const [value, setValue] = useState(currentQuery);
 
+  useEffect(() => {
+    setValue(currentQuery);
+  }, [currentQuery]);
+
   const handleSearch = () => {
     if (value === currentQuery) return;
 
@@ -73,6 +77,7 @@ const SearchInput = ({
     >
       <div className="relative flex items-center">
         <input
+          aria-label="검색어"
           className={cn(
             "border-1 rounded-4 border-gray-300 px-4 py-2 pr-8",
             "focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"

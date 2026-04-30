@@ -1,4 +1,4 @@
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, useId } from "react";
 import { cn } from "@/utils";
 
 /**
@@ -52,16 +52,18 @@ const TextField = ({
   className,
   ...props
 }: TextFieldProps) => {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
   const showSuccess = !errorMessage && !!successMessage;
-  const errorId = errorMessage ? `${id}-error` : undefined;
-  const successId = showSuccess ? `${id}-success` : undefined;
+  const errorId = errorMessage ? `${inputId}-error` : undefined;
+  const successId = showSuccess ? `${inputId}-success` : undefined;
 
   return (
     <div className="flex flex-col gap-2">
-      {label && <label htmlFor={id}>{label}</label>}
+      {label && <label htmlFor={inputId}>{label}</label>}
 
       <input
-        id={id}
+        id={inputId}
         aria-describedby={errorId ?? successId}
         aria-invalid={!!errorMessage}
         className={cn(
