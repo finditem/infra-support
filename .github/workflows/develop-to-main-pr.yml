@@ -18,26 +18,39 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get Changelog
-        id: changelog
+      - name: Create or Update Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.YML_GITHUB_TOKEN }}
         run: |
           git fetch origin main
-          LOGS=$(git log origin/main..HEAD --merges --pretty=format:"%s" | grep "^Merge pull request" | sed 's/^/- /')
-          echo "logs<<EOF" >> $GITHUB_OUTPUT
-          echo "$LOGS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          
+          LOGS=$(git log origin/main..HEAD --merges --pretty=format:"%s" | grep "^Merge pull request" | sed 's/^/- /' || true)
+          
+          cat << 'EOF' > /tmp/pr_body.md
+          ## 작업 요약
+          Develop 브랜치의 최신 변경 사항을 Main 브랜치로 반영합니다.
 
-      - name: Create or Update Pull Request
-        uses: repo-sync/pull-request@v2
-        with:
-          source_branch: "develop"
-          destination_branch: "main"
-          pr_title: "[배포 대기] main 최신화"
-          pr_body: |
-            ## 작업 요약
-            Develop 브랜치의 최신 변경 사항을 Main 브랜치로 반영합니다.
+          ### 최근 머지된 내역
+          EOF
+          
+          if [ -n "$LOGS" ]; then
+            printf '%s\n' "$LOGS" >> /tmp/pr_body.md
+          else
+            echo "새로 추가된 머지 내역이 없습니다." >> /tmp/pr_body.md
+          fi
 
-            ### 최근 머지된 내역
-            ${{ steps.changelog.outputs.logs }}
-          pr_label: "main"
-          github_token: ${{ secrets.YML_GITHUB_TOKEN }}
+          PR_NUMBER=$(gh pr list --base main --head develop --state open --json number -q '.[0].number')
+          
+          if [ -z "$PR_NUMBER" ]; then
+            gh pr create \
+              --base main \
+              --head develop \
+              --title "[배포 대기] main 최신화" \
+              --body-file /tmp/pr_body.md \
+              --label "main"
+          else
+            gh pr edit $PR_NUMBER \
+              --title "[배포 대기] main 최신화" \
+              --body-file /tmp/pr_body.md \
+              --add-label "main"
+          fi
