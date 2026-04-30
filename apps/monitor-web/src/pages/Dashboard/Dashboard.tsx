@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Checkbox, Icon } from "@/components";
+import { Checkbox, ClearButton, Icon, LoadingSpinner } from "@/components";
 import { useToast } from "@/hooks";
 import { useMockListQuery } from "@/queries";
 
@@ -44,6 +44,10 @@ const Dashboard = () => {
           Large
         </Checkbox>
       </div>
+
+      <ClearButton onClick={() => {}} />
+
+      <LoadingSpinner size={40} />
 
       <div className="mt-4 flex gap-2">
         <button

@@ -1,5 +1,5 @@
 {
-  "tailwindCSS.experimental.configFile": "apps/monitor-web/tailwind.config.js",
+  "tailwindCSS.experimental.configFile": "apps/monitor-web/tailwind.config.ts",
   "cSpell.words": ["jikwon", "supabase"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
