@@ -30,10 +30,10 @@ interface IconProps extends Omit<SVGProps<SVGSVGElement>, "aria-hidden"> {
  * <Icon name="alert" aria-hidden={false} aria-label="알림" />
  */
 
-const Icon = ({ "aria-hidden": ariaHidden = true, name, size = 24, ...props }: IconProps) => {
+const Icon = ({ "aria-hidden": ariaHidden = true, name, size = 24, width, height, ...props }: IconProps) => {
   const SvgIcon = ICON_MAP[name];
 
-  return <SvgIcon aria-hidden={ariaHidden} height={size} width={size} {...props} />;
+  return <SvgIcon aria-hidden={ariaHidden} height={height ?? size} width={width ?? size} {...props} />;
 };
 
 export default Icon;
