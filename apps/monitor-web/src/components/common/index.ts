@@ -5,4 +5,5 @@ export { default as Icon } from "./Icon";
 export type { IconName } from "./Icon";
 export { default as LoadingSpinner } from "./LoadingSpinner";
 export { default as Nav } from "./Nav";
+export { default as TextareaField } from "./TextareaField";
 export { default as Toast } from "./Toast";
