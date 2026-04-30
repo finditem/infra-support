@@ -17,11 +17,13 @@ import ClearButton from "./ClearButton";
 interface SearchInputProps {
   /** URL 쿼리스트링 키 (default: 'q') */
   paramKey?: string;
+  /** input 플레이스홀더 텍스트 (default: "검색어를 입력해 주세요.") */
   placeholder?: string;
   /** 입력 최대 글자 수 (default: 30) */
   maxLength?: number;
   /** 검색 버튼 표시 여부 (default: true) */
   showSearchButton?: boolean;
+  /** form 요소에 추가할 스타일 클래스 */
   className?: string;
 }
 
