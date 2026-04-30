@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Checkbox, ClearButton, Icon, LoadingSpinner } from "@/components";
+import { Checkbox, ClearButton, Icon, LoadingSpinner, TextField } from "@/components";
 import { useMockListQuery } from "@/queries";
 
 const Dashboard = () => {
@@ -7,6 +7,9 @@ const Dashboard = () => {
   const [checkedSm, setCheckedSm] = useState(false);
   const [checkedMd, setCheckedMd] = useState(false);
   const [checkedLg, setCheckedLg] = useState(false);
+  const [email, setEmail] = useState("");
+
+  const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   if (isLoading) {
     return <div>로딩</div>;
@@ -44,6 +47,34 @@ const Dashboard = () => {
       <ClearButton onClick={() => {}} />
 
       <LoadingSpinner size={40} />
+
+      <div className="flex flex-col gap-4">
+        {/* 기본 */}
+        <TextField placeholder="기본 입력" />
+
+        {/* label */}
+        <TextField id="with-label" label="이름" placeholder="이름을 입력하세요" />
+
+        {/* 에러 메시지 */}
+        <TextField
+          id="with-error"
+          errorMessage={
+            email && !isValidEmail(email) ? "올바른 이메일 형식이 아닙니다." : undefined
+          }
+          label="이메일"
+          placeholder="이메일을 입력하세요"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        {/* 성공 메시지 */}
+        <TextField
+          id="with-success"
+          label="닉네임"
+          placeholder="닉네임을 입력하세요"
+          successMessage="사용 가능한 닉네임입니다."
+        />
+      </div>
     </div>
   );
 };
