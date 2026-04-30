@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Checkbox, ClearButton, Icon, LoadingSpinner, TextField } from "@/components";
+import { Checkbox, ClearButton, Icon, LoadingSpinner, SearchInput, TextField } from "@/components";
 import { useMockListQuery } from "@/queries";
 
 const Dashboard = () => {
@@ -16,7 +16,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-1">
       <h1>대시보드</h1>
 
       <ul>
@@ -44,9 +44,17 @@ const Dashboard = () => {
         </Checkbox>
       </div>
 
-      <ClearButton onClick={() => {}} />
+      <div>
+        <ClearButton onClick={() => {}} />
+      </div>
 
       <LoadingSpinner size={40} />
+
+      <div className="flex flex-col gap-4">
+        <SearchInput />
+        <SearchInput placeholder="검색 Placeholder" />
+        <SearchInput paramKey="default" placeholder="기본값" showSearchButton={false} />
+      </div>
 
       <div className="flex flex-col gap-4">
         {/* 기본 */}
