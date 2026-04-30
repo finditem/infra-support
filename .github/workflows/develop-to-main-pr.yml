@@ -22,7 +22,7 @@ jobs:
         id: changelog
         run: |
           git fetch origin main
-          LOGS=$(git log origin/main..HEAD --oneline --pretty=format:"- %s")
+          LOGS=$(git log origin/main..HEAD --merges --pretty=format:"%s" | grep "^Merge pull request" | sed 's/^/- /')
           echo "logs<<EOF" >> $GITHUB_OUTPUT
           echo "$LOGS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT

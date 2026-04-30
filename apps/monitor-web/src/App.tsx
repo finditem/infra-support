@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { Dashboard, Login, ErrorLog, ApiDetail, ApiEdit, ErrorDetail, NotFound } from "./pages";
 import { Nav } from "./components";
+import { ToastContainer } from "./layouts";
 
 export default function App() {
   return (
@@ -18,6 +19,8 @@ export default function App() {
           <Route element={<NotFound />} path="*" />
         </Routes>
       </main>
+
+      <ToastContainer />
     </div>
   );
 }
