@@ -58,8 +58,8 @@ const Toast = ({ toast }: ToastProps) => {
 
   return (
     <div
-      role={ROLE_MAP[toast.type]}
       aria-atomic="true"
+      role={ROLE_MAP[toast.type]}
       className={cn(
         "animate-toast-in flex min-w-64 max-w-sm items-center gap-3 rounded-lg px-4 py-3 shadow-lg",
         STYLE_MAP[toast.type]
