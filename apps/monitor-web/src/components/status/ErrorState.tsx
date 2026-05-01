@@ -30,7 +30,7 @@ interface ErrorStateProps {
  * // 기본
  * <ErrorState />
  *
- * // 커스텀 아이콘·메시지
+ * // 아이콘, 메시지 커스텀
  * <ErrorState icon="clear" message="데이터를 불러오는 중 문제가 발생했습니다." />
  */
 

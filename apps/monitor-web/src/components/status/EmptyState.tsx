@@ -27,7 +27,7 @@ interface EmptyStateProps {
  * // 기본
  * <EmptyState />
  *
- * // 아이콘·메시지 커스텀
+ * // 아이콘, 메시지 커스텀
  * <EmptyState icon="check" iconClassName="text-blue-400" message="검색 결과가 없습니다." />
  */
 
