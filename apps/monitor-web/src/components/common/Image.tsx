@@ -1,5 +1,5 @@
-import { type SyntheticEvent, type ImgHTMLAttributes } from "react";
-
+import { useState, useEffect, type SyntheticEvent, type ImgHTMLAttributes } from "react";
+import { cn } from "@/utils";
 /**
  *  공통 이미지 컴포넌트입니다.
  *
@@ -57,9 +57,16 @@ const Image = ({
   width,
   fallbackSrc,
   onError,
+  ...props
 }: ImageProps) => {
+  const [imgSrc, setImgSrc] = useState(src);
+
+  useEffect(() => {
+    setImgSrc(src);
+  }, [src]);
+
   const handleError = (e: SyntheticEvent<HTMLImageElement>) => {
-    if (fallbackSrc && e.currentTarget.src !== fallbackSrc) {
+    if (fallbackSrc && imgSrc !== fallbackSrc) {
       e.currentTarget.src = fallbackSrc;
       return;
     }
@@ -69,12 +76,13 @@ const Image = ({
   return (
     <img
       alt={alt}
-      className={className}
+      className={cn(className)}
       height={height}
       loading={loading}
       src={src}
       width={width}
       onError={handleError}
+      {...props}
     />
   );
 };
