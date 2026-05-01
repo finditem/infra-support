@@ -1,3 +1,5 @@
+import { type SyntheticEvent, type ImgHTMLAttributes } from "react";
+
 /**
  *  공통 이미지 컴포넌트입니다.
  *
@@ -9,7 +11,10 @@
  * @author junyeol
  */
 
-interface ImageProps {
+interface ImageProps extends Omit<
+  ImgHTMLAttributes<HTMLImageElement>,
+  "src" | "alt" | "width" | "height"
+> {
   /** Image URL */
   src: string;
   /** 대체 텍스트 (장식용 이미지는 빈 문자열 허용) */
@@ -53,7 +58,7 @@ const Image = ({
   fallbackSrc,
   onError,
 }: ImageProps) => {
-  const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleError = (e: SyntheticEvent<HTMLImageElement>) => {
     if (fallbackSrc && e.currentTarget.src !== fallbackSrc) {
       e.currentTarget.src = fallbackSrc;
       return;
