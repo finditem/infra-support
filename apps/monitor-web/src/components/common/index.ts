@@ -8,3 +8,4 @@ export { default as Nav } from "./Nav";
 export { default as SearchInput } from "./SearchInput";
 export { default as TextField } from "./TextField";
 export { default as Toast } from "./Toast";
+export { default as Image } from "./Image";
