@@ -8,7 +8,7 @@ export default function App() {
     <div className="flex h-screen">
       <Nav />
 
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="flex-1 overflow-y-auto bg-[#F7F7F7] p-8">
         <Routes>
           <Route element={<Dashboard />} path="/" />
           <Route element={<Login />} path="/login" />
