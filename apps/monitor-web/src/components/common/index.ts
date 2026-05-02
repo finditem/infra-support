@@ -11,3 +11,4 @@ export { default as TextField } from "./TextField";
 export { default as Toast } from "./Toast";
 export { default as Image } from "./Image";
 export { default as BasicButton } from "./Buttons/BasicButton";
+export { default as IconButton } from "./Buttons/IconButton";

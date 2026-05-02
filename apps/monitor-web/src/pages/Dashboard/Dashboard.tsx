@@ -7,6 +7,7 @@ import {
   SearchInput,
   TextField,
   BasicButton,
+  IconButton,
 } from "@/components";
 import { useToast } from "@/hooks";
 import { useMockListQuery } from "@/queries";
@@ -116,7 +117,7 @@ const Dashboard = () => {
           successMessage="사용 가능한 닉네임입니다."
         />
       </div>
-      <div>
+      <div className="gap-4 flex-center">
         <BasicButton size="big" variant="solid" onClick={() => {}}>
           big
         </BasicButton>
@@ -126,6 +127,7 @@ const Dashboard = () => {
         <BasicButton size="small" variant="solid" onClick={() => {}}>
           small
         </BasicButton>
+        <IconButton ariaLabel="확인" iconName="check" onClick={() => {}} />
       </div>
     </div>
   );
