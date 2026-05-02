@@ -118,13 +118,13 @@ const Dashboard = () => {
       </div>
       <div>
         <BasicButton size="big" variant="solid" onClick={() => {}}>
-          클릭
+          big
         </BasicButton>
         <BasicButton size="medium" variant="solid" onClick={() => {}}>
-          클릭
+          medium
         </BasicButton>
         <BasicButton size="small" variant="solid" onClick={() => {}}>
-          클릭
+          small
         </BasicButton>
       </div>
     </div>

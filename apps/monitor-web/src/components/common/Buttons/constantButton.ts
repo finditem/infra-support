@@ -1,3 +1,5 @@
+//TODO(준열): 향후 디자인 시스템 확립시 상수화된 스타일 값들 수정 예정 , 현재 운영팀 스타일 참고하여 작성
+
 export type Size = "big" | "medium" | "small";
 
 export const SIZE_STYLES: Record<Size, string> = {
