@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/utils";
-import LoadingSpinner from "./LoadingSpinner";
+import LoadingSpinner from "../LoadingSpinner";
 
 interface BasicButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   children: ReactNode;
