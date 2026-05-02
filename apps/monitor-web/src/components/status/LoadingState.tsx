@@ -27,7 +27,7 @@ interface LoadingStateProps {
 
 const LoadingState = ({ message }: LoadingStateProps) => {
   return (
-    <StatusLayout>
+    <StatusLayout role="none">
       <LoadingSpinner size={32} />
       {message && <p className="text-sm text-gray-500">{message}</p>}
     </StatusLayout>

@@ -16,8 +16,8 @@ interface StatusLayoutProps {
   children: ReactNode;
   /** 기본 `py-20 gap-5` 스타일을 오버라이드할 스타일 */
   className?: string;
-  /** 스크린 리더 알림 방식. error는 "alert", 그 외는 "status" */
-  role?: "status" | "alert";
+  /** 스크린 리더 알림 방식. error는 "alert", 자식이 role을 직접 처리할 때는 "none", 그 외는 "status" */
+  role?: "status" | "alert" | "none";
 }
 
 /**
