@@ -76,7 +76,13 @@ const BasicButton = ({
       disabled={disabled || loading}
       type={type}
     >
-      {loading ? <LoadingSpinner size={LOADING_SPINNER_SIZE[size]} /> : children}
+      <span className={cn(loading && "invisible")}>{children}</span>
+
+      {loading && (
+        <span className="absolute inset-0 flex-center">
+          <LoadingSpinner size={LOADING_SPINNER_SIZE[size]} />
+        </span>
+      )}
     </button>
   );
 };
