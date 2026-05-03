@@ -127,7 +127,7 @@ const Dashboard = () => {
         <BasicButton size="small" variant="solid" onClick={() => {}}>
           small
         </BasicButton>
-        <IconButton ariaLabel="확인" iconName="check" onClick={() => {}} />
+        <IconButton aria-label="확인" iconName="check" onClick={() => {}} />
       </div>
     </div>
   );
