@@ -8,6 +8,7 @@ import {
   TextField,
   BasicButton,
   IconButton,
+  Modal,
 } from "@/components";
 import { useToast } from "@/hooks";
 import { useMockListQuery } from "@/queries";
@@ -19,6 +20,7 @@ const Dashboard = () => {
   const [checkedMd, setCheckedMd] = useState(false);
   const [checkedLg, setCheckedLg] = useState(false);
   const [email, setEmail] = useState("");
+  const [open, setOpen] = useState(false);
 
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -129,6 +131,15 @@ const Dashboard = () => {
         </BasicButton>
         <IconButton aria-label="확인" iconName="check" onClick={() => {}} />
       </div>
+
+      <BasicButton onClick={() => setOpen(true)}>모달 열기</BasicButton>
+
+      <Modal aria-label="테스트 모달" open={open} onOpenChange={setOpen}>
+        <div className="flex flex-col gap-2">
+          <span>테스트 입니다.</span>
+          <BasicButton onClick={() => setOpen(false)}>닫기</BasicButton>
+        </div>
+      </Modal>
     </div>
   );
 };
