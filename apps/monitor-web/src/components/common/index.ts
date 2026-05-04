@@ -12,3 +12,4 @@ export { default as Toast } from "./Toast";
 export { default as Image } from "./Image";
 export { default as BasicButton } from "./Buttons/BasicButton";
 export { default as IconButton } from "./Buttons/IconButton";
+export { default as Modal } from "./Modal";
