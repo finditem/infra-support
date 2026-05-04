@@ -93,16 +93,17 @@ const Modal = ({
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-50 bg-black/50 p-4" onClick={handleOverlayClick}>
-      <div className="min-h-full flex-center">
-        <div
-          aria-label={ariaLabel}
-          aria-modal="true"
-          role="dialog"
-          className={cn("w-full rounded-lg bg-white p-6", className)}
-        >
-          {children}
-        </div>
+    <div
+      className="fixed inset-0 z-50 min-h-full bg-black/50 p-4 flex-center"
+      onClick={handleOverlayClick}
+    >
+      <div
+        aria-label={ariaLabel}
+        aria-modal="true"
+        role="dialog"
+        className={cn("w-fit rounded-lg bg-white p-6", className)}
+      >
+        {children}
       </div>
     </div>,
     document.body
