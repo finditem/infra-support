@@ -1,4 +1,4 @@
-import Icon from "../Icon";
+import Icon from "../display/Icon";
 import { cn } from "@/utils";
 
 /**
