@@ -1,1 +1,1 @@
-export { default as ModalLayout } from "./ModalLayout";
+export { default as ModalLayout } from "./_internal/ModalLayout";

@@ -7,7 +7,7 @@ import {
   SIZE_STYLES,
   VARIANT_STYLES,
   Size,
-} from "./buttons.constants";
+} from "./_internal/buttons.constants";
 
 /**
  * 공통 베이직 버튼 컴포넌트입니다.
