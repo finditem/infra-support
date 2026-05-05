@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Checkbox,
+  CheckboxButton,
   ClearButton,
   Icon,
   LoadingSpinner,
@@ -69,15 +69,15 @@ const Dashboard = () => {
       </button>
 
       <div className="flex flex-col gap-4 p-4">
-        <Checkbox checked={checkedSm} size="sm" onCheckedChange={setCheckedSm}>
+        <CheckboxButton checked={checkedSm} size="sm" onCheckedChange={setCheckedSm}>
           Small
-        </Checkbox>
-        <Checkbox checked={checkedMd} size="md" onCheckedChange={setCheckedMd}>
+        </CheckboxButton>
+        <CheckboxButton checked={checkedMd} size="md" onCheckedChange={setCheckedMd}>
           Medium
-        </Checkbox>
-        <Checkbox checked={checkedLg} size="lg" onCheckedChange={setCheckedLg}>
+        </CheckboxButton>
+        <CheckboxButton checked={checkedLg} size="lg" onCheckedChange={setCheckedLg}>
           Large
-        </Checkbox>
+        </CheckboxButton>
       </div>
 
       <div>
