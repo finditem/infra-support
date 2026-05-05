@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "@/utils";
-import ClearButton from "../Buttons/ClearButton";
+import ClearButton from "../buttons/ClearButton";
 
 /**
  * URL 쿼리스트링 기반 검색 입력 컴포넌트의 props
