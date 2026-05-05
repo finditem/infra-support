@@ -28,20 +28,33 @@ interface ModalProps {
   className?: string;
   /** 스크린 리더용 레이블 */
   "aria-label"?: string;
+  /** 제목 요소 id ( 모달 이름 (제목))*/
+  "aria-labelledby"?: string;
+  /** 설명 요소 id ( 보조 설명 (본문 / 주의 문구))*/
+  "aria-describedby"?: string;
 }
 
 /**
  * @example
  * ```tsx
- * <Modal open={open} onOpenChange={setOpen} aria-label="삭제 확인">
+ * // aria-label을 사용하는 경우
+ * <ModalLayout open={open} onOpenChange={setOpen} aria-label="삭제 확인">
  *   <div className="...">
  *     ...
  *   </div>
- * </Modal>
+ * </ModalLayout>
+ *
+ * // aria-labelledby + aria-describedby을 사용하는 경우
+ * <ModalLayout open={open} onOpenChange={setOpen} aria-labelledby="modal-title" aria-describedby="modal-description">
+ *  <h2 id="modal-title">삭제 확인</h2>
+ *  <div id="modal-description" className="...">
+ *    ...
+ *  </div>
+ * </ModalLayout>
  * ```
  */
 
-const Modal = ({
+const ModalLayout = ({
   open,
   onOpenChange,
   children,
@@ -49,6 +62,8 @@ const Modal = ({
   closeOnOverlayClick = true,
   className,
   "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
+  "aria-describedby": ariaDescribedBy,
 }: ModalProps) => {
   useEffect(() => {
     if (!open) {
@@ -98,7 +113,9 @@ const Modal = ({
       onClick={handleOverlayClick}
     >
       <div
+        aria-describedby={ariaDescribedBy}
         aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         aria-modal="true"
         role="dialog"
         className={cn("w-fit rounded-lg bg-white p-6", className)}
@@ -110,4 +127,4 @@ const Modal = ({
   );
 };
 
-export default Modal;
+export default ModalLayout;
