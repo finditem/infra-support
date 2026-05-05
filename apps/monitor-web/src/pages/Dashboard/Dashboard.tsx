@@ -8,7 +8,7 @@ import {
   TextField,
   BasicButton,
   IconButton,
-  Modal,
+  ModalLayout,
 } from "@/components";
 import { useToast } from "@/hooks";
 import { useMockListQuery } from "@/queries";
@@ -134,12 +134,12 @@ const Dashboard = () => {
 
       <BasicButton onClick={() => setOpen(true)}>모달 열기</BasicButton>
 
-      <Modal aria-label="테스트 모달" open={open} onOpenChange={setOpen}>
+      <ModalLayout aria-label="테스트 모달" open={open} onOpenChange={setOpen}>
         <div className="flex flex-col gap-2">
           <span>테스트 입니다.</span>
           <BasicButton onClick={() => setOpen(false)}>닫기</BasicButton>
         </div>
-      </Modal>
+      </ModalLayout>
     </div>
   );
 };
