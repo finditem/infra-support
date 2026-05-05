@@ -1,5 +1,5 @@
 import { cn } from "@/utils";
-import Icon from "./Icon";
+import Icon from "../Icon";
 
 /**
  * input 또는 textarea의 텍스트를 지우는 버튼 컴포넌트입니다.

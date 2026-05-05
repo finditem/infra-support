@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/utils";
-import LoadingSpinner from "../LoadingSpinner";
+import LoadingSpinner from "../feedback/LoadingSpinner";
 import {
   BASE_STYLES,
   LOADING_SPINNER_SIZE,
