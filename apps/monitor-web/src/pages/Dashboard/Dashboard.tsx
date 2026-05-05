@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Checkbox, ClearButton, Icon, LoadingSpinner, SearchInput, TextField } from "@/components";
+import {
+  Checkbox,
+  ClearButton,
+  Icon,
+  LoadingSpinner,
+  SearchInput,
+  TextField,
+  BasicButton,
+  IconButton,
+} from "@/components";
 import { useToast } from "@/hooks";
 import { useMockListQuery } from "@/queries";
 
@@ -107,6 +116,18 @@ const Dashboard = () => {
           placeholder="닉네임을 입력하세요"
           successMessage="사용 가능한 닉네임입니다."
         />
+      </div>
+      <div className="gap-4 flex-center">
+        <BasicButton size="big" variant="solid" onClick={() => {}}>
+          big
+        </BasicButton>
+        <BasicButton size="medium" variant="solid" onClick={() => {}}>
+          medium
+        </BasicButton>
+        <BasicButton size="small" variant="solid" onClick={() => {}}>
+          small
+        </BasicButton>
+        <IconButton aria-label="확인" iconName="check" onClick={() => {}} />
       </div>
     </div>
   );
