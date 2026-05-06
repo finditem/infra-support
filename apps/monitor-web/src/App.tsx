@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { Dashboard, Login, ErrorLog, ApiDetail, ApiEdit, ErrorDetail, NotFound } from "./pages";
-import { Nav } from "./components";
-import { ToastContainer } from "./layouts";
+import { Nav, ToastContainer } from "./layouts";
 
 export default function App() {
   return (

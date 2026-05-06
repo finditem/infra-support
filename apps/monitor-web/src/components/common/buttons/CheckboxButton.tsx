@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import Icon from "./Icon";
+import Icon from "../display/Icon";
 import { cn } from "@/utils";
 
 /**
@@ -12,7 +12,7 @@ import { cn } from "@/utils";
  * @author jikwon
  */
 
-interface CheckboxProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onChange"> {
+interface CheckboxButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onChange"> {
   /** 체크박스 옆에 표시할 레이블 */
   children?: ReactNode;
   /** 체크 여부 (default: `false`) */
@@ -33,20 +33,20 @@ const SIZE_MAP = {
  * @example
  * // 기본 사용
  * const [checked, setChecked] = useState(false);
- * <Checkbox checked={checked} onCheckedChange={setChecked}>항목 선택</Checkbox>
+ * <CheckboxButton checked={checked} onCheckedChange={setChecked}>항목 선택</CheckboxButton>
  *
  * // 크기 지정
- * <Checkbox checked={checked} size="lg" onCheckedChange={setChecked}>대형 체크박스</Checkbox>
+ * <CheckboxButton checked={checked} size="lg" onCheckedChange={setChecked}>대형 체크박스</CheckboxButton>
  */
 
-const Checkbox = ({
+const CheckboxButton = ({
   checked = false,
   onCheckedChange,
   size = "md",
   className,
   children,
   ...props
-}: CheckboxProps) => {
+}: CheckboxButtonProps) => {
   return (
     <button
       aria-checked={checked}
@@ -66,4 +66,4 @@ const Checkbox = ({
   );
 };
 
-export default Checkbox;
+export default CheckboxButton;

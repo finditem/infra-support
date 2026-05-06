@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Checkbox,
+  CheckboxButton,
   ClearButton,
   Icon,
   LoadingSpinner,
@@ -8,6 +8,7 @@ import {
   TextField,
   BasicButton,
   IconButton,
+  ModalLayout,
 } from "@/components";
 import { useToast } from "@/hooks";
 import { useMockListQuery } from "@/queries";
@@ -19,6 +20,7 @@ const Dashboard = () => {
   const [checkedMd, setCheckedMd] = useState(false);
   const [checkedLg, setCheckedLg] = useState(false);
   const [email, setEmail] = useState("");
+  const [open, setOpen] = useState(false);
 
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -67,15 +69,15 @@ const Dashboard = () => {
       </button>
 
       <div className="flex flex-col gap-4 p-4">
-        <Checkbox checked={checkedSm} size="sm" onCheckedChange={setCheckedSm}>
+        <CheckboxButton checked={checkedSm} size="sm" onCheckedChange={setCheckedSm}>
           Small
-        </Checkbox>
-        <Checkbox checked={checkedMd} size="md" onCheckedChange={setCheckedMd}>
+        </CheckboxButton>
+        <CheckboxButton checked={checkedMd} size="md" onCheckedChange={setCheckedMd}>
           Medium
-        </Checkbox>
-        <Checkbox checked={checkedLg} size="lg" onCheckedChange={setCheckedLg}>
+        </CheckboxButton>
+        <CheckboxButton checked={checkedLg} size="lg" onCheckedChange={setCheckedLg}>
           Large
-        </Checkbox>
+        </CheckboxButton>
       </div>
 
       <div>
@@ -129,6 +131,15 @@ const Dashboard = () => {
         </BasicButton>
         <IconButton aria-label="확인" iconName="check" onClick={() => {}} />
       </div>
+
+      <BasicButton onClick={() => setOpen(true)}>모달 열기</BasicButton>
+
+      <ModalLayout aria-label="테스트 모달" open={open} onOpenChange={setOpen}>
+        <div className="flex flex-col gap-2">
+          <span>테스트 입니다.</span>
+          <BasicButton onClick={() => setOpen(false)}>닫기</BasicButton>
+        </div>
+      </ModalLayout>
     </div>
   );
 };

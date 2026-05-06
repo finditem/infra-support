@@ -1,13 +1,13 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/utils";
-import LoadingSpinner from "../LoadingSpinner";
+import LoadingSpinner from "../feedback/LoadingSpinner";
 import {
   BASE_STYLES,
   LOADING_SPINNER_SIZE,
   SIZE_STYLES,
   VARIANT_STYLES,
   Size,
-} from "./buttons.constants";
+} from "./_internal/buttons.constants";
 
 /**
  * 공통 베이직 버튼 컴포넌트입니다.

@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
-import Icon, { type IconName } from "../Icon";
+import Icon, { type IconName } from "../display/Icon";
 
 /**
  * 공통 아이콘 버튼 컴포넌트입니다.
