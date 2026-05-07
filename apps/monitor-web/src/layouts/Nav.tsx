@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 const PLACEHOLDER_API_ID = "1";
 const PLACEHOLDER_ERROR_ID = "1";
@@ -13,6 +13,12 @@ const navItems = [
 ];
 
 const Nav = () => {
+  const { pathname } = useLocation();
+
+  if (pathname === "/login") {
+    return null;
+  }
+
   return (
     <aside className="flex h-screen w-56 shrink-0 flex-col border-r bg-white px-3 py-6">
       <p className="mb-6 px-2 text-base font-bold text-gray-900">API 모니터링</p>

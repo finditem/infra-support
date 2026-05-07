@@ -60,14 +60,18 @@ const TextField = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {label && <label htmlFor={inputId}>{label}</label>}
+      {label && (
+        <label className="text-[18px] font-medium leading-4 text-[#5C5C5C]" htmlFor={inputId}>
+          {label}
+        </label>
+      )}
 
       <input
         id={inputId}
         aria-describedby={errorId ?? successId}
         aria-invalid={!!errorMessage}
         className={cn(
-          "border-1 rounded-4 border-gray-300 px-4 py-2",
+          "rounded-4 rounded-lg border border-[#DFDFDF] bg-white px-4 py-[18px]",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
           className
