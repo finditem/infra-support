@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks";
 import useAppMutation from "../base/useAppMutation";
+import { useQueryClient } from "@tanstack/react-query";
+import { authQueryKeys } from "../queryKeys";
 
 const logoutUser = async () => {
   const { error } = await supabase.auth.signOut();
@@ -10,10 +12,12 @@ const logoutUser = async () => {
 
 export const useLogoutMutation = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { error: errorToast } = useToast();
 
   return useAppMutation(logoutUser, {
     onSuccess: () => {
+      queryClient.removeQueries({ queryKey: authQueryKeys.all });
       navigate("/login");
     },
     onError: () => {
