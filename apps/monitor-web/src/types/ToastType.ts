@@ -12,6 +12,8 @@ export interface Toast {
   id: string;
   /** 토스트에 표시할 메시지 */
   message: string;
+  /** 토스트에 표시할 부가 설명 */
+  description: string;
   /** 토스트 종류 */
   type: ToastType;
   /** 자동 제거까지의 시간 ms (default: 3000) */

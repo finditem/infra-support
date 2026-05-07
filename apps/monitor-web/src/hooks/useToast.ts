@@ -71,8 +71,8 @@ export function useToastList() {
   return useSyncExternalStore(subscribe, getSnapshot);
 }
 
-function toast(message: string, type: ToastType, duration?: number) {
-  addToast({ message, type, duration });
+function toast(message: string, description: string, type: ToastType, duration?: number) {
+  addToast({ message, description, type, duration });
 }
 
 /**
@@ -104,9 +104,12 @@ function toast(message: string, type: ToastType, duration?: number) {
 export function useToast() {
   return useMemo(
     () => ({
-      success: (message: string, duration?: number) => toast(message, "success", duration),
-      error: (message: string, duration?: number) => toast(message, "error", duration),
-      warning: (message: string, duration?: number) => toast(message, "warning", duration),
+      success: (message: string, description: string, duration?: number) =>
+        toast(message, description, "success", duration),
+      error: (message: string, description: string, duration?: number) =>
+        toast(message, description, "error", duration),
+      warning: (message: string, description: string, duration?: number) =>
+        toast(message, description, "warning", duration),
     }),
     []
   );

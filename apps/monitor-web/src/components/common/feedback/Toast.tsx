@@ -61,21 +61,28 @@ const Toast = ({ toast }: ToastProps) => {
       aria-atomic="true"
       role={ROLE_MAP[toast.type]}
       className={cn(
-        "animate-toast-in flex min-w-64 max-w-sm items-center gap-3 rounded-lg px-4 py-3 shadow-lg",
+        "animate-toast-in flex min-w-64 max-w-sm items-center gap-3 rounded-lg p-5 shadow-lg",
         STYLE_MAP[toast.type]
       )}
     >
       <span aria-hidden className="text-base font-bold">
         {ICON_MAP[toast.type]}
       </span>
-      <p className="flex-1 text-sm">{toast.message}</p>
-      <button
-        aria-label="닫기"
-        className="ml-1 text-sm opacity-60 transition-opacity hover:opacity-100"
-        onClick={() => removeToast(toast.id)}
-      >
-        <span aria-hidden>X</span>
-      </button>
+
+      <div className="flex flex-1 items-start justify-between">
+        <div className="flex flex-col gap-[14px]">
+          <p className="flex-1 text-xl font-semibold leading-5">{toast.message}</p>
+          <span className="text-lg leading-4">{toast.description}</span>
+        </div>
+
+        <button
+          aria-label="닫기"
+          className="ml-1 text-sm opacity-60 transition-opacity hover:opacity-100"
+          onClick={() => removeToast(toast.id)}
+        >
+          <span aria-hidden>X</span>
+        </button>
+      </div>
     </div>
   );
 };
