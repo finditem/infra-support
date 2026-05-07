@@ -9,6 +9,7 @@ import {
   BasicButton,
   IconButton,
   ModalLayout,
+  Badge,
 } from "@/components";
 import { useToast } from "@/hooks";
 import { useMockListQuery } from "@/queries";
@@ -140,6 +141,13 @@ const Dashboard = () => {
           <BasicButton onClick={() => setOpen(false)}>닫기</BasicButton>
         </div>
       </ModalLayout>
+
+      <div className="flex flex-col gap-4">
+        <Badge status="healthy" />
+        <Badge status="degraded" />
+        <Badge status="outage" />
+        <Badge className="border-blue-200 bg-blue-50 text-blue-700" label="커스텀 배지" />
+      </div>
     </div>
   );
 };
