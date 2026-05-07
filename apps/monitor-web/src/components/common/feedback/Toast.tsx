@@ -26,7 +26,6 @@ const ICON_MAP: Record<ToastItem["type"], string> = {
   warning: "",
 };
 
-// error, warning은 즉시 읽어야 하므로 assertive, success는 polite
 const ROLE_MAP: Record<ToastItem["type"], "alert" | "status"> = {
   success: "status",
   error: "alert",
@@ -43,7 +42,7 @@ interface ToastProps {
  * ```tsx
  * // ToastContainer 내부에서 자동으로 렌더링됩니다.
  * // 직접 사용이 필요한 경우:
- * <Toast toast={{ id: "1", type: "success", message: "저장되었습니다." }} />
+ * <Toast toast={{ id: "1", type: "success", message: "저장되었습니다.", description: "변경 사항이 반영되었습니다." }} />
  * ```
  */
 

@@ -32,8 +32,8 @@ function getSnapshot() {
 /**
  * @example
  * ```ts
- * addToast({ type: "success", message: "저장되었습니다." });
- * addToast({ type: "error", message: "오류 발생", duration: 5000 });
+ * addToast({ type: "success", message: "저장되었습니다.", description: "변경 사항이 반영되었습니다." });
+ * addToast({ type: "error", message: "오류 발생", description: "잠시 후 다시 시도해 주세요.", duration: 5000 });
  * ```
  */
 
@@ -83,9 +83,9 @@ function toast(message: string, description: string, type: ToastType, duration?:
  * - 컴포넌트 외부에서 토스트를 발생시킬 때는 `addToast`를 직접 사용하세요.
  *
  * @returns 토스트 발생 메서드 객체
- * - `success`: 성공 토스트 표시
- * - `error`: 에러 토스트 표시
- * - `warning`: 경고 토스트 표시
+ * - `success(message, description, duration?)`: 성공 토스트 표시
+ * - `error(message, description, duration?)`: 에러 토스트 표시
+ * - `warning(message, description, duration?)`: 경고 토스트 표시
  *
  * @author jikwon
  */
@@ -95,9 +95,9 @@ function toast(message: string, description: string, type: ToastType, duration?:
  * ```tsx
  * const { success, error, warning } = useToast();
  *
- * success("저장되었습니다.");
- * error("요청에 실패했습니다.", 5000);
- * warning("주의가 필요한 작업입니다.");
+ * success("저장되었습니다.", "변경 사항이 반영되었습니다.");
+ * error("요청에 실패했습니다.", "잠시 후 다시 시도해 주세요.", 5000);
+ * warning("주의가 필요한 작업입니다.", "확인 후 진행해 주세요.");
  * ```
  */
 
