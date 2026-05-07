@@ -24,3 +24,8 @@ export const apisQueryKeys = {
   list: () => [...apisQueryKeys.all, "list"] as const,
   detail: (apiId: string) => [...apisQueryKeys.all, "detail", apiId] as const,
 };
+
+export const authQueryKeys = {
+  all: ["auth"] as const,
+  user: () => [...authQueryKeys.all, "user"] as const,
+};
