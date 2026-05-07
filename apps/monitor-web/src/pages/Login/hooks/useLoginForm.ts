@@ -13,6 +13,8 @@ const useLoginForm = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isPending) return;
+
     await login(values);
   };
 
