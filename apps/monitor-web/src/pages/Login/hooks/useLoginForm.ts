@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useLoginMutation } from "@/queries";
-import type { LoginFormValues } from "../types";
+import { LoginFormValues } from "../types";
 
 const useLoginForm = () => {
   const [values, setValues] = useState<LoginFormValues>({ username: "", password: "" });

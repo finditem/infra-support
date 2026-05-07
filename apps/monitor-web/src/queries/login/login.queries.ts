@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks";
 import useAppMutation from "../base/useAppMutation";
-import type { LoginFormValues } from "@/pages/Login/types";
+import { LoginFormValues } from "@/pages/Login/types";
 
 const loginWithEmail = async ({ username, password }: LoginFormValues) => {
   const { data, error } = await supabase.auth.signInWithPassword({

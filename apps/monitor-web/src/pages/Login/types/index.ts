@@ -1,4 +1,1 @@
-export interface LoginFormValues {
-  username: string;
-  password: string;
-}
+export * from "./loginFormValues";
