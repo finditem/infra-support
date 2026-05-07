@@ -5,14 +5,17 @@ import { cn } from "@/utils";
  * 공통 아바타 컴포넌트입니다.
  *
  * @remarks
- * - 기본 크기는 `32x32`로 고정되어 있습니다.
+ * - 기본 크기는 `32x32`로 되어 있습니다.
  * - 이미지 로드 실패 시 `fallbackSrc`가 있으면 대체 이미지를 렌더링합니다.
  * - `onError` 콜백은 최종 로드 실패 시 호출됩니다.
  *
  * @author junyeol
  */
 
-interface AvatarProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt"> {
+interface AvatarProps extends Omit<
+  ImgHTMLAttributes<HTMLImageElement>,
+  "src" | "alt" | "width" | "height"
+> {
   /** Avatar Image URL */
   src: string;
   /** 대체 텍스트 */
@@ -34,7 +37,7 @@ interface AvatarProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | 
  * ```
  */
 
-const Avatar = ({ src, alt, fallbackSrc, className, ...props }: AvatarProps) => {
+const Avatar = ({ src, alt, fallbackSrc, className, onError, ...props }: AvatarProps) => {
   const [imgSrc, setImgSrc] = useState(src);
 
   useEffect(() => {
@@ -46,16 +49,14 @@ const Avatar = ({ src, alt, fallbackSrc, className, ...props }: AvatarProps) => 
       setImgSrc(fallbackSrc);
       return;
     }
-    props.onError?.(e);
+    onError?.(e);
   };
 
   return (
     <img
       alt={alt}
-      className={cn("rounded-full object-cover", className)}
-      height={32}
+      className={cn("size-8 rounded-full object-cover", className)}
       src={imgSrc}
-      width={32}
       onError={handleError}
       {...props}
     />
