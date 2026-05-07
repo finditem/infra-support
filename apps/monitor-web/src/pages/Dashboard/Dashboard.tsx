@@ -142,7 +142,7 @@ const Dashboard = () => {
         </div>
       </ModalLayout>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 pt-5">
         <Badge status="healthy" />
         <Badge status="degraded" />
         <Badge status="outage" />
