@@ -1,3 +1,5 @@
+// TODO(준열) : fallbackSrc 기본 이미지 확정시 컴포넌트 내부에 기본값으로 지정하기 ( Image 컴포넌트도 동일 )
+
 import { useEffect, useState, type ImgHTMLAttributes, type SyntheticEvent } from "react";
 import { cn } from "@/utils";
 
@@ -22,6 +24,7 @@ interface AvatarProps extends Omit<
   alt: string;
   /** 이미지 로드 실패 시 사용할 대체 Avatar Image URL*/
   fallbackSrc?: string;
+  size?: number;
   /** 추가 클래스명 */
   className?: string;
 }
@@ -33,11 +36,20 @@ interface AvatarProps extends Omit<
  *  src="https://example.com/avatar.png"
  *  alt="카카오 공식 이미지"
  *  fallbackSrc="https://example.com/avatar-fallback.png"
+ *  size={40}
  * />
  * ```
  */
 
-const Avatar = ({ src, alt, fallbackSrc, className, onError, ...props }: AvatarProps) => {
+const Avatar = ({
+  src,
+  alt,
+  fallbackSrc,
+  size = 32,
+  className,
+  onError,
+  ...props
+}: AvatarProps) => {
   const [imgSrc, setImgSrc] = useState(src);
 
   useEffect(() => {
@@ -55,8 +67,11 @@ const Avatar = ({ src, alt, fallbackSrc, className, onError, ...props }: AvatarP
   return (
     <img
       alt={alt}
-      className={cn("size-8 rounded-full object-cover", className)}
+      className={cn("rounded-full object-cover", className)}
+      draggable={false}
+      height={size}
       src={imgSrc}
+      width={size}
       onError={handleError}
       {...props}
     />
