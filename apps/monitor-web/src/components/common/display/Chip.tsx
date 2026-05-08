@@ -28,8 +28,6 @@ interface ChipProps {
   onCheckedChange?: (checked: boolean) => void;
   /** 비활성화 여부 */
   disabled?: boolean;
-  /** 체크박스 크기 */
-  size?: "sm" | "md" | "lg";
   /** 추가 클래스명 */
   className?: string;
 }
