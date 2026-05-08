@@ -31,7 +31,7 @@ body {
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(
+  background-image: linear-gradient(
     90deg,
     rgba(165, 165, 165, 0.12) 25%,
     rgba(165, 165, 165, 0.28) 50%,
@@ -44,6 +44,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .skeleton-shimmer {
     animation: none;
-    background: rgba(165, 165, 165, 0.16);
+    background-image: none;
   }
 }
