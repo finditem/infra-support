@@ -11,6 +11,7 @@ import {
   ModalLayout,
   Badge,
   Chip,
+  Skeleton,
 } from "@/components";
 import { useToast } from "@/hooks";
 import { useLogoutMutation, useMockListQuery, useUserQuery } from "@/queries";
@@ -168,6 +169,15 @@ const Dashboard = () => {
         label={isChecked ? "확인완료" : "확인전"}
         onCheckedChange={setIsChecked}
       />
+
+      <div className="flex flex-col gap-3 pt-6">
+        <h2>Skeleton Test</h2>
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-6 w-40" rounded="sm" />
+        <Skeleton className="h-6 w-40" rounded="md" />
+        <Skeleton className="h-6 w-40" rounded="lg" />
+        <Skeleton className="h-6 w-40" rounded="full" />
+      </div>
     </div>
   );
 };
