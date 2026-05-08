@@ -44,7 +44,9 @@ const AuthRoute = ({ requireAuth }: AuthRouteProps) => {
   }
 
   if (requireAuth && !user) {
-    return <Navigate replace state={{ from: location.pathname }} to="/login" />;
+    return (
+      <Navigate replace state={{ from: `${location.pathname}${location.search}` }} to="/login" />
+    );
   }
 
   if (!requireAuth && user) {
