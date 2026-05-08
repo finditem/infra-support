@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks";
 import useAppMutation from "../base/useAppMutation";
@@ -17,13 +17,16 @@ const loginWithEmail = async ({ username, password }: LoginFormValues) => {
 
 export const useLoginMutation = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { error: errorToast } = useToast();
+
+  const from = location.state?.from || "/";
 
   return useAppMutation(loginWithEmail, {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authQueryKeys.user() });
-      navigate("/");
+      navigate(from, { replace: true });
     },
 
     onError: (error: Error) => {

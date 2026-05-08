@@ -4,18 +4,18 @@ import { LoginFormValues } from "../types";
 
 const useLoginForm = () => {
   const [values, setValues] = useState<LoginFormValues>({ username: "", password: "" });
-  const { mutateAsync: login, isPending } = useLoginMutation();
+  const { mutate: login, isPending } = useLoginMutation();
 
   const handleChange =
     (field: "username" | "password") => (event: ChangeEvent<HTMLInputElement>) => {
       setValues((prev) => ({ ...prev, [field]: event.target.value }));
     };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isPending) return;
 
-    await login(values);
+    login(values);
   };
 
   const isDisabled = isPending || !values.username.trim() || !values.password.trim();
