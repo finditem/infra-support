@@ -13,7 +13,7 @@ import {
   Chip,
 } from "@/components";
 import { useToast } from "@/hooks";
-import { useMockListQuery } from "@/queries";
+import { useLogoutMutation, useMockListQuery, useUserQuery } from "@/queries";
 
 const Dashboard = () => {
   const { data, isLoading } = useMockListQuery();
@@ -28,6 +28,8 @@ const Dashboard = () => {
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   const { success, error, warning } = useToast();
+  const { mutate: handleLogout } = useLogoutMutation();
+  const { data: user } = useUserQuery();
 
   if (isLoading) {
     return <div>로딩</div>;
@@ -35,6 +37,16 @@ const Dashboard = () => {
 
   return (
     <div className="flex flex-col gap-1">
+      <div className="my-2 border">
+        <p>현재 로그인된 유저 정보</p>
+        <p>{user ? user?.email : "로그인되지 않았습니다."}</p>
+        {!!user && (
+          <BasicButton className="mt-2" onClick={() => handleLogout()}>
+            로그아웃 버튼
+          </BasicButton>
+        )}
+      </div>
+
       <h1>대시보드</h1>
 
       <ul>
@@ -48,19 +60,19 @@ const Dashboard = () => {
       <div className="mt-4 flex gap-2">
         <button
           className="rounded-lg bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600"
-          onClick={() => success("성공 토스트")}
+          onClick={() => success("성공 토스트", "성공 토스트 입니다.")}
         >
           Success
         </button>
         <button
           className="rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600"
-          onClick={() => error("실패 토스트")}
+          onClick={() => error("실패 토스트", "실패 토스트 입니다")}
         >
           Error
         </button>
         <button
           className="rounded-lg bg-yellow-500 px-4 py-2 text-black transition-colors hover:bg-yellow-600"
-          onClick={() => warning("경고 토스트")}
+          onClick={() => warning("경고 토스트", "경고 토스트 입니다")}
         >
           Warning
         </button>

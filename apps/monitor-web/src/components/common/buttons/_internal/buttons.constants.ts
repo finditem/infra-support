@@ -33,4 +33,4 @@ export const VARIANT_STYLES = {
 } as const;
 
 export const BASE_STYLES =
-  "inline-flex min-w-20 items-center justify-center gap-2 rounded-lg transition-colors duration-150 disabled:cursor-not-allowed";
+  "relative inline-flex min-w-20 items-center justify-center gap-2 rounded-lg transition-colors duration-150 disabled:cursor-not-allowed";
