@@ -38,6 +38,7 @@ body {
     rgba(165, 165, 165, 0.12) 75%
   );
   background-size: 200% 100%;
+  background-color: rgba(226, 232, 240, 0.7);
   animation: skeleton-shimmer-move 1.8s ease-in-out infinite;
 }
 

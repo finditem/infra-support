@@ -37,7 +37,7 @@ const Skeleton = ({ className, rounded = "md" }: SkeletonProps) => {
     <div
       aria-hidden="true"
       className={cn(
-        "skeleton-shimmer pointer-events-none select-none bg-slate-200/70",
+        "skeleton-shimmer pointer-events-none select-none",
         ROUNDED_CLASS_MAP[rounded],
         className
       )}
