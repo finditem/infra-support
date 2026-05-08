@@ -10,6 +10,7 @@ import {
   IconButton,
   ModalLayout,
   Badge,
+  Chip,
 } from "@/components";
 import { useToast } from "@/hooks";
 import { useLogoutMutation, useMockListQuery, useUserQuery } from "@/queries";
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const [checkedLg, setCheckedLg] = useState(false);
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
 
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -160,6 +162,12 @@ const Dashboard = () => {
         <Badge status="outage" />
         <Badge className="border-blue-200 bg-blue-50 text-blue-700" label="커스텀 배지" />
       </div>
+
+      <Chip
+        checked={isChecked}
+        label={isChecked ? "확인완료" : "확인전"}
+        onCheckedChange={setIsChecked}
+      />
     </div>
   );
 };
