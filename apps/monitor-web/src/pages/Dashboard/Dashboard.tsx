@@ -1,7 +1,20 @@
 import { useState } from "react";
-import { Checkbox, ClearButton, Icon, LoadingSpinner, SearchInput, TextField } from "@/components";
+import {
+  CheckboxButton,
+  ClearButton,
+  Icon,
+  LoadingSpinner,
+  SearchInput,
+  TextField,
+  BasicButton,
+  IconButton,
+  ModalLayout,
+  Badge,
+  Chip,
+  Skeleton,
+} from "@/components";
 import { useToast } from "@/hooks";
-import { useMockListQuery } from "@/queries";
+import { useLogoutMutation, useMockListQuery, useUserQuery } from "@/queries";
 
 const Dashboard = () => {
   const { data, isLoading } = useMockListQuery();
@@ -10,10 +23,14 @@ const Dashboard = () => {
   const [checkedMd, setCheckedMd] = useState(false);
   const [checkedLg, setCheckedLg] = useState(false);
   const [email, setEmail] = useState("");
+  const [open, setOpen] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
 
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   const { success, error, warning } = useToast();
+  const { mutate: handleLogout } = useLogoutMutation();
+  const { data: user } = useUserQuery();
 
   if (isLoading) {
     return <div>로딩</div>;
@@ -21,6 +38,16 @@ const Dashboard = () => {
 
   return (
     <div className="flex flex-col gap-1">
+      <div className="my-2 border">
+        <p>현재 로그인된 유저 정보</p>
+        <p>{user ? user?.email : "로그인되지 않았습니다."}</p>
+        {!!user && (
+          <BasicButton className="mt-2" onClick={() => handleLogout()}>
+            로그아웃 버튼
+          </BasicButton>
+        )}
+      </div>
+
       <h1>대시보드</h1>
 
       <ul>
@@ -34,19 +61,19 @@ const Dashboard = () => {
       <div className="mt-4 flex gap-2">
         <button
           className="rounded-lg bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600"
-          onClick={() => success("성공 토스트")}
+          onClick={() => success("성공 토스트", "성공 토스트 입니다.")}
         >
           Success
         </button>
         <button
           className="rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600"
-          onClick={() => error("실패 토스트")}
+          onClick={() => error("실패 토스트", "실패 토스트 입니다")}
         >
           Error
         </button>
         <button
           className="rounded-lg bg-yellow-500 px-4 py-2 text-black transition-colors hover:bg-yellow-600"
-          onClick={() => warning("경고 토스트")}
+          onClick={() => warning("경고 토스트", "경고 토스트 입니다")}
         >
           Warning
         </button>
@@ -58,15 +85,15 @@ const Dashboard = () => {
       </button>
 
       <div className="flex flex-col gap-4 p-4">
-        <Checkbox checked={checkedSm} size="sm" onCheckedChange={setCheckedSm}>
+        <CheckboxButton checked={checkedSm} size="sm" onCheckedChange={setCheckedSm}>
           Small
-        </Checkbox>
-        <Checkbox checked={checkedMd} size="md" onCheckedChange={setCheckedMd}>
+        </CheckboxButton>
+        <CheckboxButton checked={checkedMd} size="md" onCheckedChange={setCheckedMd}>
           Medium
-        </Checkbox>
-        <Checkbox checked={checkedLg} size="lg" onCheckedChange={setCheckedLg}>
+        </CheckboxButton>
+        <CheckboxButton checked={checkedLg} size="lg" onCheckedChange={setCheckedLg}>
           Large
-        </Checkbox>
+        </CheckboxButton>
       </div>
 
       <div>
@@ -107,6 +134,49 @@ const Dashboard = () => {
           placeholder="닉네임을 입력하세요"
           successMessage="사용 가능한 닉네임입니다."
         />
+      </div>
+      <div className="gap-4 flex-center">
+        <BasicButton size="big" variant="solid" onClick={() => {}}>
+          big
+        </BasicButton>
+        <BasicButton size="medium" variant="solid" onClick={() => {}}>
+          medium
+        </BasicButton>
+        <BasicButton size="small" variant="solid" onClick={() => {}}>
+          small
+        </BasicButton>
+        <IconButton aria-label="확인" iconName="check" onClick={() => {}} />
+      </div>
+
+      <BasicButton onClick={() => setOpen(true)}>모달 열기</BasicButton>
+
+      <ModalLayout aria-label="테스트 모달" open={open} onOpenChange={setOpen}>
+        <div className="flex flex-col gap-2">
+          <span>테스트 입니다.</span>
+          <BasicButton onClick={() => setOpen(false)}>닫기</BasicButton>
+        </div>
+      </ModalLayout>
+
+      <div className="flex flex-col gap-4 pt-5">
+        <Badge status="healthy" />
+        <Badge status="degraded" />
+        <Badge status="outage" />
+        <Badge className="border-blue-200 bg-blue-50 text-blue-700" label="커스텀 배지" />
+      </div>
+
+      <Chip
+        checked={isChecked}
+        label={isChecked ? "확인완료" : "확인전"}
+        onCheckedChange={setIsChecked}
+      />
+
+      <div className="flex flex-col gap-3 pt-6">
+        <h2>Skeleton Test</h2>
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-6 w-40" rounded="sm" />
+        <Skeleton className="h-6 w-40" rounded="md" />
+        <Skeleton className="h-6 w-40" rounded="lg" />
+        <Skeleton className="h-6 w-40" rounded="full" />
       </div>
     </div>
   );

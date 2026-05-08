@@ -15,7 +15,7 @@ interface TextareaFieldProps extends TextareaHTMLAttributes<HTMLTextAreaElement>
   /** 텍스트 영역 상단에 표시할 레이블 */
   label?: string;
   /** 에러 상태일 때 표시할 에러 메시지 */
-  error?: string;
+  errorMessage?: string;
 }
 
 /**
@@ -29,7 +29,7 @@ interface TextareaFieldProps extends TextareaHTMLAttributes<HTMLTextAreaElement>
  * ```
  */
 
-const TextareaField = ({ className, label, error, id, ...props }: TextareaFieldProps) => {
+const TextareaField = ({ className, label, errorMessage, id, ...props }: TextareaFieldProps) => {
   const generatedId = useId();
   const textareaId = id ?? generatedId;
   const errorId = `${textareaId}-error`;
@@ -44,22 +44,22 @@ const TextareaField = ({ className, label, error, id, ...props }: TextareaFieldP
 
       <textarea
         id={textareaId}
-        aria-describedby={error ? errorId : undefined}
-        aria-invalid={!!error}
+        aria-describedby={errorMessage ? errorId : undefined}
+        aria-invalid={!!errorMessage}
         className={cn(
           "w-full rounded-md border border-gray-300 px-3 py-2 text-sm",
           "placeholder:text-gray-400",
           "focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500",
           "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
-          error && "border-red-500 focus:ring-red-500",
+          errorMessage && "border-red-500 focus:ring-red-500",
           className
         )}
         {...props}
       />
 
-      {error && (
+      {errorMessage && (
         <p id={errorId} className="text-sm text-red-500">
-          {error}
+          {errorMessage}
         </p>
       )}
     </div>
