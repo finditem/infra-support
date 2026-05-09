@@ -1,9 +1,9 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks";
 import useAppMutation from "../base/useAppMutation";
-import { LoginFormValues } from "@/pages/Login/types";
-import { useQueryClient } from "@tanstack/react-query";
+import type { LoginFormValues } from "@/pages/Login/_types";
 import { authQueryKeys } from "../queryKeys";
 
 const loginWithEmail = async ({ username, password }: LoginFormValues) => {
