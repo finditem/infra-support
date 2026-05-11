@@ -20,6 +20,12 @@ StyleDictionary.registerTransformGroup({
   ],
 });
 
+// 미해결 참조({...}) 토큰 제외
+const isResolved = (token) => {
+  const val = String(token.value ?? '');
+  return !val.includes('{') && !val.includes('}');
+};
+
 function setDeep(obj, path, value) {
   let cur = obj;
   for (let i = 0; i < path.length - 1; i++) {
@@ -65,6 +71,10 @@ StyleDictionary.registerFormat({
 const sd = new StyleDictionary({
   source: ['tokens/tokens.json'],
   preprocessors: ['tokens-studio'],
+  log: {
+    verbosity: 'verbose',
+    errors: { brokenReferences: 'warn' },
+  },
   platforms: {
     css: {
       transformGroup: 'tokens-studio/css',
@@ -73,6 +83,7 @@ const sd = new StyleDictionary({
         {
           destination: 'variables.css',
           format: 'css/variables',
+          filter: isResolved,
           options: { selector: ':root', outputReferences: false },
         },
       ],
@@ -84,20 +95,7 @@ const sd = new StyleDictionary({
         {
           destination: 'preset.cjs',
           format: 'javascript/tailwind-preset',
-        },
-      ],
-    },
-    js: {
-      transformGroup: 'tokens-studio',
-      buildPath: 'dist/js/',
-      files: [
-        {
-          destination: 'tokens.js',
-          format: 'javascript/es6',
-        },
-        {
-          destination: 'tokens.d.ts',
-          format: 'typescript/es6-declarations',
+          filter: isResolved,
         },
       ],
     },
