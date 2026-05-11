@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "type": "module",
   "exports": {
-    ".": "./dist/js/tokens.js",
     "./tailwind": "./dist/tailwind/preset.cjs",
     "./css": "./dist/css/variables.css"
   },
