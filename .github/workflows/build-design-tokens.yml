@@ -6,6 +6,7 @@ on:
       - develop
     paths:
       - 'packages/design-tokens/tokens/**'
+  workflow_dispatch:
 
 concurrency:
   group: build-design-tokens
