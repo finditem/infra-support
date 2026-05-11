@@ -63,7 +63,7 @@ StyleDictionary.registerFormat({
 });
 
 const sd = new StyleDictionary({
-  source: ['tokens/**/*.json', '!tokens/$metadata.json'],
+  source: ['tokens/tokens.json'],
   preprocessors: ['tokens-studio'],
   platforms: {
     css: {
