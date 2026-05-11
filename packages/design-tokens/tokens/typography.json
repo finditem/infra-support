@@ -1,0 +1,22 @@
+{
+  "font-size": {
+    "xl": { "value": "2rem", "type": "fontSizes" },
+    "lg": { "value": "1.5rem", "type": "fontSizes" },
+    "md": { "value": "1rem", "type": "fontSizes" },
+    "sm": { "value": "0.875rem", "type": "fontSizes" },
+    "xs": { "value": "0.75rem", "type": "fontSizes" }
+  },
+  "font-weight": {
+    "regular": { "value": "400", "type": "fontWeights" },
+    "medium": { "value": "500", "type": "fontWeights" },
+    "bold": { "value": "700", "type": "fontWeights" }
+  },
+  "font-family": {
+    "base": { "value": "Pretendard, sans-serif", "type": "fontFamilies" }
+  },
+  "line-height": {
+    "tight": { "value": "1.25", "type": "lineHeights" },
+    "normal": { "value": "1.6", "type": "lineHeights" },
+    "relaxed": { "value": "1.75", "type": "lineHeights" }
+  }
+}
