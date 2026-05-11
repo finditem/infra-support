@@ -1,3 +1,8 @@
+export type {
+  AffectedFeaturesInsert,
+  AffectedFeaturesRow,
+  AffectedFeaturesUpdate,
+} from "./affected_features";
 export type { ApisInsert, ApisRow, ApisUpdate } from "./apis";
 export type { ErrorLogsInsert, ErrorLogsRow, ErrorLogsUpdate } from "./error_logs";
 export type {
