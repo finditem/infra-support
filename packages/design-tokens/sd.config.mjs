@@ -77,11 +77,13 @@ StyleDictionary.registerFormat({
       else if (category === "Semantic (Color)/Mode 1") {
         const [type, ...semanticRest] = rest;
         if (type.startsWith("[")) {
-          // [Fill], [Fg], [Border] 등 bracket 타입
-          if (type === "[Fill]") {
-            const semanticKey = semanticRest.map(sanitizeSegment).join("-");
-            if (semanticKey) colors[semanticKey] = token.value;
-          }
+          // fill-*, fg-*, border-*
+          const typePrefix = type.slice(1, -1).toLowerCase();
+          const semanticKey = [
+            typePrefix,
+            ...semanticRest.map(sanitizeSegment),
+          ].join("-");
+          if (semanticKey) colors[semanticKey] = token.value;
         } else {
           // Layout, Accent, Bg 등 non-bracket 타입
           const semanticKey = [type, ...semanticRest]
