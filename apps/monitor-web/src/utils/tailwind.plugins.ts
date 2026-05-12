@@ -13,7 +13,7 @@ import plugin from "tailwindcss/plugin";
  * @author jikwon
  */
 
-const customUtilities = plugin(({ addUtilities }) => {
+const customUtilities = plugin(({ addUtilities, addComponents }) => {
   addUtilities({
     ".flex-center": {
       display: "flex",
@@ -30,6 +30,44 @@ const customUtilities = plugin(({ addUtilities }) => {
       overflow: "hidden",
       textOverflow: "ellipsis",
       whiteSpace: "nowrap",
+    },
+  });
+
+  addComponents({
+    ".text-header1-bold": {
+      fontSize: "20px",
+      fontWeight: "700",
+      lineHeight: "24px",
+    },
+    ".text-header1-semibold": {
+      fontSize: "20px",
+      fontWeight: "600",
+      lineHeight: "24px",
+    },
+    ".text-header1-medium": {
+      fontSize: "20px",
+      fontWeight: "500",
+      lineHeight: "24px",
+    },
+    ".text-header1-regular": {
+      fontSize: "20px",
+      fontWeight: "400",
+      lineHeight: "24px",
+    },
+    ".text-body1-semibold": {
+      fontSize: "18px",
+      fontWeight: "600",
+      lineHeight: "16px",
+    },
+    ".text-body1-medium": {
+      fontSize: "18px",
+      fontWeight: "500",
+      lineHeight: "16px",
+    },
+    ".text-body1-regular": {
+      fontSize: "18px",
+      fontWeight: "400",
+      lineHeight: "16px",
     },
   });
 });

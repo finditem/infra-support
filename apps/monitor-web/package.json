@@ -10,6 +10,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@infra-support/design-tokens": "workspace:*",
     "@supabase/supabase-js": "^2.38.0",
     "@tanstack/react-query": "^5.28.0",
     "clsx": "^2.0.0",
