@@ -1,6 +1,6 @@
 export type ApiStatus = "healthy" | "degraded" | "outage";
 
-const DELAY_THRESHOLD_MS = 2000;
+const DELAY_THRESHOLD_MS = 3000;
 
 type ResolveApiStatusParams = {
   ok: boolean;

@@ -13,10 +13,15 @@ type CallResult = {
   errorMessage: string | null;
 };
 
+type ActiveApiRow = Awaited<ReturnType<typeof getActiveApis>>[number];
+
+const CONCURRENCY = 5;
+
 const callApi = async (url: string, timeoutMs = 8000): Promise<CallResult> => {
   const startedAt = Date.now();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const getElapsed = () => Date.now() - startedAt;
 
   try {
     const res = await fetch(url, {
@@ -25,13 +30,11 @@ const callApi = async (url: string, timeoutMs = 8000): Promise<CallResult> => {
       headers: { Accept: "application/json" },
     });
 
-    const elapsed = Date.now() - startedAt;
-
     if (!res.ok) {
       return {
         ok: false,
         httpStatus: res.status,
-        responseTime: elapsed,
+        responseTime: getElapsed(),
         errorType: "http_error",
         errorMessage: `HTTP ${res.status} ${res.statusText}`,
       };
@@ -40,16 +43,18 @@ const callApi = async (url: string, timeoutMs = 8000): Promise<CallResult> => {
     return {
       ok: true,
       httpStatus: res.status,
-      responseTime: elapsed,
+      responseTime: getElapsed(),
       errorType: null,
       errorMessage: null,
     };
   } catch (error) {
     const isAbort = error instanceof Error && error.name === "AbortError";
+    const elapsed = Date.now() - startedAt;
+
     return {
       ok: false,
       httpStatus: null,
-      responseTime: null,
+      responseTime: elapsed,
       errorType: isAbort ? "timeout" : "network_error",
       errorMessage: error instanceof Error ? error.message : "unknown error",
     };
@@ -58,13 +63,11 @@ const callApi = async (url: string, timeoutMs = 8000): Promise<CallResult> => {
   }
 };
 
-export const runMonitoring = async (): Promise<void> => {
-  const apis = await getActiveApis();
-
-  for (const api of apis) {
+const processApi = async (api: ActiveApiRow): Promise<void> => {
+  try {
     const checkedAt = new Date().toISOString();
 
-    if (!api.source_url) continue;
+    if (!api.source_url) return;
 
     const result = await callApi(api.source_url);
     const status = resolveApiStatus({
@@ -73,13 +76,21 @@ export const runMonitoring = async (): Promise<void> => {
       responseTime: result.responseTime,
     });
 
+    const normalizedErrorType =
+      status === "degraded" && !result.errorType ? "slow_response" : result.errorType;
+
+    const normalizedErrorMessage =
+      status === "degraded" && !result.errorMessage
+        ? `Response delayed: ${result.responseTime ?? "unknown"}ms`
+        : result.errorMessage;
+
     const monitoringPayload = {
       api_id: api.id,
       status,
       response_time: result.responseTime,
       http_status: result.httpStatus,
-      error_type: result.errorType,
-      error_message: result.errorMessage,
+      error_type: normalizedErrorType,
+      error_message: normalizedErrorMessage,
       checked_at: checkedAt,
     };
 
@@ -89,8 +100,8 @@ export const runMonitoring = async (): Promise<void> => {
       const errorLogPayload = {
         api_id: api.id,
         status,
-        error_type: result.errorType,
-        error_message: result.errorMessage,
+        error_type: normalizedErrorType,
+        error_message: normalizedErrorMessage,
         response_time: result.responseTime,
         http_status: result.httpStatus,
         is_checked: false,
@@ -99,5 +110,23 @@ export const runMonitoring = async (): Promise<void> => {
 
       await insertErrorLog(errorLogPayload);
     }
+  } catch (error) {
+    console.error(`[monitoring] api_id=${api.id} 처리 실패`, error);
   }
+};
+
+export const runMonitoring = async (): Promise<void> => {
+  const apis = await getActiveApis();
+  let cursor = 0;
+  const workerCount = Math.min(CONCURRENCY, apis.length);
+
+  const workers = Array.from({ length: workerCount }, async () => {
+    while (true) {
+      const idx = cursor++;
+      if (idx >= apis.length) break;
+      await processApi(apis[idx]);
+    }
+  });
+
+  await Promise.all(workers);
 };
