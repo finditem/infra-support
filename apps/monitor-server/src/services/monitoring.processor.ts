@@ -77,18 +77,18 @@ const callApi = async (url: string, timeoutMs = 5000): Promise<CallResult> => {
  * @remarks
  * - 모니터링 결과는 항상 `monitoring_results`에 저장합니다.
  * - 상태가 `degraded`/`outage`이면 `error_logs`도 추가 저장합니다.
- * - 처리 중 예외는 내부에서 로깅하고 삼켜 전체 배치를 계속 진행합니다.
+ * - 처리 중 예외는 내부에서 로깅하고 `false`를 반환합니다.
  *
- * @returns 저장 완료 후 resolve됩니다.
+ * @returns 저장 성공 시 `true`, 실패 시 `false`
  *
  * @author junyeol
  */
 
-export const processApi = async (api: ActiveApiRow): Promise<void> => {
+export const processApi = async (api: ActiveApiRow): Promise<boolean> => {
   try {
     const checkedAt = new Date().toISOString();
 
-    if (!api.source_url) return;
+    if (!api.source_url) return true;
 
     const result = await callApi(api.source_url);
     const status = resolveApiStatus({
@@ -131,7 +131,9 @@ export const processApi = async (api: ActiveApiRow): Promise<void> => {
 
       await insertErrorLog(errorLogPayload);
     }
+    return true;
   } catch (error) {
     console.error(`[monitoring] api_id=${api.id} 처리 실패`, error);
+    return false;
   }
 };
