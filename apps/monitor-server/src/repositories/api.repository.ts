@@ -1,7 +1,15 @@
 import { supabase } from "../utils/supabase";
 import { ApisRow } from "@infra-support/shared";
 
-type ActiveApiRow = Pick<ApisRow, "id" | "name" | "source_url" | "is_active">;
+export type ActiveApiRow = Pick<ApisRow, "id" | "name" | "source_url" | "is_active">;
+
+/**
+ * 모니터링 대상 API 목록을 조회하는 함수입니다.
+ *
+ * @returns 활성화되어 있고 source_url이 존재하는 API 목록
+ *
+ * @author junyeol
+ */
 
 const getActiveApis = async (): Promise<ActiveApiRow[]> => {
   const { data, error } = await supabase
