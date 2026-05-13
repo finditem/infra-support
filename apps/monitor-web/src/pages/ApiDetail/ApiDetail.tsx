@@ -43,7 +43,7 @@ const ApiDetail = () => {
         </div>
         <BasicButton className="h-[80px] min-w-[121px] rounded-xl border border-[#DFDFDF] bg-white px-7 py-8 text-[#1D1D1D]">
           <span className="flex items-center gap-1">
-            <Icon name="alert" size={24} />
+            <Icon name="editPencil" size={24} />
             <span className="text-body1-medium">수정</span>
           </span>
         </BasicButton>
@@ -119,7 +119,7 @@ const ApiDetail = () => {
           <h2 className="text-header1-bold">API 설정 정보</h2>
           <BasicButton className="border border-[#DFDFDF] px-5 py-4" variant="inversed">
             <span className="flex items-center gap-1 text-[#1D1D1D]">
-              <Icon name="alert" size={24} />
+              <Icon name="editPencil" size={24} />
               <span className="text-body1-medium">설정 수정</span>
             </span>
           </BasicButton>
