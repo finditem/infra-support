@@ -1,41 +1,12 @@
 import { cn } from "@/utils";
-import type { ApiCheckLog, LogStatus } from "../_types";
+import { MOCK_LOGS } from "@/mock";
+import type { LogStatus } from "../_types";
 
 const STATUS_CONFIG: Record<LogStatus, { label: string; color: string }> = {
   normal: { label: "정상", color: "bg-fg-primary-normal-default" },
   error: { label: "장애", color: "bg-[#FF4D4F]" },
   pending: { label: "지연", color: "bg-[#FAAD14]" },
 } as const;
-
-const DUMMY_LOGS: ApiCheckLog[] = [
-  {
-    id: "1",
-    status: "normal",
-    time: "15:30",
-    fullDate: "2024-05-13",
-    message: "정상 작동 중",
-    statusCode: "HTTP 200",
-    latency: "428ms",
-  },
-  {
-    id: "2",
-    status: "error",
-    time: "15:20",
-    fullDate: "2024-05-13",
-    message: "Connection Timeout",
-    statusCode: "HTTP 504",
-    latency: "5000ms",
-  },
-  {
-    id: "3",
-    status: "normal",
-    time: "15:10",
-    fullDate: "2024-05-13",
-    message: "정상 작동 중",
-    statusCode: "HTTP 200",
-    latency: "312ms",
-  },
-];
 
 const DetailCheckLogs = () => {
   return (
@@ -57,7 +28,7 @@ const DetailCheckLogs = () => {
         className="flex flex-col gap-4 overflow-y-auto"
       >
         <ul className="flex flex-col gap-4">
-          {DUMMY_LOGS.map((log) => (
+          {MOCK_LOGS.map((log) => (
             <li
               key={log.id}
               className="flex w-full items-center justify-between border-b border-[#F5F5F5] pb-4 last:border-0"

@@ -1,18 +1,10 @@
 import { ReactNode } from "react";
 import { Badge, BasicButton, Icon } from "@/components";
+import { MOCK_SETTINGS } from "@/mock";
 import { cn } from "@/utils";
-import { DetailSettingsData } from "../_types";
-
-const DUMMY_SETTINGS: DetailSettingsData = {
-  requestUrl: "https://dapi.kakao.com/v2/local/search/address.json",
-  httpMethod: "GET",
-  checkInterval: "10분",
-  isActive: true,
-  isNotificationEnabled: true,
-};
 
 const DetailSettings = () => {
-  const { requestUrl, httpMethod, checkInterval, isActive, isNotificationEnabled } = DUMMY_SETTINGS;
+  const { requestUrl, httpMethod, checkInterval, isActive, isNotificationEnabled } = MOCK_SETTINGS;
 
   return (
     <section

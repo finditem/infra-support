@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { MOCK_HEADER_DATA, MOCK_SUMMARY_DATA } from "@/mock";
 import {
   DetailCheckLogs,
   DetailHeader,
@@ -8,35 +9,15 @@ import {
   DetailSettings,
   DetailSummaryCards,
 } from "./_components";
-import type { ApiDetailData, ApiSummaryData } from "./_types";
-
-const DUMMY_API_DATA: ApiDetailData = {
-  name: "Kakao Map API",
-  statusCode: "404",
-  status: "normal" as const,
-  category: "map",
-  responseTime: "428ms",
-  lastChecked: "2026-04-24 15:30",
-  successRate: "99%",
-};
-
-const DUMMY_SUMMARY_DATA: ApiSummaryData = {
-  avgResponseTime: 443,
-  maxResponseTime: 1230,
-  minResponseTime: 210,
-  successRate: 99,
-  errorCount: 1,
-  lastErrorAt: "2026-04-24 13:20",
-};
 
 const ApiDetail = () => {
   const { apiId } = useParams<{ apiId: string }>();
-  console.log(apiId);
+  console.warn(apiId);
 
   return (
     <>
-      <DetailHeader apiData={DUMMY_API_DATA} />
-      <DetailSummaryCards data={DUMMY_SUMMARY_DATA} />
+      <DetailHeader apiData={MOCK_HEADER_DATA} />
+      <DetailSummaryCards data={MOCK_SUMMARY_DATA} />
 
       <div className="grid h-[620px] min-h-0 grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)]">
         <DetailResponseChart />

@@ -1,12 +1,5 @@
 import { Badge } from "@/components";
-import { ImpactedFeature } from "../_types";
-
-const DUMMY_FEATURES: ImpactedFeature[] = [
-  { id: "1", name: "지도 표시" },
-  { id: "2", name: "위치 선택" },
-  { id: "3", name: "게시글 작성 시 주소 검색" },
-  { id: "4", name: "내 주변 분실물 조회" },
-];
+import { MOCK_FEATURES } from "@/mock";
 
 const DetailImpactedFeatures = () => {
   return (
@@ -26,7 +19,7 @@ const DetailImpactedFeatures = () => {
 
       <div aria-label="영향 받는 기능 목록" role="region" tabIndex={0} className="overflow-x-auto">
         <ul className="flex items-center gap-3">
-          {DUMMY_FEATURES.map((feature) => (
+          {MOCK_FEATURES.map((feature) => (
             <li key={feature.id} className="shrink-0">
               <Badge className="min-h-[40px] px-4" label={feature.name} />
             </li>
