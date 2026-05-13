@@ -8,6 +8,17 @@ import {
   DetailSettings,
   DetailSummaryCards,
 } from "./_components";
+import type { ApiDetailData } from "./_types";
+
+const DUMMY_API_DATA: ApiDetailData = {
+  name: "Kakao Map API",
+  statusCode: "404",
+  status: "normal" as const,
+  category: "map",
+  responseTime: "428ms",
+  lastChecked: "2026-04-24 15:30",
+  successRate: "99%",
+};
 
 const ApiDetail = () => {
   const { apiId } = useParams<{ apiId: string }>();
@@ -15,7 +26,7 @@ const ApiDetail = () => {
 
   return (
     <>
-      <DetailHeader />
+      <DetailHeader apiData={DUMMY_API_DATA} />
       <DetailSummaryCards />
 
       <div className="grid h-[620px] min-h-0 grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)]">
