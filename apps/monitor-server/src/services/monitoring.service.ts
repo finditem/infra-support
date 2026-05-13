@@ -2,8 +2,6 @@ import getActiveApis from "../repositories/api.repository";
 import {
   insertErrorLog,
   insertMonitoringResult,
-  type ErrorLogInsert,
-  type MonitoringResultInsert,
 } from "../repositories/monitoring.repository";
 import { resolveApiStatus, shouldWriteErrorLog } from "../utils/status";
 
@@ -75,7 +73,7 @@ export const runMonitoring = async (): Promise<void> => {
       responseTime: result.responseTime,
     });
 
-    const monitoringPayload: MonitoringResultInsert = {
+    const monitoringPayload = {
       api_id: api.id,
       status,
       response_time: result.responseTime,
@@ -88,7 +86,7 @@ export const runMonitoring = async (): Promise<void> => {
     await insertMonitoringResult(monitoringPayload);
 
     if (shouldWriteErrorLog(status)) {
-      const errorLogPayload: ErrorLogInsert = {
+      const errorLogPayload = {
         api_id: api.id,
         status,
         error_type: result.errorType,
