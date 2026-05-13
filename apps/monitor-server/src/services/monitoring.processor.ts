@@ -4,6 +4,7 @@ import {
   insertMonitoringResult,
 } from "../repositories/monitoring.repository";
 import { resolveApiStatus, shouldWriteErrorLog } from "../utils/status";
+import { formatInTimeZone } from "date-fns-tz";
 
 type CallResult = {
   ok: boolean;
@@ -12,6 +13,9 @@ type CallResult = {
   errorType: string | null;
   errorMessage: string | null;
 };
+
+const getKstTimestamp = (): string =>
+  formatInTimeZone(new Date(), "Asia/Seoul", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
 /**
  * 단일 API 엔드포인트를 호출해 상태 판별용 결과를 반환하는 함수입니다.
@@ -86,7 +90,7 @@ const callApi = async (url: string, timeoutMs = 5000): Promise<CallResult> => {
 
 export const processApi = async (api: ActiveApiRow): Promise<boolean> => {
   try {
-    const checkedAt = new Date().toISOString();
+    const checkedAt = getKstTimestamp();
 
     if (!api.source_url) return true;
 
