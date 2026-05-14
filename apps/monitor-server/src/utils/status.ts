@@ -25,8 +25,7 @@ export const resolveApiStatus = ({
   httpStatus,
   responseTime,
 }: ResolveApiStatusParams): ApiStatus => {
-  if (!ok) return "outage";
-  if (httpStatus === null || httpStatus >= 500) return "outage";
+  if (!ok || httpStatus === null || httpStatus >= 500) return "outage";
   if (responseTime !== null && responseTime >= DELAY_THRESHOLD_MS) return "degraded";
   return "healthy";
 };

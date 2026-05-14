@@ -17,15 +17,16 @@ const CONCURRENCY = 5;
 
 export const runMonitoring = async (): Promise<void> => {
   const apis = await getActiveApis();
-  let cursor = 0;
+  let nextIndex = 0;
   let failedCount = 0;
   const workerCount = Math.min(CONCURRENCY, apis.length);
 
   const workers = Array.from({ length: workerCount }, async () => {
     while (true) {
-      const idx = cursor++;
-      if (idx >= apis.length) break;
-      const ok = await processApi(apis[idx]);
+      const currentIndex = nextIndex++;
+      if (currentIndex >= apis.length) break;
+
+      const ok = await processApi(apis[currentIndex]);
       if (!ok) failedCount += 1;
     }
   });

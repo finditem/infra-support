@@ -133,7 +133,7 @@ export const processApi = async (api: ActiveApiRow): Promise<boolean> => {
     }
     return true;
   } catch (error) {
-    console.error(`[monitoring] api_id=${api.id} 처리 실패`, error);
+    console.error("[monitoring] api_id=" + api.id + " (" + api.name + ") 처리 실패", error); 
     return false;
   }
 };
