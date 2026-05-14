@@ -55,6 +55,9 @@ importers:
 
   apps/monitor-web:
     dependencies:
+      '@infra-support/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       '@supabase/supabase-js':
         specifier: ^2.38.0
         version: 2.104.1
