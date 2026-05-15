@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "check": "tsx src/index.ts",
+    "check": "tsx --env-file=.env src/index.ts",
     "lint": "eslint src --ext ts",
     "clean": "rm -rf dist"
   },
