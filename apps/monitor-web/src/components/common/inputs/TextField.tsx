@@ -59,9 +59,9 @@ const TextField = ({
   const successId = showSuccess ? `${inputId}-success` : undefined;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       {label && (
-        <label className="text-[18px] font-medium leading-4 text-[#5C5C5C]" htmlFor={inputId}>
+        <label className="text-body1-regular text-layout-body" htmlFor={inputId}>
           {label}
         </label>
       )}
@@ -71,9 +71,12 @@ const TextField = ({
         aria-describedby={errorId ?? successId}
         aria-invalid={!!errorMessage}
         className={cn(
-          "rounded-4 rounded-lg border border-[#DFDFDF] bg-white px-4 py-[18px]",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          "focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
+          "rounded-[10px] border bg-white px-4 py-5 transition-colors",
+          "border-border-neutural-default",
+          "placeholder:text-body1-regular placeholder:text-fg-neutural-placeholder",
+          "hover:text-fg-neutural-hover",
+          "focus:text-fg-neutural-focused",
+          "disabled:cursor-not-allowed disabled:bg-fill-neutural-iversed-disabled disabled:text-fg-neutural-disabled",
           className
         )}
         {...props}

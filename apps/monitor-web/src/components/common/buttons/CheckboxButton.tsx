@@ -20,13 +20,17 @@ interface CheckboxButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElemen
   /** 체크 상태 변경 시 호출되는 콜백 */
   onCheckedChange?: (checked: boolean) => void;
   /** 아이콘 크기 (default: `"md"`) */
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md";
 }
 
 const SIZE_MAP = {
-  sm: 16,
-  md: 20,
-  lg: 24,
+  sm: 18,
+  md: 30,
+} as const;
+
+const PADDING_MAP = {
+  sm: "p-[3px]",
+  md: "p-[5px]",
 } as const;
 
 /**
@@ -36,7 +40,7 @@ const SIZE_MAP = {
  * <CheckboxButton checked={checked} onCheckedChange={setChecked}>항목 선택</CheckboxButton>
  *
  * // 크기 지정
- * <CheckboxButton checked={checked} size="lg" onCheckedChange={setChecked}>대형 체크박스</CheckboxButton>
+ * <CheckboxButton checked={checked} size="sm" onCheckedChange={setChecked}>소형 체크박스</CheckboxButton>
  */
 
 const CheckboxButton = ({
@@ -51,13 +55,18 @@ const CheckboxButton = ({
     <button
       aria-checked={checked}
       role="checkbox"
-      className={cn("flex items-center gap-2", className)}
+      className={cn("group flex items-center gap-2", className)}
       type="button"
       onClick={() => onCheckedChange?.(!checked)}
       {...props}
     >
       <Icon
-        className={checked ? "text-green-500" : "text-gray-300"}
+        className={cn(
+          "rounded-[4px] border border-fg-primary-normal-default bg-bg-layout-1depth",
+          "group-disabled:cursor-not-allowed group-disabled:border-border-neutural-default",
+          checked ? "text-fg-primary-strong-default" : "text-white",
+          PADDING_MAP[size]
+        )}
         name="check"
         size={SIZE_MAP[size]}
       />
