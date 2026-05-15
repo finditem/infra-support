@@ -1,8 +1,8 @@
-export type LogStatus = "normal" | "error" | "pending";
+import type { ApiStatus } from "@/types";
 
 export interface ApiCheckLog {
   id: string;
-  status: LogStatus;
+  status: ApiStatus;
   time: string;
   fullDate: string;
   message: string;

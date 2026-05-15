@@ -1,11 +1,11 @@
 import { cn } from "@/utils";
 import { MOCK_LOGS } from "@/mock";
-import type { LogStatus } from "../_types";
+import type { ApiStatus } from "@/types";
 
-const STATUS_CONFIG: Record<LogStatus, { label: string; color: string }> = {
-  normal: { label: "정상", color: "bg-fg-primary-normal-default" },
-  error: { label: "장애", color: "bg-[#FF4D4F]" },
-  pending: { label: "지연", color: "bg-[#FAAD14]" },
+const STATUS_CONFIG: Record<ApiStatus, { label: string; color: string }> = {
+  healthy: { label: "정상", color: "bg-fg-primary-normal-default" },
+  outage: { label: "장애", color: "bg-[#FF4D4F]" },
+  degraded: { label: "지연", color: "bg-[#FAAD14]" },
 } as const;
 
 const DetailCheckLogs = () => {

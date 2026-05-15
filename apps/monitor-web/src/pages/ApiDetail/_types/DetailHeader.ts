@@ -1,4 +1,4 @@
-export type ApiStatus = "normal" | "error" | "pending";
+import type { ApiStatus } from "@/types";
 
 export interface ApiDetailData {
   name: string;

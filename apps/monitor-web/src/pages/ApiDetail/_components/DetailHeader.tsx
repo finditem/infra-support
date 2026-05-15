@@ -1,6 +1,7 @@
 import { Badge, BasicButton, Icon } from "@/components";
 import { cn } from "@/utils";
-import type { ApiDetailData, ApiStatus } from "../_types";
+import type { ApiStatus } from "@/types";
+import type { ApiDetailData } from "../_types";
 
 interface DetailHeaderProps {
   apiData: ApiDetailData;
@@ -51,17 +52,17 @@ const DetailHeader = ({ apiData }: DetailHeaderProps) => {
 export default DetailHeader;
 
 const STATUS_CONFIG = {
-  normal: {
+  healthy: {
     label: "정상",
     color: "bg-fg-primary-normal-default",
     textColor: "text-fg-primary-normal-default",
   },
-  error: {
+  outage: {
     label: "장애",
     color: "bg-[#FF4D4F]",
     textColor: "text-[#FF4D4F]",
   },
-  pending: {
+  degraded: {
     label: "지연",
     color: "bg-[#FAAD14]",
     textColor: "text-[#FAAD14]",

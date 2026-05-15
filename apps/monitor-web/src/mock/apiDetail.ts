@@ -9,7 +9,7 @@ import type {
 export const MOCK_HEADER_DATA: ApiDetailData = {
   name: "Kakao Map API",
   statusCode: "404",
-  status: "normal" as const,
+  status: "healthy" as const,
   category: "map",
   responseTime: "428ms",
   lastChecked: "2026-04-24 15:30",
@@ -28,7 +28,7 @@ export const MOCK_SUMMARY_DATA: ApiSummaryData = {
 export const MOCK_LOGS: ApiCheckLog[] = [
   {
     id: "1",
-    status: "normal",
+    status: "healthy",
     time: "15:30",
     fullDate: "2024-05-13",
     message: "정상 작동 중",
@@ -37,7 +37,7 @@ export const MOCK_LOGS: ApiCheckLog[] = [
   },
   {
     id: "2",
-    status: "error",
+    status: "outage",
     time: "15:20",
     fullDate: "2024-05-13",
     message: "Connection Timeout",
@@ -46,7 +46,7 @@ export const MOCK_LOGS: ApiCheckLog[] = [
   },
   {
     id: "3",
-    status: "normal",
+    status: "healthy",
     time: "15:10",
     fullDate: "2024-05-13",
     message: "정상 작동 중",
