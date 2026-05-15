@@ -19,7 +19,7 @@ import { useLogoutMutation, useUserQuery } from "@/queries";
 const Dashboard = () => {
   const [checkedSm, setCheckedSm] = useState(false);
   const [checkedMd, setCheckedMd] = useState(false);
-  const [checkedLg, setCheckedLg] = useState(false);
+  const [checkedDisabled, setCheckedDisabled] = useState(false);
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
@@ -77,8 +77,13 @@ const Dashboard = () => {
         <CheckboxButton checked={checkedMd} size="md" onCheckedChange={setCheckedMd}>
           Medium
         </CheckboxButton>
-        <CheckboxButton checked={checkedLg} size="lg" onCheckedChange={setCheckedLg}>
-          Large
+        <CheckboxButton
+          checked={checkedDisabled}
+          disabled
+          size="md"
+          onCheckedChange={setCheckedDisabled}
+        >
+          Disabled Medium
         </CheckboxButton>
       </div>
 
