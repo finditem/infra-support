@@ -1,0 +1,48 @@
+name: Build Design Tokens
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'packages/design-tokens/tokens/**'
+  workflow_dispatch:
+
+concurrency:
+  group: build-design-tokens
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.YML_GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build design tokens
+        run: pnpm --filter @infra-support/design-tokens build
+
+      - name: Commit generated dist
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/design-tokens/dist/
+          git diff --cached --quiet && echo "No changes to commit" || \
+            (git commit -m "chore(design-tokens): auto-build from Figma tokens" && git push)

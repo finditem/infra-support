@@ -14,14 +14,12 @@ import {
   Skeleton,
 } from "@/components";
 import { useToast } from "@/hooks";
-import { useLogoutMutation, useMockListQuery, useUserQuery } from "@/queries";
+import { useLogoutMutation, useUserQuery } from "@/queries";
 
 const Dashboard = () => {
-  const { data, isLoading } = useMockListQuery();
-
   const [checkedSm, setCheckedSm] = useState(false);
   const [checkedMd, setCheckedMd] = useState(false);
-  const [checkedLg, setCheckedLg] = useState(false);
+  const [checkedDisabled, setCheckedDisabled] = useState(false);
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
@@ -31,10 +29,6 @@ const Dashboard = () => {
   const { success, error, warning } = useToast();
   const { mutate: handleLogout } = useLogoutMutation();
   const { data: user } = useUserQuery();
-
-  if (isLoading) {
-    return <div>로딩</div>;
-  }
 
   return (
     <div className="flex flex-col gap-1">
@@ -49,14 +43,6 @@ const Dashboard = () => {
       </div>
 
       <h1>대시보드</h1>
-
-      <ul>
-        {(data ?? []).map((api) => (
-          <li key={api.id}>
-            {api.name} - {api.url} - {api.created_at}
-          </li>
-        ))}
-      </ul>
 
       <div className="mt-4 flex gap-2">
         <button
@@ -91,8 +77,13 @@ const Dashboard = () => {
         <CheckboxButton checked={checkedMd} size="md" onCheckedChange={setCheckedMd}>
           Medium
         </CheckboxButton>
-        <CheckboxButton checked={checkedLg} size="lg" onCheckedChange={setCheckedLg}>
-          Large
+        <CheckboxButton
+          checked={checkedDisabled}
+          disabled
+          size="md"
+          onCheckedChange={setCheckedDisabled}
+        >
+          Disabled Medium
         </CheckboxButton>
       </div>
 

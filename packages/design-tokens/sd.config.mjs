@@ -1,0 +1,150 @@
+import StyleDictionary from "style-dictionary";
+import { register } from "@tokens-studio/sd-transforms";
+
+register(StyleDictionary);
+
+// Primitive/Mode 1.Color.* > Color.* 로 별칭
+// Semantic 토큰의 {Color.Green.500} 같은 참조를 해석 가능하게 만듦
+StyleDictionary.registerPreprocessor({
+  name: "alias-primitives",
+  preprocessor(tokens) {
+    const primitive = tokens["Primitive/Mode 1"];
+    if (primitive?.Color) tokens.Color = structuredClone(primitive.Color);
+    if (primitive?.Value) tokens.Value = structuredClone(primitive.Value);
+    return tokens;
+  },
+});
+
+// CSS vars는 kebab-case 관례 사용 (tokens-studio 기본은 camelCase)
+StyleDictionary.registerTransformGroup({
+  name: "tokens-studio/css",
+  transforms: [
+    "ts/descriptionToComment",
+    "ts/size/px",
+    "ts/opacity",
+    "ts/size/lineheight",
+    "ts/typography/fontWeight",
+    "ts/resolveMath",
+    "ts/size/css/letterspacing",
+    "ts/color/css/hexrgba",
+    "ts/color/modifiers",
+    "name/kebab",
+  ],
+});
+
+// 미해결 참조({...}) 토큰 제외
+const isResolved = (token) => {
+  const val = String(token.value ?? "");
+  return !val.includes("{") && !val.includes("}");
+};
+
+// "Entered (+Selected)" > "entered-selected" 형태로 정리
+function sanitizeSegment(str) {
+  return str
+    .toLowerCase()
+    .replace(/\s*\(.*?\)\s*/g, " ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function setDeep(obj, path, value) {
+  let cur = obj;
+  for (let i = 0; i < path.length - 1; i++) {
+    if (!cur[path[i]]) cur[path[i]] = {};
+    cur = cur[path[i]];
+  }
+  cur[path[path.length - 1]] = value;
+}
+
+StyleDictionary.registerFormat({
+  name: "javascript/tailwind-preset",
+  format({ dictionary }) {
+    const colors = {};
+    const fontSize = {};
+    const fontWeight = {};
+    const fontFamily = {};
+    const lineHeight = {};
+
+    for (const token of dictionary.allTokens) {
+      const [category, ...rest] = token.path;
+      const key = rest.join("-");
+
+      if (category === "color") setDeep(colors, rest, token.value);
+      else if (category === "font-size") fontSize[key] = token.value;
+      else if (category === "font-weight") fontWeight[key] = token.value;
+      else if (category === "font-family") fontFamily[key] = token.value;
+      else if (category === "line-height") lineHeight[key] = token.value;
+      else if (category === "Semantic (Color)/Mode 1") {
+        const [type, ...semanticRest] = rest;
+        if (type.startsWith("[")) {
+          // fill-*, fg-*, border-*
+          const typePrefix = type.slice(1, -1).toLowerCase();
+          const semanticKey = [
+            typePrefix,
+            ...semanticRest.map(sanitizeSegment),
+          ].join("-");
+          if (semanticKey) colors[semanticKey] = token.value;
+        } else {
+          // Layout, Accent, Bg 등 non-bracket 타입
+          const semanticKey = [type, ...semanticRest]
+            .map(sanitizeSegment)
+            .join("-");
+          if (semanticKey) colors[semanticKey] = token.value;
+        }
+      }
+    }
+
+    const preset = {
+      theme: {
+        extend: { colors, fontSize, fontWeight, fontFamily, lineHeight },
+      },
+    };
+
+    return (
+      "/** Style Dictionary에 의해 자동 생성된 파일입니다 — 직접 수정하지 마세요 */\n" +
+      `module.exports = ${JSON.stringify(preset, null, 2)};\n`
+    );
+  },
+});
+
+const sd = new StyleDictionary({
+  source: ["tokens/tokens.json"],
+  preprocessors: ["alias-primitives", "tokens-studio"],
+  log: {
+    verbosity: "verbose",
+    errors: { brokenReferences: "warn" },
+  },
+  platforms: {
+    css: {
+      transformGroup: "tokens-studio/css",
+      buildPath: "dist/css/",
+      files: [
+        {
+          destination: "variables.css",
+          format: "css/variables",
+          filter: isResolved,
+          options: {
+            selector: ":root",
+            outputReferences: false,
+            fileHeader: () => [
+              "Style Dictionary에 의해 자동 생성된 파일입니다 — 직접 수정하지 마세요",
+            ],
+          },
+        },
+      ],
+    },
+    tailwind: {
+      transformGroup: "tokens-studio",
+      buildPath: "dist/tailwind/",
+      files: [
+        {
+          destination: "preset.cjs",
+          format: "javascript/tailwind-preset",
+          filter: isResolved,
+        },
+      ],
+    },
+  },
+});
+
+await sd.buildAllPlatforms();
