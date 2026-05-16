@@ -36,4 +36,6 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          VWORLD_API_KEY: ${{ secrets.VWORLD_API_KEY }}
         run: pnpm --filter @infra-support/monitor-server exec tsx src/index.ts
