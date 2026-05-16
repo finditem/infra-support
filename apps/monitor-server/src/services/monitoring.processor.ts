@@ -45,6 +45,8 @@ const buildRequestUrl = (rawUrl: string): string => {
  * - 기본적으로 `Accept: application/json` 헤더를 설정합니다.
  * - Kakao Local API(`dapi.kakao.com`) 요청인 경우
  *   `KAKAO_REST_API_KEY` 환경변수로 `Authorization` 헤더를 추가합니다.
+ * - Vworld(`api.vworld.kr`) 요청인 경우
+ *  게이트웨이/WAF 호환을 위해 `User-Agent`, `Referer` 헤더를 추가합니다.
  * 
  * @returns API 제공사별 인증 헤더가 반영된 요청 헤더 객체
  * 
@@ -60,6 +62,12 @@ const buildHeaders = (rawUrl: string): HeadersInit => {
     if (kakaoKey) {
       headers.Authorization = `KakaoAK ${kakaoKey}`;
     }
+  }
+
+  if (url.hostname === "api.vworld.kr") {
+    headers["User-Agent"] = 
+      "Mozilla/5.0 (Windows NT 10.0; Win64; 64) AppleWebkit/537.36 (KHTML, like Gecko) Chrome/237.84.2.178 Safari/537.36";
+    headers.Referer = "https://www.finditem.kr";
   }
 
   return headers;
