@@ -1,9 +1,6 @@
 import { cn } from "@/utils";
-import {
-  API_STATUS_BADGE_STYLES,
-  BADGE_BASE_STYLE,
-  type ApiStatus,
-} from "./_internal/badge.constants";
+import type { ApiStatus } from "@/types";
+import { API_STATUS_BADGE_STYLES, BADGE_BASE_STYLE } from "./_internal/badge.constants";
 
 /**
  * 공통 Badge 컴포넌트입니다.

@@ -1,17 +1,6 @@
 // TODO(준열) : 디자인 시스템 정립에 따라 기본 스타일 및 API 상태에 따른 스타일 변경 예정
 
-/**
- * Badge 컴포넌트에서 사용하는 API 상태 타입입니다.
- *
- * @remarks
- * - `healthy`: 정상
- * - `degraded`: 지연
- * - `outage`: 장애
- *
- * @author junyeol
- */
-
-export type ApiStatus = "healthy" | "degraded" | "outage";
+import type { ApiStatus } from "@/types";
 
 /**
  * API 상태별 Badge 표시 정보입니다.
