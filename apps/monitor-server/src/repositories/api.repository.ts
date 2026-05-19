@@ -1,4 +1,4 @@
-import { supabase } from "../utils/supabase";
+import { supabase } from "@/lib/supabase";
 import { ApisRow } from "@infra-support/shared";
 
 export type ActiveApiRow = Pick<ApisRow, "id" | "name" | "source_url" | "is_active">;

@@ -1,9 +1,9 @@
-import type { ActiveApiRow } from "../repositories/api.repository";
+import type { ActiveApiRow } from "@/repositories/api.repository";
 import {
   insertErrorLog,
   insertMonitoringResult,
-} from "../repositories/monitoring.repository";
-import { resolveApiStatus, shouldWriteErrorLog } from "../utils/status";
+} from "@/repositories/monitoring.repository";
+import { resolveApiStatus, shouldWriteErrorLog } from "@/utils/status";
 
 type CallResult = {
   ok: boolean;
@@ -15,13 +15,13 @@ type CallResult = {
 
 /**
  * 호출 대상 URL을 API 제공사 규칙에 맞게 보정하는 함수입니다.
- * 
+ *
  * @remarks
  * - VWorld(`api.vworld.kr`) 요청인 경우, URL에 `key` 파라미터가 없으면
  *   `VWORLD_API_KEY` 환경변수 값을 자동으로 추가합니다.
- * 
+ *
  * @returns 인증/쿼리 파라미터 보정이 적용된 최종 요청 URL 문자열
- * 
+ *
  * @author junyeol
  */
 
@@ -40,16 +40,16 @@ const buildRequestUrl = (rawUrl: string): string => {
 
 /**
  * 호출 대상 API에 맞는 요청 헤더를 구성하는 함수입니다.
- * 
+ *
  * @remarks
  * - 기본적으로 `Accept: application/json` 헤더를 설정합니다.
  * - Kakao Local API(`dapi.kakao.com`) 요청인 경우
  *   `KAKAO_REST_API_KEY` 환경변수로 `Authorization` 헤더를 추가합니다.
  * - Vworld(`api.vworld.kr`) 요청인 경우
- *  게이트웨이/WAF 호환을 위해 `User-Agent`, `Referer` 헤더를 추가합니다.
- * 
+ *   게이트웨이/WAF 호환을 위해 `User-Agent`, `Referer` 헤더를 추가합니다.
+ *
  * @returns API 제공사별 인증 헤더가 반영된 요청 헤더 객체
- * 
+ *
  * @author junyeol
  */
 
@@ -65,14 +65,13 @@ const buildHeaders = (rawUrl: string): HeadersInit => {
   }
 
   if (url.hostname === "api.vworld.kr") {
-    headers["User-Agent"] = 
+    headers["User-Agent"] =
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36";
     headers.Referer = "https://www.finditem.kr";
   }
 
   return headers;
 };
-
 
 /**
  * 단일 API 엔드포인트를 호출해 상태 판별용 결과를 반환하는 함수입니다.
@@ -195,9 +194,10 @@ export const processApi = async (api: ActiveApiRow): Promise<boolean> => {
 
       await insertErrorLog(errorLogPayload);
     }
+
     return true;
   } catch (error) {
-    console.error("[monitoring] api_id=" + api.id + " (" + api.name + ") 처리 실패", error); 
+    console.error("[monitoring] api_id=" + api.id + " (" + api.name + ") 처리 실패", error);
     return false;
   }
 };

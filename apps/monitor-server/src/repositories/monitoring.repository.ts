@@ -1,9 +1,9 @@
-import { supabase } from "../utils/supabase";
+import { supabase } from "@/lib/supabase";
 import type { ErrorLogsInsert, MonitoringResultsInsert } from "@infra-support/shared";
 
 /**
  * 모니터링 결과를 저장하는 함수입니다.
- * 
+ *
  * @param payload - monitoring_results 테이블 insert payload
  *
  * @author junyeol
@@ -16,9 +16,9 @@ export const insertMonitoringResult = async (payload: MonitoringResultsInsert): 
 
 /**
  * 에러 로그를 저장하는 함수입니다.
- * 
+ *
  * @param payload - error_logs 테이블 insert payload
- * 
+ *
  * @author junyeol
  */
 
