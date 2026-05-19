@@ -19,12 +19,12 @@ type CallResult = {
  * @remarks
  * - VWorld(`api.vworld.kr`) 요청인 경우, URL에 `key` 파라미터가 없으면
  *   `VWORLD_API_KEY` 환경변수 값을 자동으로 추가합니다.
+ * - Kakao Maps SDK(`dapi.kakao.com/v2/maps/sdk.js`) 요청인 경우, `appkey`가 없으면
+ *   `KAKAO_JAVASCRIPT_KEY` 환경변수 값을 자동으로 추가합니다.
+ * - Kakao Maps SDK 호출 시 `autoload`, `libraries`가 없으면 기본값을 채웁니다.
  *
  * @returns 인증/쿼리 파라미터 보정이 적용된 최종 요청 URL 문자열
- *
- * @author junyeol
  */
-
 const buildRequestUrl = (rawUrl: string): string => {
   const url = new URL(rawUrl);
 
@@ -32,6 +32,24 @@ const buildRequestUrl = (rawUrl: string): string => {
     const vworldKey = process.env.VWORLD_API_KEY;
     if (vworldKey && !url.searchParams.has("key")) {
       url.searchParams.set("key", vworldKey);
+    }
+  }
+
+  const isKakaoSdkUrl =
+    url.hostname === "dapi.kakao.com" && url.pathname === "/v2/maps/sdk.js";
+
+  if (isKakaoSdkUrl) {
+    const kakaoJavascriptKey = process.env.KAKAO_JAVASCRIPT_KEY;
+    if (kakaoJavascriptKey && !url.searchParams.has("appkey")) {
+      url.searchParams.set("appkey", kakaoJavascriptKey);
+    }
+
+    if (!url.searchParams.has("autoload")) {
+      url.searchParams.set("autoload", "false");
+    }
+
+    if (!url.searchParams.has("libraries")) {
+      url.searchParams.set("libraries", "services");
     }
   }
 
@@ -43,21 +61,21 @@ const buildRequestUrl = (rawUrl: string): string => {
  *
  * @remarks
  * - 기본적으로 `Accept: application/json` 헤더를 설정합니다.
- * - Kakao Local API(`dapi.kakao.com`) 요청인 경우
+ * - Kakao Local API(`dapi.kakao.com/v2/local/*`) 요청인 경우
  *   `KAKAO_REST_API_KEY` 환경변수로 `Authorization` 헤더를 추가합니다.
  * - Vworld(`api.vworld.kr`) 요청인 경우
  *   게이트웨이/WAF 호환을 위해 `User-Agent`, `Referer` 헤더를 추가합니다.
  *
  * @returns API 제공사별 인증 헤더가 반영된 요청 헤더 객체
- *
- * @author junyeol
  */
-
 const buildHeaders = (rawUrl: string): HeadersInit => {
   const url = new URL(rawUrl);
   const headers: Record<string, string> = { Accept: "application/json" };
 
-  if (url.hostname === "dapi.kakao.com") {
+  const isKakaoLocalApi =
+    url.hostname === "dapi.kakao.com" && url.pathname.startsWith("/v2/local/");
+
+  if (isKakaoLocalApi) {
     const kakaoKey = process.env.KAKAO_REST_API_KEY;
     if (kakaoKey) {
       headers.Authorization = `KakaoAK ${kakaoKey}`;
@@ -72,18 +90,6 @@ const buildHeaders = (rawUrl: string): HeadersInit => {
 
   return headers;
 };
-
-/**
- * 단일 API 엔드포인트를 호출해 상태 판별용 결과를 반환하는 함수입니다.
- *
- * @remarks
- * - HTTP 비정상 응답은 `ok: false`와 `http_error`로 반환합니다.
- * - 네트워크/타임아웃 예외는 throw하지 않고 결과 객체로 변환합니다.
- *
- * @returns API 호출 결과(성공 여부, HTTP 상태, 응답 시간, 에러 정보)
- *
- * @author junyeol
- */
 
 const callApi = async (url: string, timeoutMs = 5000): Promise<CallResult> => {
   const startedAt = Date.now();
@@ -143,10 +149,7 @@ const callApi = async (url: string, timeoutMs = 5000): Promise<CallResult> => {
  * - 처리 중 예외는 내부에서 로깅하고 `false`를 반환합니다.
  *
  * @returns 저장 성공 시 `true`, 실패 시 `false`
- *
- * @author junyeol
  */
-
 export const processApi = async (api: ActiveApiRow): Promise<boolean> => {
   try {
     const checkedAt = new Date().toISOString();
