@@ -10,6 +10,7 @@ build/
 .next/
 .turbo/
 *.tsbuildinfo
+next-env.d.ts
 
 # Environment
 .env
