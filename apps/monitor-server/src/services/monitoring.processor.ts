@@ -19,12 +19,18 @@ type CallResult = {
  * @remarks
  * - VWorld(`api.vworld.kr`) 요청인 경우, URL에 `key` 파라미터가 없으면
  *   `VWORLD_API_KEY` 환경변수 값을 자동으로 추가합니다.
+ * 
  * - Kakao Maps SDK(`dapi.kakao.com/v2/maps/sdk.js`) 요청인 경우, `appkey`가 없으면
  *   `KAKAO_JAVASCRIPT_KEY` 환경변수 값을 자동으로 추가합니다.
+ * 
  * - Kakao Maps SDK 호출 시 `autoload`, `libraries`가 없으면 기본값을 채웁니다.
- *
+ * 
+ * - Kakao OAuth Authorize(`kauth.kakao.com/oauth/authorize`) 요청인 경우,
+ *  `client_id`, `redirect_uri`, `response_type` 쿼리를 환경변수/기본값으로 자동 보정합니다.
+ * 
  * @returns 인증/쿼리 파라미터 보정이 적용된 최종 요청 URL 문자열
  */
+
 const buildRequestUrl = (rawUrl: string): string => {
   const url = new URL(rawUrl);
 
@@ -35,8 +41,7 @@ const buildRequestUrl = (rawUrl: string): string => {
     }
   }
 
-  const isKakaoSdkUrl =
-    url.hostname === "dapi.kakao.com" && url.pathname === "/v2/maps/sdk.js";
+  const isKakaoSdkUrl = url.hostname === "dapi.kakao.com" && url.pathname === "/v2/maps/sdk.js";
 
   if (isKakaoSdkUrl) {
     const kakaoJavascriptKey = process.env.KAKAO_JAVASCRIPT_KEY;
@@ -50,6 +55,25 @@ const buildRequestUrl = (rawUrl: string): string => {
 
     if (!url.searchParams.has("libraries")) {
       url.searchParams.set("libraries", "services");
+    }
+  }
+
+  const isKakaoAuthorizeUrl = url.hostname === "kauth.kakao.com" && url.pathname === "/oauth/authorize";
+
+  if (isKakaoAuthorizeUrl) {
+    const kakaoRestApiKey = process.env.KAKAO_REST_API_KEY;
+    const kakaoRedirectUri = process.env.KAKAO_REDIRECT_URI;
+
+    if (kakaoRestApiKey && !url.searchParams.has("client_id")) {
+      url.searchParams.set("client_id", kakaoRestApiKey);
+    }
+
+    if (kakaoRedirectUri && !url.searchParams.has("redirect_uri")) {
+      url.searchParams.set("redirect_uri", kakaoRedirectUri);
+    }
+
+    if (!url.searchParams.has("response_type")) {
+      url.searchParams.set("response_type", "code");
     }
   }
 
@@ -68,6 +92,7 @@ const buildRequestUrl = (rawUrl: string): string => {
  *
  * @returns API 제공사별 인증 헤더가 반영된 요청 헤더 객체
  */
+
 const buildHeaders = (rawUrl: string): HeadersInit => {
   const url = new URL(rawUrl);
   const headers: Record<string, string> = { Accept: "application/json" };
@@ -150,6 +175,7 @@ const callApi = async (url: string, timeoutMs = 5000): Promise<CallResult> => {
  *
  * @returns 저장 성공 시 `true`, 실패 시 `false`
  */
+
 export const processApi = async (api: ActiveApiRow): Promise<boolean> => {
   try {
     const checkedAt = new Date().toISOString();
