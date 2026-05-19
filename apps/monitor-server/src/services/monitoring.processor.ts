@@ -13,12 +13,36 @@ type CallResult = {
   errorMessage: string | null;
 };
 
+const KAKAO_DAPI_HOST = "dapi.kakao.com";
+const KAKAO_AUTH_HOST = "kauth.kakao.com";
+const KAKAO_SDK_PATH = "/v2/maps/sdk.js";
+const KAKAO_AUTHORIZE_PATH = "/oauth/authorize";
+const VWORLD_HOST = "api.vworld.kr";
+const DEFAULT_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36";
+
+const isKakaoSdkUrl = (url: URL): boolean =>
+  url.hostname === KAKAO_DAPI_HOST && url.pathname === KAKAO_SDK_PATH;
+
+const isKakaoAuthorizeUrl = (url: URL): boolean =>
+  url.hostname === KAKAO_AUTH_HOST && url.pathname === KAKAO_AUTHORIZE_PATH;
+
+const isKakaoRestApiUrl = (url: URL): boolean =>
+  url.hostname === KAKAO_DAPI_HOST &&
+  url.pathname.startsWith("/v2/") &&
+  !isKakaoSdkUrl(url);
+
 /**
  * 호출 대상 URL을 API 제공사 규칙에 맞게 보정하는 함수입니다.
  *
  * @remarks
  * - VWorld(`api.vworld.kr`) 요청인 경우, URL에 `key` 파라미터가 없으면
  *   `VWORLD_API_KEY` 환경변수 값을 자동으로 추가합니다.
+ * - Kakao Maps SDK(`dapi.kakao.com/v2/maps/sdk.js`) 요청인 경우, `appkey`가 없으면
+ *   `KAKAO_JAVASCRIPT_KEY` 환경변수 값을 자동으로 추가합니다.
+ * - Kakao Maps SDK 호출 시 `autoload`, `libraries`가 없으면 기본값을 채웁니다.
+ * - Kakao OAuth Authorize(`kauth.kakao.com/oauth/authorize`) 요청인 경우,
+ *   `client_id`, `redirect_uri`, `response_type` 쿼리를 자동 보정합니다.
  *
  * @returns 인증/쿼리 파라미터 보정이 적용된 최종 요청 URL 문자열
  *
@@ -28,10 +52,42 @@ type CallResult = {
 const buildRequestUrl = (rawUrl: string): string => {
   const url = new URL(rawUrl);
 
-  if (url.hostname === "api.vworld.kr") {
+  if (url.hostname === VWORLD_HOST) {
     const vworldKey = process.env.VWORLD_API_KEY;
     if (vworldKey && !url.searchParams.has("key")) {
       url.searchParams.set("key", vworldKey);
+    }
+  }
+
+  if (isKakaoSdkUrl(url)) {
+    const kakaoJavascriptKey = process.env.KAKAO_JAVASCRIPT_KEY;
+    if (kakaoJavascriptKey && !url.searchParams.has("appkey")) {
+      url.searchParams.set("appkey", kakaoJavascriptKey);
+    }
+
+    if (!url.searchParams.has("autoload")) {
+      url.searchParams.set("autoload", "false");
+    }
+
+    if (!url.searchParams.has("libraries")) {
+      url.searchParams.set("libraries", "services");
+    }
+  }
+
+  if (isKakaoAuthorizeUrl(url)) {
+    const kakaoRestApiKey = process.env.KAKAO_REST_API_KEY;
+    const kakaoRedirectUri = process.env.KAKAO_REDIRECT_URI;
+
+    if (kakaoRestApiKey && !url.searchParams.has("client_id")) {
+      url.searchParams.set("client_id", kakaoRestApiKey);
+    }
+
+    if (kakaoRedirectUri && !url.searchParams.has("redirect_uri")) {
+      url.searchParams.set("redirect_uri", kakaoRedirectUri);
+    }
+
+    if (!url.searchParams.has("response_type")) {
+      url.searchParams.set("response_type", "code");
     }
   }
 
@@ -42,11 +98,13 @@ const buildRequestUrl = (rawUrl: string): string => {
  * 호출 대상 API에 맞는 요청 헤더를 구성하는 함수입니다.
  *
  * @remarks
- * - 기본적으로 `Accept: application/json` 헤더를 설정합니다.
- * - Kakao Local API(`dapi.kakao.com`) 요청인 경우
+ * - Kakao Maps SDK에는 JS 응답 수신용 Accept 헤더를 설정합니다.
+ * - Kakao OAuth Authorize에는 HTML 응답 수신용 Accept 헤더를 설정합니다.
+ * - 그 외에는 기본적으로 `Accept: application/json` 헤더를 설정합니다.
+ * - Kakao REST API(`dapi.kakao.com/v2/*`, SDK 제외) 요청인 경우
  *   `KAKAO_REST_API_KEY` 환경변수로 `Authorization` 헤더를 추가합니다.
  * - Vworld(`api.vworld.kr`) 요청인 경우
- *   게이트웨이/WAF 호환을 위해 `User-Agent`, `Referer` 헤더를 추가합니다.
+ *   게이트웨이/WAF 호환을 위해 `Referer` 헤더를 추가합니다.
  *
  * @returns API 제공사별 인증 헤더가 반영된 요청 헤더 객체
  *
@@ -55,18 +113,26 @@ const buildRequestUrl = (rawUrl: string): string => {
 
 const buildHeaders = (rawUrl: string): HeadersInit => {
   const url = new URL(rawUrl);
-  const headers: Record<string, string> = { Accept: "application/json" };
+  const headers: Record<string, string> = {
+    "User-Agent": DEFAULT_USER_AGENT,
+  };
 
-  if (url.hostname === "dapi.kakao.com") {
+  if (isKakaoSdkUrl(url)) {
+    headers.Accept = "text/javascript, */*;q=0.8";
+  } else if (isKakaoAuthorizeUrl(url)) {
+    headers.Accept = "text/html, */*;q=0.8";
+  } else {
+    headers.Accept = "application/json";
+  }
+
+  if (isKakaoRestApiUrl(url)) {
     const kakaoKey = process.env.KAKAO_REST_API_KEY;
     if (kakaoKey) {
       headers.Authorization = `KakaoAK ${kakaoKey}`;
     }
   }
 
-  if (url.hostname === "api.vworld.kr") {
-    headers["User-Agent"] =
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36";
+  if (url.hostname === VWORLD_HOST) {
     headers.Referer = "https://www.finditem.kr";
   }
 
