@@ -10,13 +10,13 @@ type ResolveApiStatusParams = {
 
 /**
  * API 상태를 판별하는 함수입니다.
- * 
+ *
  * @param ok - 호출 성공 여부
  * @param httpStatus - HTTP 상태 코드
  * @param responseTime - 응답 시간(ms)
- * 
+ *
  * @returns healthy | degraded | outage 상태 값
- * 
+ *
  * @author junyeol
  */
 

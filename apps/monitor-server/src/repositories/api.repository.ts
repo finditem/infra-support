@@ -1,4 +1,4 @@
-import { supabase } from "../utils/supabase";
+import { createSupabaseClient } from "@/lib/supabase";
 import { ApisRow } from "@infra-support/shared";
 
 export type ActiveApiRow = Pick<ApisRow, "id" | "name" | "source_url" | "is_active">;
@@ -12,6 +12,7 @@ export type ActiveApiRow = Pick<ApisRow, "id" | "name" | "source_url" | "is_acti
  */
 
 const getActiveApis = async (): Promise<ActiveApiRow[]> => {
+  const supabase = createSupabaseClient();
   const { data, error } = await supabase
     .from("apis")
     .select("id, name, source_url, is_active")
