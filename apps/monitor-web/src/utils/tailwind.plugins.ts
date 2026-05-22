@@ -109,20 +109,25 @@ const customUtilities = plugin(({ addUtilities, addComponents }) => {
       fontWeight: "400",
       lineHeight: "16px",
     },
+    ".text-body2-bold": {
+      fontSize: "16px",
+      fontWeight: "700",
+      lineHeight: "24px",
+    },
     ".text-body2-semibold": {
       fontSize: "16px",
       fontWeight: "600",
-      lineHeight: "normal",
+      lineHeight: "24px",
     },
     ".text-body2-medium": {
       fontSize: "16px",
       fontWeight: "500",
-      lineHeight: "normal",
+      lineHeight: "24px",
     },
     ".text-body2-regular": {
       fontSize: "16px",
       fontWeight: "400",
-      lineHeight: "normal",
+      lineHeight: "24px",
     },
   });
 });

@@ -1,10 +1,14 @@
-import { LogHeader } from "./_components";
+import { LogHeader, LogSummaryCards } from "./_components";
 
 const ErrorLog = () => {
   return (
-    <div>
+    <>
       <LogHeader />
-    </div>
+      <LogSummaryCards
+        data={{ totalErrors: 0, unCheckedErrors: 0, recentErrorApiName: "" }}
+        onRefresh={() => {}}
+      />
+    </>
   );
 };
 
