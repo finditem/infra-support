@@ -1,4 +1,4 @@
-import { LogHeader, LogSummaryCards } from "./_components";
+import { LogHeader, LogSummaryCards, LogList } from "./_components";
 
 const ErrorLog = () => {
   return (
@@ -8,6 +8,7 @@ const ErrorLog = () => {
         data={{ totalErrors: 0, unCheckedErrors: 0, recentErrorApiName: "" }}
         onRefresh={() => {}}
       />
+      <LogList data={{ total: 13, unChecked: 7, checked: 6 }} />
     </>
   );
 };

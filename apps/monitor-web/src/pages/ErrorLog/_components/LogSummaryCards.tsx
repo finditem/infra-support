@@ -10,7 +10,7 @@ const LogSummaryCards = ({ data, onRefresh }: LogSummaryCardsProps) => {
   return (
     <section
       aria-label="error-summary-cards"
-      className="my-8 flex items-center rounded-xl border border-[#DFDFDF] bg-white py-6"
+      className="mt-8 flex items-center rounded-xl border border-[#DFDFDF] bg-white py-6"
     >
       <h2 id="error-summary-cards" className="sr-only">
         에러 로그 요약 카드
