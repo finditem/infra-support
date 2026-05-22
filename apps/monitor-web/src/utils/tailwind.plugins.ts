@@ -35,21 +35,61 @@ const customUtilities = plugin(({ addUtilities, addComponents }) => {
 
   addComponents({
     ".text-header1-bold": {
+      fontSize: "30px",
+      fontWeight: "700",
+      lineHeight: "normal",
+    },
+    ".text-header1-semibold": {
+      fontSize: "30px",
+      fontWeight: "600",
+      lineHeight: "normal",
+    },
+    ".text-header1-medium": {
+      fontSize: "30px",
+      fontWeight: "500",
+      lineHeight: "normal",
+    },
+    ".text-header1-regular": {
+      fontSize: "30px",
+      fontWeight: "400",
+      lineHeight: "normal",
+    },
+    ".text-header2-bold": {
+      fontSize: "24px",
+      fontWeight: "700",
+      lineHeight: "normal",
+    },
+    ".text-header2-semibold": {
+      fontSize: "24px",
+      fontWeight: "600",
+      lineHeight: "normal",
+    },
+    ".text-header2-medium": {
+      fontSize: "24px",
+      fontWeight: "500",
+      lineHeight: "normal",
+    },
+    ".text-header2-regular": {
+      fontSize: "24px",
+      fontWeight: "400",
+      lineHeight: "normal",
+    },
+    ".text-header3-bold": {
       fontSize: "20px",
       fontWeight: "700",
       lineHeight: "24px",
     },
-    ".text-header1-semibold": {
+    ".text-header3-semibold": {
       fontSize: "20px",
       fontWeight: "600",
       lineHeight: "24px",
     },
-    ".text-header1-medium": {
+    ".text-header3-medium": {
       fontSize: "20px",
       fontWeight: "500",
       lineHeight: "24px",
     },
-    ".text-header1-regular": {
+    ".text-header3-regular": {
       fontSize: "20px",
       fontWeight: "400",
       lineHeight: "24px",
@@ -68,6 +108,21 @@ const customUtilities = plugin(({ addUtilities, addComponents }) => {
       fontSize: "18px",
       fontWeight: "400",
       lineHeight: "16px",
+    },
+    ".text-body2-semibold": {
+      fontSize: "16px",
+      fontWeight: "600",
+      lineHeight: "normal",
+    },
+    ".text-body2-medium": {
+      fontSize: "16px",
+      fontWeight: "500",
+      lineHeight: "normal",
+    },
+    ".text-body2-regular": {
+      fontSize: "16px",
+      fontWeight: "400",
+      lineHeight: "normal",
     },
   });
 });
