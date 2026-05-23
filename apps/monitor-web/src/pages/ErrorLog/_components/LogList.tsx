@@ -2,12 +2,21 @@ import type { LogListData } from "../_types";
 import { Badge } from "@/components";
 import LogListItem from "./LogListItem";
 import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
+import { LOG_LIST_FILTERS, type LogListFilterKey } from "../_constants/";
 
 interface LogListProps {
   data: LogListData;
 }
 
 const LogList = ({ data }: LogListProps) => {
+  const selectedFilter: LogListFilterKey = "all";
+
+  const countByKey: Record<LogListFilterKey, number> = {
+    all: data.total,
+    unchecked: data.unChecked,
+    checked: data.checked,
+  };
+
   return (
     <section className="mt-3 flex h-full flex-col rounded-xl border border-[#DFDFDF] bg-white">
       <div
@@ -15,21 +24,19 @@ const LogList = ({ data }: LogListProps) => {
         role="group"
         className="flex items-center gap-6 px-12 py-8"
       >
-        <LogListFilterButton isActive={true} label="전체" value={data.total} onClick={() => {}} />
-        <LogListFilterButton
-          isActive={false}
-          label="확인전"
-          value={data.unChecked}
-          onClick={() => {}}
-        />
-        <LogListFilterButton
-          isActive={false}
-          label="확인완료"
-          value={data.checked}
-          onClick={() => {}}
-        />
+        {LOG_LIST_FILTERS.map((filter) => (
+          <LogListFilterButton
+            key={filter.key}
+            isActive={selectedFilter === filter.key}
+            label={filter.label}
+            value={countByKey[filter.key]}
+            onClick={() => {}}
+          />
+        ))}
       </div>
+
       <LogListHeader />
+
       <ul className="flex-1 pb-6">
         {MOCK_ERROR_LOG_ITEMS.map((item) => (
           <LogListItem key={item.id} data={item} />
