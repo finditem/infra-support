@@ -12,13 +12,13 @@ const DetailSettings = () => {
       className="my-8 flex flex-col gap-[60px] rounded-xl border border-[#DFDFDF] bg-white px-12 py-8"
     >
       <div className="flex items-center justify-between">
-        <h2 id="settings-title" className="text-header1-bold">
+        <h2 id="settings-title" className="typo-header3-bold">
           API 설정 정보
         </h2>
-        <BasicButton className="border border-[#DFDFDF] px-5 py-4" variant="inversed">
+        <BasicButton className="border border-[#DFDFDF] px-5 py-8" variant="inversed">
           <span className="flex items-center gap-1 text-[#1D1D1D]">
             <Icon name="editPencil" size={24} />
-            <span className="text-body1-medium">설정 수정</span>
+            <span className="typo-header3-medium">설정 수정</span>
           </span>
         </BasicButton>
       </div>
@@ -71,7 +71,7 @@ const SettingItem = ({
   className?: string;
 }) => (
   <div className={cn("flex flex-col gap-3", className)}>
-    <dt className="text-body1-medium text-[#1D1D1D]/40">{label}</dt>
+    <dt className="typo-header3-medium text-[#1D1D1D]/40">{label}</dt>
     <dd className="text-layout-header">{children}</dd>
   </div>
 );
