@@ -1,5 +1,7 @@
 import type { LogListData } from "../_types";
 import { Badge } from "@/components";
+import LogListItem from "./LogListItem";
+import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
 
 interface LogListProps {
   data: LogListData;
@@ -24,7 +26,11 @@ const LogList = ({ data }: LogListProps) => {
         />
       </div>
       <LogListHeader />
-      <div className="flex-1 pb-6" />
+      <div className="flex-1 pb-6">
+        {MOCK_ERROR_LOG_ITEMS.map((item) => (
+          <LogListItem key={item.id} data={item} />
+        ))}
+      </div>
     </section>
   );
 };
