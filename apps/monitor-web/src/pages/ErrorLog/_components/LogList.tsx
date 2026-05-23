@@ -3,6 +3,7 @@ import { Badge } from "@/components";
 import LogListItem from "./LogListItem";
 import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
 import { LOG_LIST_FILTERS, type LogListFilterKey } from "../_constants/";
+import { cn } from "@/utils";
 
 interface LogListProps {
   data: LogListData;
@@ -59,13 +60,16 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
   return (
     <button
       aria-pressed={isActive}
-      className="flex items-center gap-2 py-3"
+      className="typo-header3-bold flex items-center gap-2 py-3"
       type="button"
       onClick={onClick}
     >
-      <span className="text-header3-bold">{label}</span>
+      <span className={cn(isActive ? "text-[#1D1D1D]" : "text-[#1D1D1D]/40")}>{label}</span>
       <Badge
-        className="border-transparent bg-[#E3FCEE] px-[6px] py-1 font-bold leading-6 text-[#0AA874] [font-size:20px]"
+        className={cn(
+          "border-transparent px-[6px] py-1",
+          isActive ? "bg-[#E3FCEE] text-[#0AA874]" : "bg-[#F2F2F2] text-[#1D1D1D]/40"
+        )}
         label={value}
       />
     </button>
@@ -74,7 +78,7 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
 
 const LogListHeader = () => {
   return (
-    <div className="text-body2-bold flex items-center justify-between bg-[#F9F9F9] px-12 py-6 text-[#858585]">
+    <div className="typo-body2-bold flex items-center justify-between bg-[#F9F9F9] px-12 py-6 text-[#858585]">
       <span>API 정보</span>
       <div className="flex items-center gap-6 text-center">
         <span className="w-[223px]">발생 시간</span>

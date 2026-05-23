@@ -43,7 +43,7 @@ interface SummaryCardProps {
 const SummaryCard = ({ label, value }: SummaryCardProps) => {
   return (
     <div className="flex flex-col gap-2 px-12">
-      <dt className="text-body2-bold">{label}</dt>
+      <dt className="typo-body2-bold">{label}</dt>
       <dd className="text-[26px] font-bold leading-[36px]">{value}</dd>
     </div>
   );

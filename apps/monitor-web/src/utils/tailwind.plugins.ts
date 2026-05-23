@@ -34,97 +34,97 @@ const customUtilities = plugin(({ addUtilities, addComponents }) => {
   });
 
   addComponents({
-    ".text-header1-bold": {
+    ".typo-header1-bold": {
       fontSize: "30px",
       fontWeight: "700",
       lineHeight: "normal",
     },
-    ".text-header1-semibold": {
+    ".typo-header1-semibold": {
       fontSize: "30px",
       fontWeight: "600",
       lineHeight: "normal",
     },
-    ".text-header1-medium": {
+    ".typo-header1-medium": {
       fontSize: "30px",
       fontWeight: "500",
       lineHeight: "normal",
     },
-    ".text-header1-regular": {
+    ".typo-header1-regular": {
       fontSize: "30px",
       fontWeight: "400",
       lineHeight: "normal",
     },
-    ".text-header2-bold": {
+    ".typo-header2-bold": {
       fontSize: "24px",
       fontWeight: "700",
       lineHeight: "normal",
     },
-    ".text-header2-semibold": {
+    ".typo-header2-semibold": {
       fontSize: "24px",
       fontWeight: "600",
       lineHeight: "normal",
     },
-    ".text-header2-medium": {
+    ".typo-header2-medium": {
       fontSize: "24px",
       fontWeight: "500",
       lineHeight: "normal",
     },
-    ".text-header2-regular": {
+    ".typo-header2-regular": {
       fontSize: "24px",
       fontWeight: "400",
       lineHeight: "normal",
     },
-    ".text-header3-bold": {
+    ".typo-header3-bold": {
       fontSize: "20px",
       fontWeight: "700",
       lineHeight: "24px",
     },
-    ".text-header3-semibold": {
+    ".typo-header3-semibold": {
       fontSize: "20px",
       fontWeight: "600",
       lineHeight: "24px",
     },
-    ".text-header3-medium": {
+    ".typo-header3-medium": {
       fontSize: "20px",
       fontWeight: "500",
       lineHeight: "24px",
     },
-    ".text-header3-regular": {
+    ".typo-header3-regular": {
       fontSize: "20px",
       fontWeight: "400",
       lineHeight: "24px",
     },
-    ".text-body1-semibold": {
+    ".typo-body1-semibold": {
       fontSize: "18px",
       fontWeight: "600",
       lineHeight: "16px",
     },
-    ".text-body1-medium": {
+    ".typo-body1-medium": {
       fontSize: "18px",
       fontWeight: "500",
       lineHeight: "16px",
     },
-    ".text-body1-regular": {
+    ".typo-body1-regular": {
       fontSize: "18px",
       fontWeight: "400",
       lineHeight: "16px",
     },
-    ".text-body2-bold": {
+    ".typo-body2-bold": {
       fontSize: "16px",
       fontWeight: "700",
       lineHeight: "24px",
     },
-    ".text-body2-semibold": {
+    ".typo-body2-semibold": {
       fontSize: "16px",
       fontWeight: "600",
       lineHeight: "24px",
     },
-    ".text-body2-medium": {
+    ".typo-body2-medium": {
       fontSize: "16px",
       fontWeight: "500",
       lineHeight: "24px",
     },
-    ".text-body2-regular": {
+    ".typo-body2-regular": {
       fontSize: "16px",
       fontWeight: "400",
       lineHeight: "24px",
