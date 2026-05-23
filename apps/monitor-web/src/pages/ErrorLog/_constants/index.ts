@@ -1,1 +1,1 @@
-export * from "./logList.constants";
+export * from "./LogList.constants";
