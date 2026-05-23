@@ -7,7 +7,7 @@ interface LogListItemProps {
 
 const LogListItem = ({ data }: LogListItemProps) => {
   return (
-    <div className="flex items-center justify-between border-b border-[#1D1D1D/10] px-12 py-6">
+    <li className="flex items-center justify-between border-b border-[#1D1D1D/10] px-12 py-6">
       <div className="flex flex-col items-start justify-center gap-2">
         <div className="flex items-center gap-3">
           <span className="text-header3-bold">{data.apiName}</span>
@@ -19,10 +19,10 @@ const LogListItem = ({ data }: LogListItemProps) => {
         <span className="text-body2-medium text-[#858585]">{data.errorMessage}</span>
       </div>
       <div className="flex items-center gap-6">
-        <span className="text-body2-medium text-[#858585]">{data.ouccurredAt}</span>
-        <Chip checked={data.status} label={data.status ? "확인완료" : "확인전"} />
+        <span className="text-body2-medium text-[#858585]">{data.occurredAt}</span>
+        <Chip checked={data.status} label={data.status ? "확인완료" : "확인전"} size="sm" />
       </div>
-    </div>
+    </li>
   );
 };
 

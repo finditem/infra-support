@@ -10,7 +10,11 @@ interface LogListProps {
 const LogList = ({ data }: LogListProps) => {
   return (
     <section className="mt-3 flex h-full flex-col rounded-xl border border-[#DFDFDF] bg-white">
-      <div className="flex items-center gap-6 px-12 py-8">
+      <div
+        aria-label="에러 로그 상태 필터"
+        role="group"
+        className="flex items-center gap-6 px-12 py-8"
+      >
         <LogListFilterButton isActive={true} label="전체" value={data.total} onClick={() => {}} />
         <LogListFilterButton
           isActive={false}
@@ -26,11 +30,11 @@ const LogList = ({ data }: LogListProps) => {
         />
       </div>
       <LogListHeader />
-      <div className="flex-1 pb-6">
+      <ul className="flex-1 pb-6">
         {MOCK_ERROR_LOG_ITEMS.map((item) => (
           <LogListItem key={item.id} data={item} />
         ))}
-      </div>
+      </ul>
     </section>
   );
 };

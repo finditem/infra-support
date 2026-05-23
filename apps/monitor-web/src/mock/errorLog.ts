@@ -6,7 +6,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     apiName: "Kakao Map API",
     errorType: "404",
     errorMessage: "Connection timeout after 5000ms",
-    ouccurredAt: "2026-05-23 오전 09:12",
+    occurredAt: "2026-05-23 오전 09:12",
     status: false,
   },
   {
@@ -14,7 +14,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     apiName: "Kakao Share SDK",
     errorType: "503",
     errorMessage: "Service temporarily unavailable",
-    ouccurredAt: "2026-05-23 오후 08:51",
+    occurredAt: "2026-05-23 오후 08:51",
     status: false,
   },
 ];

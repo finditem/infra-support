@@ -3,6 +3,6 @@ export interface LogListItemData {
   apiName: string;
   errorType: string;
   errorMessage: string;
-  ouccurredAt: string;
+  occurredAt: string;
   status: boolean;
 }
