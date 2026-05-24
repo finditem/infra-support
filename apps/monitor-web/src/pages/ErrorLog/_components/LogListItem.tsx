@@ -4,9 +4,10 @@ import { cn } from "@/utils";
 
 interface LogListItemProps {
   data: LogListItemData;
+  onCheckedChange: (checked: boolean) => void;
 }
 
-const LogListItem = ({ data }: LogListItemProps) => {
+const LogListItem = ({ data, onCheckedChange }: LogListItemProps) => {
   return (
     <li className="flex items-center justify-between border-b border-[#1D1D1D]/10 px-12 py-6">
       <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-2">
@@ -25,17 +26,15 @@ const LogListItem = ({ data }: LogListItemProps) => {
         <span className="typo-body2-medium text-[#858585]">{data.occurredAt}</span>
         <CheckboxButton
           className={cn(
-            "typo-body2-semibold rounded-full border px-[17px] py-[3px]",
+            "typo-body2-semibold w-[104px] justify-center rounded-full border py-[3px]",
             data.status
               ? "border-transparent bg-[#E3FCEE] text-[#0AA874]"
               : "border-transparent bg-[#FFECEC] text-[#FF6363]"
           )}
           checked={data.status}
-          disabled
-          iconClassName={cn(
-            data.status ? "group-disabled:border-[#0AA874]" : "group-disabled:border-[#FF6363]"
-          )}
+          iconClassName={cn(data.status ? "border-[#0AA874]" : "border-[#FF6363]")}
           size="sm"
+          onCheckedChange={onCheckedChange}
         >
           {data.status ? "확인완료" : "확인전"}
         </CheckboxButton>
