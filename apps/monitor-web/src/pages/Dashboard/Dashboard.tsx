@@ -22,7 +22,7 @@ const Dashboard = () => {
   const [checkedDisabled, setCheckedDisabled] = useState(false);
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
+  const [isSelect, setIsSelected] = useState(false);
 
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -155,11 +155,7 @@ const Dashboard = () => {
         <Badge className="border-blue-200 bg-blue-50 text-blue-700" label="커스텀 배지" />
       </div>
 
-      <Chip
-        checked={isChecked}
-        label={isChecked ? "확인완료" : "확인전"}
-        onCheckedChange={setIsChecked}
-      />
+      <Chip label="Text" selected={isSelect} onClick={() => setIsSelected((prev) => !prev)} />
 
       <div className="flex flex-col gap-3 pt-6">
         <h2>Skeleton Test</h2>
