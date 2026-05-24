@@ -1,5 +1,6 @@
-import { Chip, Badge } from "@/components";
+import { CheckboxButton, Badge } from "@/components";
 import type { LogListItemData } from "../_types";
+import { cn } from "@/utils";
 
 interface LogListItemProps {
   data: LogListItemData;
@@ -22,7 +23,22 @@ const LogListItem = ({ data }: LogListItemProps) => {
       </div>
       <div className="flex items-center gap-6">
         <span className="typo-body2-medium text-[#858585]">{data.occurredAt}</span>
-        <Chip checked={data.status} label={data.status ? "확인완료" : "확인전"} size="sm" />
+        <CheckboxButton
+          className={cn(
+            "typo-body2-semibold rounded-full border px-[17px] py-[3px]",
+            data.status
+              ? "border-transparent bg-[#E3FCEE] text-[#0AA874]"
+              : "border-transparent bg-[#FFECEC] text-[#FF6363]"
+          )}
+          checked={data.status}
+          disabled
+          iconClassName={cn(
+            data.status ? "group-disabled:border-[#0AA874]" : "group-disabled:border-[#FF6363]"
+          )}
+          size="sm"
+        >
+          {data.status ? "확인완료" : "확인전"}
+        </CheckboxButton>
       </div>
     </li>
   );
