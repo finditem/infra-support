@@ -2,35 +2,27 @@
  * Chip 컴포넌트의 공통 베이스 스타일입니다.
  *
  * @remarks
- * - 레이아웃 (정렬, 간격, 패딩, 둥근 모서리)와 타이포그래피를 포함한 기본 스타일입니다.
- * - 상태별 색상은 `CHIP_ACTIVE_STYLE`과 `CHIP_INACTIVE_STYLE`에서 분기합니다.
+ * - 레이아웃 (정렬, 간격, 패딩, 둥근 모서리) 기본 스타일입니다.
  *
  * @author junyeol
  */
 
 export const CHIP_BASE_STYLE =
-  "inline-flex w-fit items-center justify-center rounded-full gap-1.5 px-3 py-1 text-center text-base font-normal leading-6";
+  "inline-flex w-fit items-center justify-center rounded-full border px-[14px] py-[18px] text-center transition-colors";
 
 /**
- * Chip 활성화(checked) 상태의 스타일입니다.
+ * Chip 컴포넌트의 상태별 스타일입니다.
  *
  * @remarks
- * - 활성화 배경/텍스트 색상을 적용합니다.
- * - `CHIP_BASE_STYLE`과 함께 사용됩니다.
+ * - Chip의 상태에 따라 해당하는 스타일속성이 적용됩니다.
  *
  * @author junyeol
  */
 
-export const CHIP_ACTIVE_STYLE = "bg-[#E3FCEE] text-[#0AA874]";
-
-/**
- * Chip 비활성화(unchecked) 상태의 스타일입니다.
- *
- * @remarks
- * - 비활성화 배경/텍스트 색상을 적용합니다.
- * - `CHIP_BASE_STYLE`과 함께 사용됩니다.
- *
- * @author junyeol
- */
-
-export const CHIP_INACTIVE_STYLE = "bg-[#FFECEC] text-[#FF6363]";
+export const CHIP_STATE_STYLE = [
+  "bg-bg-layout-1depth border-border-neutural-default text-fg-neutural-default ",
+  "hover:bg-[#F9F9F9] hover:border-border-neutural-hover hover:text-fg-neutural-hover",
+  "active:bg-fill-neutural-pressed active:border-border-neutural-pressed active:text-fg-neutural-pressed",
+  "data-[selected=true]:bg-fill-neutural-default data-[selected=true]:border-0 data-[selected=true]:text-white",
+  "disabled:bg-fill-neutural-disabled disabled:border-border-neutural-default disabled:text-fg-neutural-disabled disabled:cursor-not-allowed",
+].join(" ");

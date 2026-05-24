@@ -1,11 +1,7 @@
 //TODO(준열): disabled 스타일 추가 필요
 
 import { CheckboxButton } from "../buttons";
-import {
-  CHIP_ACTIVE_STYLE,
-  CHIP_BASE_STYLE,
-  CHIP_INACTIVE_STYLE,
-} from "./_internal/chip.constants";
+import { CHIP_BASE_STYLE } from "./_internal/chip.constants";
 import { cn } from "@/utils";
 
 /**
@@ -13,7 +9,6 @@ import { cn } from "@/utils";
  *
  * @remarks
  * - `CheckboxButton`을 기반으로 동작하는 controlled 토글 컴포넌트입니다.
- * - `checked` 값에 따라 활성/비활성 스타일이 자동 적용됩니다.
  * - `disabled`가 `true`이면 클릭이 비활성화됩니다.
  *
  * @author junyeol
@@ -48,23 +43,14 @@ interface ChipProps {
  * ```
  */
 
-const Chip = ({
-  label,
-  checked = false,
-  onCheckedChange,
-  disabled,
-  className,
-  size = "md",
-}: ChipProps) => {
+const Chip = ({ label, onCheckedChange, disabled, className, size = "md" }: ChipProps) => {
   return (
     <CheckboxButton
       className={cn(
         CHIP_BASE_STYLE,
-        checked ? CHIP_ACTIVE_STYLE : CHIP_INACTIVE_STYLE,
         // disabled && CHIP_DISABLED_STYLE,
         className
       )}
-      checked={checked}
       disabled={disabled}
       size={size}
       onCheckedChange={onCheckedChange}
