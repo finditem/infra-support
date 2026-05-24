@@ -127,13 +127,13 @@ const Dashboard = () => {
         />
       </div>
       <div className="gap-4 flex-center">
-        <BasicButton size="big" variant="solid" onClick={() => {}}>
+        <BasicButton size="big" onClick={() => {}}>
           big
         </BasicButton>
-        <BasicButton size="medium" variant="solid" onClick={() => {}}>
+        <BasicButton size="medium" onClick={() => {}}>
           medium
         </BasicButton>
-        <BasicButton size="small" variant="solid" onClick={() => {}}>
+        <BasicButton size="small" onClick={() => {}}>
           small
         </BasicButton>
         <IconButton aria-label="확인" iconName="check" onClick={() => {}} />
