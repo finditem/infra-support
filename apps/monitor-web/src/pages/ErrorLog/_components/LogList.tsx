@@ -28,7 +28,7 @@ const LogList = () => {
   };
 
   return (
-    <section className="mt-3 flex h-full flex-col rounded-xl border border-[#DFDFDF] bg-white">
+    <section className="mt-3 flex flex-col rounded-xl border border-[#DFDFDF] bg-white">
       <div
         aria-label="에러 로그 상태 필터"
         role="group"
@@ -47,7 +47,7 @@ const LogList = () => {
 
       <LogListHeader />
 
-      <ul className="flex-1 pb-6">
+      <ul className="pb-6">
         {items.map((item) => (
           <LogListItem
             key={item.id}
@@ -80,7 +80,7 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
       <span className={cn(isActive ? "text-[#1D1D1D]" : "text-[#1D1D1D]/40")}>{label}</span>
       <Badge
         className={cn(
-          "border-transparent px-[6px] py-1",
+          "h-8 border-transparent px-[6px] py-1 tabular-nums",
           isActive ? "bg-[#E3FCEE] text-[#0AA874]" : "bg-[#F2F2F2] text-[#1D1D1D]/40"
         )}
         label={value}
