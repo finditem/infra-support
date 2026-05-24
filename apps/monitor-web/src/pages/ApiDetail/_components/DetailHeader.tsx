@@ -26,7 +26,7 @@ const DetailHeader = ({ apiData }: DetailHeaderProps) => {
     >
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-2">
-          <h1 id="api-detail-title" className="text-header1-bold">
+          <h1 id="api-detail-title" className="text-[26px] font-bold leading-9">
             {apiData.name}
           </h1>
           <Badge aria-label={`HTTP 상태 코드: ${apiData.statusCode}`} label={apiData.statusCode} />
@@ -42,7 +42,7 @@ const DetailHeader = ({ apiData }: DetailHeaderProps) => {
       <BasicButton className="h-[80px] min-w-[121px] rounded-xl border border-[#DFDFDF] bg-white px-7 py-8 text-[#1D1D1D]">
         <span className="flex items-center gap-1">
           <Icon name="editPencil" size={24} />
-          <span className="text-body1-medium">수정</span>
+          <span className="typo-header3-medium">수정</span>
         </span>
       </BasicButton>
     </section>
@@ -74,10 +74,10 @@ const StatusItem = ({ status }: { status: ApiStatus }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <dt className="text-body1-regular text-[#1D1D1D]/40">상태</dt>
+      <dt className="typo-body2-medium text-[#1D1D1D]/40">상태</dt>
       <dd className="flex items-center gap-2">
         <div aria-hidden="true" className={cn("size-3 rounded-full", color)} />
-        <span className={cn("text-body1-regular", textColor)}>{label}</span>
+        <span className={cn("typo-header3-medium", textColor)}>{label}</span>
       </dd>
     </div>
   );
@@ -94,9 +94,9 @@ const InfoItem = ({ label, value, dateTime }: InfoItemProps) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <dt className="text-body1-regular text-[#1D1D1D]/40">{label}</dt>
+      <dt className="typo-body2-medium text-[#1D1D1D]/40">{label}</dt>
       <dd>
-        <Tag className="text-body1-regular text-[#1D1D1D]" {...(dateTime && { dateTime })}>
+        <Tag className="typo-header3-medium text-[#1D1D1D]" {...(dateTime && { dateTime })}>
           {value}
         </Tag>
       </dd>

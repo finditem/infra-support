@@ -24,7 +24,7 @@ type StatusBadgeProps = {
 
 type CustomBadgeProps = {
   /** Custom Badge Label */
-  label: string;
+  label: string | number;
   /** Custom Badge에서는 status 지정 불가 */
   status?: never;
   /** 추가 클래스명 */

@@ -1,8 +1,15 @@
+import { LogHeader, LogSummaryCards, LogList } from "./_components";
+
 const ErrorLog = () => {
   return (
-    <div>
-      <h1>장애/에러 로그 페이지</h1>
-    </div>
+    <>
+      <LogHeader />
+      <LogSummaryCards
+        data={{ totalErrors: 0, unCheckedErrors: 0, recentErrorApiName: "" }}
+        onRefresh={() => {}}
+      />
+      <LogList data={{ total: 13, unChecked: 7, checked: 6 }} />
+    </>
   );
 };
 
