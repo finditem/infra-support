@@ -30,6 +30,8 @@ interface ChipProps {
   disabled?: boolean;
   /** 추가 클래스명 */
   className?: string;
+  /** 체크박스 아이콘 크기 */
+  size?: "sm" | "md";
 }
 
 /**
@@ -41,11 +43,19 @@ interface ChipProps {
  *  label={isChecked ? "확인완료" : "확인전"}
  *  checked={isChecked}
  *  onCheckedChange={setIsChecked}
+ *  size="md"
  * />
  * ```
  */
 
-const Chip = ({ label, checked = false, onCheckedChange, disabled, className }: ChipProps) => {
+const Chip = ({
+  label,
+  checked = false,
+  onCheckedChange,
+  disabled,
+  className,
+  size = "md",
+}: ChipProps) => {
   return (
     <CheckboxButton
       className={cn(
@@ -56,6 +66,7 @@ const Chip = ({ label, checked = false, onCheckedChange, disabled, className }: 
       )}
       checked={checked}
       disabled={disabled}
+      size={size}
       onCheckedChange={onCheckedChange}
     >
       {label}

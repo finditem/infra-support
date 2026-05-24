@@ -15,10 +15,10 @@ const DetailCheckLogs = () => {
       className="flex min-h-0 min-w-0 flex-col gap-10 rounded-xl border border-[#DFDFDF] bg-white px-12 py-8"
     >
       <div className="flex items-center justify-between">
-        <h2 id="logs-title" className="text-header1-semibold">
+        <h2 id="logs-title" className="typo-header3-bold">
           최근 체크 로그
         </h2>
-        <span className="text-body1-medium block text-[#1D1D1D]/40">10분 주기</span>
+        <span className="typo-body2-medium block text-[#1D1D1D]/40">10분 주기</span>
       </div>
 
       <div
@@ -46,7 +46,7 @@ const DetailCheckLogs = () => {
                 {log.message}
               </span>
 
-              <div className="text-body1-regular flex items-center gap-8 text-[#1D1D1D]/60">
+              <div className="typo-body2-medium flex items-center gap-8 text-[#1D1D1D]/60">
                 <span aria-label="상태 코드">{log.statusCode}</span>
                 <span aria-label="응답 시간">{log.latency}</span>
               </div>
