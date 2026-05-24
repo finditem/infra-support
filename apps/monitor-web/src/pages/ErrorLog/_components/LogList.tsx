@@ -2,7 +2,7 @@ import type { LogListData } from "../_types";
 import { Badge } from "@/components";
 import LogListItem from "./LogListItem";
 import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
-import { LOG_LIST_FILTERS, type LogListFilterKey } from "../_constants/";
+import { LOG_LIST_FILTERS, type LogListFilterKey } from "../_constants";
 import { cn } from "@/utils";
 
 interface LogListProps {
