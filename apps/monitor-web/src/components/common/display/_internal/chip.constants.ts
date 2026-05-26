@@ -8,7 +8,7 @@
  */
 
 export const CHIP_BASE_STYLE =
-  "inline-flex w-fit items-center justify-center gap-6 rounded-full border px-[18px] py-[13px] typo-body1-medium text-center transition-colors";
+  "inline-flex w-fit items-center justify-center rounded-full border px-[18px] py-[13px] typo-body1-medium text-center transition-colors";
 /**
  * Chip 컴포넌트의 상태별 스타일입니다.
  *
