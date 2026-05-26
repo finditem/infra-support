@@ -80,7 +80,7 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
       <span className={cn(isActive ? "text-[#1D1D1D]" : "text-[#1D1D1D]/40")}>{label}</span>
       <Badge
         className={cn(
-          "h-8 border-transparent px-[6px] py-1 tabular-nums",
+          "border-transparent px-[6px] py-1 tabular-nums",
           isActive ? "bg-[#E3FCEE] text-[#0AA874]" : "bg-[#F2F2F2] text-[#1D1D1D]/40"
         )}
         label={value}

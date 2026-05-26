@@ -149,9 +149,9 @@ const Dashboard = () => {
       </ModalLayout>
 
       <div className="flex flex-col gap-4 pt-5">
-        <Badge status="healthy" />
-        <Badge status="degraded" />
-        <Badge status="outage" />
+        <Badge label="정상" status="healthy" />
+        <Badge label="지연" status="degraded" />
+        <Badge label="장애" status="outage" />
         <Badge className="border-blue-200 bg-blue-50 text-blue-700" label="커스텀 배지" />
       </div>
 

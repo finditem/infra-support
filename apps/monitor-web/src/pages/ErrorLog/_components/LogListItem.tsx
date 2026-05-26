@@ -13,10 +13,7 @@ const LogListItem = ({ data, onCheckedChange }: LogListItemProps) => {
       <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-2">
         <div className="flex items-center gap-3">
           <span className="typo-header3-bold">{data.apiName}</span>
-          <Badge
-            className="shrink-0 border-[#FF3030] bg-white px-2 text-[12px] font-bold leading-6 text-[#FF3030]"
-            label={data.errorType}
-          />
+          <Badge className="shrink-0 px-2" label={data.errorType} status={data.errorStatus} />
         </div>
         <span className="typo-body2-medium block w-full truncate text-[#858585]">
           {data.errorMessage}
