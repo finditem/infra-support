@@ -13,7 +13,7 @@ export const LOADING_SPINNER_SIZE: Record<Size, number> = {
 };
 
 export const BASE_STYLES =
-  "relative inline-flex min-w-20 items-center justify-center gap-2 rounded-lg transition-colors duration-150 text-white";
+  "relative inline-flex min-w-20 items-center justify-center gap-2 rounded-lg transition-colors text-white";
 
 export const STATE_STYLES =
   "bg-fill-primary-strong-default hover:bg-fill-primary-strong-hover active:bg-fill-primary-strong-pressed disabled:cursor-not-allowed disabled:bg-fill-neutural-disabled disabled:text-fg-neutural-disabled";
