@@ -23,10 +23,8 @@ const LogListItem = ({ data, onCheckedChange }: LogListItemProps) => {
         <span className="typo-body2-medium text-[#858585]">{data.occurredAt}</span>
         <CheckboxButton
           className={cn(
-            "typo-body2-semibold w-[104px] justify-center rounded-full border py-[3px]",
-            data.status
-              ? "border-transparent bg-[#E3FCEE] text-[#0AA874]"
-              : "border-transparent bg-[#FFECEC] text-[#FF6363]"
+            "typo-body2-semibold w-[104px] justify-center rounded-full border border-transparent py-[3px]",
+            data.status ? "bg-[#E3FCEE] text-[#0AA874]" : "bg-[#FFECEC] text-[#FF6363]"
           )}
           checked={data.status}
           iconClassName={cn(data.status ? "border-[#0AA874]" : "border-[#FF6363]")}
