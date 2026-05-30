@@ -1,25 +1,34 @@
-import type { LogListData } from "../_types";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components";
 import LogListItem from "./LogListItem";
 import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
 import { LOG_LIST_FILTERS, type LogListFilterKey } from "../_constants";
 import { cn } from "@/utils";
+import type { LogListItemData } from "../_types";
 
-interface LogListProps {
-  data: LogListData;
-}
-
-const LogList = ({ data }: LogListProps) => {
+const LogList = () => {
   const selectedFilter: LogListFilterKey = "all";
+  const [items, setItems] = useState<LogListItemData[]>(MOCK_ERROR_LOG_ITEMS);
 
-  const countByKey: Record<LogListFilterKey, number> = {
-    all: data.total,
-    unchecked: data.unChecked,
-    checked: data.checked,
+  const countByKey: Record<LogListFilterKey, number> = useMemo(() => {
+    const checkedCount = items.filter((item) => item.status).length;
+    const uncheckedCount = items.length - checkedCount;
+
+    return {
+      all: items.length,
+      unchecked: uncheckedCount,
+      checked: checkedCount,
+    };
+  }, [items]);
+
+  const handleCheckedChange = (itemId: number, checked: boolean) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === itemId ? { ...item, status: checked } : item))
+    );
   };
 
   return (
-    <section className="mt-3 flex h-full flex-col rounded-xl border border-[#DFDFDF] bg-white">
+    <section className="mt-3 flex flex-col rounded-xl border border-[#DFDFDF] bg-white">
       <div
         aria-label="에러 로그 상태 필터"
         role="group"
@@ -38,9 +47,13 @@ const LogList = ({ data }: LogListProps) => {
 
       <LogListHeader />
 
-      <ul className="flex-1 pb-6">
-        {MOCK_ERROR_LOG_ITEMS.map((item) => (
-          <LogListItem key={item.id} data={item} />
+      <ul className="pb-6">
+        {items.map((item) => (
+          <LogListItem
+            key={item.id}
+            data={item}
+            onCheckedChange={(checked) => handleCheckedChange(item.id, checked)}
+          />
         ))}
       </ul>
     </section>
@@ -67,7 +80,7 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
       <span className={cn(isActive ? "text-[#1D1D1D]" : "text-[#1D1D1D]/40")}>{label}</span>
       <Badge
         className={cn(
-          "border-transparent px-[6px] py-1",
+          "border-transparent px-[6px] py-1 tabular-nums",
           isActive ? "bg-[#E3FCEE] text-[#0AA874]" : "bg-[#F2F2F2] text-[#1D1D1D]/40"
         )}
         label={value}

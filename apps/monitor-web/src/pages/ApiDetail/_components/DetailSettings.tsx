@@ -15,7 +15,7 @@ const DetailSettings = () => {
         <h2 id="settings-title" className="typo-header3-bold">
           API 설정 정보
         </h2>
-        <BasicButton className="border border-[#DFDFDF] px-5 py-8" variant="inversed">
+        <BasicButton className="border border-[#DFDFDF] px-5 py-8">
           <span className="flex items-center gap-1 text-[#1D1D1D]">
             <Icon name="editPencil" size={24} />
             <span className="typo-header3-medium">설정 수정</span>

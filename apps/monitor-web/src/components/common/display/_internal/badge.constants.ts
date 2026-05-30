@@ -1,30 +1,18 @@
-// TODO(준열) : 디자인 시스템 정립에 따라 기본 스타일 및 API 상태에 따른 스타일 변경 예정
-
 import type { ApiStatus } from "@/types";
 
 /**
  * API 상태별 Badge 표시 정보입니다.
  *
  * @remarks
- * - `label`: 상태별 노출 텍스트
- * - `className`: 상태별 색상 및 테두리 스타일
+ * - DB에 저장된 에러 상태에 따른 스타일을 정의합니다.
  *
  * @author junyeol
  */
 
-export const API_STATUS_BADGE_STYLES: Record<ApiStatus, { label: string; className: string }> = {
-  healthy: {
-    label: "정상",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  degraded: {
-    label: "지연",
-    className: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  outage: {
-    label: "장애",
-    className: "bg-rose-50 text-rose-700 border-rose-200",
-  },
+export const API_STATUS_BADGE_STYLES: Record<ApiStatus, string> = {
+  healthy: "text-[12px] font-bold leading-6 text-[#0AA874] bg-white border-[#0AA874]",
+  degraded: "text-[12px] font-bold leading-6 text-[#FF8A05] bg-white border-[#FF8A05]",
+  outage: "text-[12px] font-bold leading-6 text-[#FF3030] bg-white border-[#FF3030]",
 };
 
 /**
