@@ -21,6 +21,8 @@ interface CheckboxButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElemen
   onCheckedChange?: (checked: boolean) => void;
   /** 아이콘 크기 (default: `"md"`) */
   size?: "sm" | "md";
+  /** 아이콘 스타일 클래스 */
+  iconClassName?: string;
 }
 
 const SIZE_MAP = {
@@ -41,6 +43,11 @@ const PADDING_MAP = {
  *
  * // 크기 지정
  * <CheckboxButton checked={checked} size="sm" onCheckedChange={setChecked}>소형 체크박스</CheckboxButton>
+ *
+ * // 아이콘 스타일 변경
+ * <CheckboxButton checked={checked} onCheckedChange={setChecked} iconClassName="border-red-500 text-red-500">
+ *  빨간 테두리 체크박스
+ * </CheckboxButton>
  */
 
 const CheckboxButton = ({
@@ -48,6 +55,7 @@ const CheckboxButton = ({
   onCheckedChange,
   size = "md",
   className,
+  iconClassName,
   children,
   ...props
 }: CheckboxButtonProps) => {
@@ -65,7 +73,8 @@ const CheckboxButton = ({
           "rounded-[4px] border border-fg-primary-normal-default bg-bg-layout-1depth",
           "group-disabled:cursor-not-allowed group-disabled:border-border-neutural-default",
           checked ? "text-fg-primary-strong-default" : "text-white",
-          PADDING_MAP[size]
+          PADDING_MAP[size],
+          iconClassName
         )}
         name="check"
         size={SIZE_MAP[size]}
