@@ -14,7 +14,6 @@ import {
   Skeleton,
 } from "@/components";
 import { useToast } from "@/hooks";
-import { useLogoutMutation, useUserQuery } from "@/queries";
 
 const Dashboard = () => {
   const [checkedSm, setCheckedSm] = useState(false);
@@ -27,21 +26,9 @@ const Dashboard = () => {
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   const { success, error, warning } = useToast();
-  const { mutate: handleLogout } = useLogoutMutation();
-  const { data: user } = useUserQuery();
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="my-2 border">
-        <p>현재 로그인된 유저 정보</p>
-        <p>{user ? user?.email : "로그인되지 않았습니다."}</p>
-        {!!user && (
-          <BasicButton className="mt-2" onClick={() => handleLogout()}>
-            로그아웃 버튼
-          </BasicButton>
-        )}
-      </div>
-
       <h1>대시보드</h1>
 
       <div className="mt-4 flex gap-2">
