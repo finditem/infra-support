@@ -6,6 +6,9 @@ import EditPencil from "@/assets/icons/edit-pencil.svg?react";
 import LoadingSpinner from "@/assets/icons/loading-spinner.svg?react";
 import ErrorLog from "@/assets/icons/errorLog.svg?react";
 import Refresh from "@/assets/icons/refresh.svg?react";
+import SidebarDashboard from "@/assets/icons/sidebar-dashboard.svg?react";
+import SidebarDetail from "@/assets/icons/sidebar-detail.svg?react";
+import SidebarError from "@/assets/icons/sidebar-error.svg?react";
 
 export const ICON_MAP = {
   alert: AlertIcon,
@@ -16,4 +19,7 @@ export const ICON_MAP = {
   loadingSpinner: LoadingSpinner,
   errorLog: ErrorLog,
   refresh: Refresh,
+  sidebarDashboard: SidebarDashboard,
+  sidebarDetail: SidebarDetail,
+  sidebarError: SidebarError,
 } as const;
