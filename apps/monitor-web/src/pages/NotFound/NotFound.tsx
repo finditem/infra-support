@@ -9,7 +9,7 @@ const NotFound = () => {
   };
 
   return (
-    <div className="-m-8 h-[calc(100%+64px)] w-[calc(100%+64px)] bg-gradient-to-b from-[#F0F9F6] to-[#F4F5F7] flex-center">
+    <div className="-m-8 size-[calc(100%+64px)] bg-gradient-to-b from-[#F0F9F6] to-[#F4F5F7] flex-center">
       <div className="flex flex-col items-center space-y-12">
         <div className="gap-9 flex-col-center">
           <Icon height={250} name="notFound" width={584} />
