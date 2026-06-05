@@ -4,6 +4,8 @@ import Check from "@/assets/icons/check.svg?react";
 import Clear from "@/assets/icons/clear.svg?react";
 import EditPencil from "@/assets/icons/edit-pencil.svg?react";
 import LoadingSpinner from "@/assets/icons/loading-spinner.svg?react";
+import LeftArrow from "@/assets/icons/left-arrow.svg?react";
+import NotFound from "@/assets/icons/not-found.svg?react";
 import ErrorLog from "@/assets/icons/errorLog.svg?react";
 import Refresh from "@/assets/icons/refresh.svg?react";
 
@@ -14,6 +16,8 @@ export const ICON_MAP = {
   clear: Clear,
   editPencil: EditPencil,
   loadingSpinner: LoadingSpinner,
+  leftArrow: LeftArrow,
+  notFound: NotFound,
   errorLog: ErrorLog,
   refresh: Refresh,
 } as const;
