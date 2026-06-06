@@ -8,8 +8,8 @@ import {
   YAxis,
 } from "recharts";
 import { cn } from "@/utils";
-import type { ApiResponseTimeData } from "./_internal/types";
-import { formatTime, createThreeHourTicks } from "./_internal/utils";
+import type { ApiResponseTimeData } from "./types";
+import { formatTime, createThreeHourTicks } from "./utils";
 import { API_LINE_COLORS } from "./_internal/charts.constants";
 import ApiResponseTimeTooltip from "./_component/ApiResponseTimeTooltip";
 import ErrorDot from "./_component/ErrorDot";
@@ -20,14 +20,12 @@ interface ApiResponseTimeChartProps {
 }
 
 const ApiResponseTimeChart = ({ className, data }: ApiResponseTimeChartProps) => {
-  const maxResponseTime = Math.max(...data.map(({ responseTime }) => responseTime));
+  if (data.length === 0) {
+    return null;
+  }
 
   const xAxisTicks = createThreeHourTicks(data[0].checkedAt);
   const xAxisDomain = [xAxisTicks[0], xAxisTicks[xAxisTicks.length - 1]];
-
-  const yAxisInterval = Math.ceil(maxResponseTime / 4 / 500) * 500;
-  const yAxisMax = yAxisInterval * 4;
-  const yAxisTicks = Array.from({ length: 5 }, (_, index) => yAxisInterval * index);
 
   const apiSeries = Object.values(
     data.reduce<Record<string, ApiResponseTimeData[]>>((series, item) => {
@@ -43,7 +41,6 @@ const ApiResponseTimeChart = ({ className, data }: ApiResponseTimeChartProps) =>
       <ResponsiveContainer height="100%" width="100%">
         <LineChart data={data} margin={{ bottom: 8, left: 0, right: 16, top: 8 }}>
           <CartesianGrid
-            horizontalValues={yAxisTicks}
             stroke="#D0D5DD"
             strokeDasharray="4 4"
             strokeOpacity={1}
@@ -64,11 +61,11 @@ const ApiResponseTimeChart = ({ className, data }: ApiResponseTimeChartProps) =>
           <YAxis
             axisLine={false}
             dataKey="responseTime"
-            domain={[0, yAxisMax]}
+            domain={[0, "auto"]}
             tick={{ fill: "#858585", fontSize: 12, textAnchor: "middle", dx: -30 }}
+            tickCount={5}
             tickFormatter={(value: number) => `${value}ms`}
             tickLine={false}
-            ticks={yAxisTicks}
             type="number"
             width={64}
           />

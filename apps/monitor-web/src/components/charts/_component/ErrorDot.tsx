@@ -1,4 +1,4 @@
-import type { ChartDotProps } from "../_internal/types";
+import type { ChartDotProps } from "../types";
 
 const ErrorDot = ({ cx, cy, payload }: ChartDotProps) => {
   if (!payload || payload.status !== "outage" || cx === undefined || cy === undefined) {

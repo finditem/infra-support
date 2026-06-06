@@ -1,6 +1,6 @@
-import type { ChartTooltipProps } from "../_internal/types";
+import type { ChartTooltipProps } from "../types";
 import { STATUS_LABEL } from "../_internal/charts.constants";
-import { formatDateTime } from "../_internal/utils";
+import { formatDateTime } from "../utils";
 
 const ApiResponseTimeTooltip = ({ active, payload }: ChartTooltipProps) => {
   if (!active || !payload?.length) {
