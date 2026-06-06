@@ -12,9 +12,11 @@ import {
   Badge,
   Chip,
   Skeleton,
+  ApiResponseTimeChart,
 } from "@/components";
 import { useToast } from "@/hooks";
 import { useLogoutMutation, useUserQuery } from "@/queries";
+import MOCK_RESPONSE_TIME_DATA from "@/mock/ApiResponseTime";
 
 const Dashboard = () => {
   const [checkedSm, setCheckedSm] = useState(false);
@@ -165,6 +167,11 @@ const Dashboard = () => {
         <Skeleton className="h-6 w-40" rounded="lg" />
         <Skeleton className="h-6 w-40" rounded="full" />
       </div>
+      <section className="mt-6 rounded-xl border border-[#DFDFDF] bg-white p-6">
+        <div className="h-[300px]">
+          <ApiResponseTimeChart data={MOCK_RESPONSE_TIME_DATA} />
+        </div>
+      </section>
     </div>
   );
 };
