@@ -6,6 +6,7 @@ on:
       - develop
     paths:
       - 'packages/design-tokens/tokens/**'
+  workflow_dispatch:
 
 concurrency:
   group: build-design-tokens
@@ -18,10 +19,17 @@ jobs:
       contents: write
 
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.YML_GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

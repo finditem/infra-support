@@ -14,27 +14,21 @@ import {
   Skeleton,
 } from "@/components";
 import { useToast } from "@/hooks";
-import { useLogoutMutation, useMockListQuery, useUserQuery } from "@/queries";
+import { useLogoutMutation, useUserQuery } from "@/queries";
 
 const Dashboard = () => {
-  const { data, isLoading } = useMockListQuery();
-
   const [checkedSm, setCheckedSm] = useState(false);
   const [checkedMd, setCheckedMd] = useState(false);
-  const [checkedLg, setCheckedLg] = useState(false);
+  const [checkedDisabled, setCheckedDisabled] = useState(false);
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
+  const [isSelect, setIsSelected] = useState(false);
 
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   const { success, error, warning } = useToast();
   const { mutate: handleLogout } = useLogoutMutation();
   const { data: user } = useUserQuery();
-
-  if (isLoading) {
-    return <div>로딩</div>;
-  }
 
   return (
     <div className="flex flex-col gap-1">
@@ -49,14 +43,6 @@ const Dashboard = () => {
       </div>
 
       <h1>대시보드</h1>
-
-      <ul>
-        {(data ?? []).map((api) => (
-          <li key={api.id}>
-            {api.name} - {api.url} - {api.created_at}
-          </li>
-        ))}
-      </ul>
 
       <div className="mt-4 flex gap-2">
         <button
@@ -91,8 +77,13 @@ const Dashboard = () => {
         <CheckboxButton checked={checkedMd} size="md" onCheckedChange={setCheckedMd}>
           Medium
         </CheckboxButton>
-        <CheckboxButton checked={checkedLg} size="lg" onCheckedChange={setCheckedLg}>
-          Large
+        <CheckboxButton
+          checked={checkedDisabled}
+          disabled
+          size="md"
+          onCheckedChange={setCheckedDisabled}
+        >
+          Disabled Medium
         </CheckboxButton>
       </div>
 
@@ -136,13 +127,13 @@ const Dashboard = () => {
         />
       </div>
       <div className="gap-4 flex-center">
-        <BasicButton size="big" variant="solid" onClick={() => {}}>
+        <BasicButton size="big" onClick={() => {}}>
           big
         </BasicButton>
-        <BasicButton size="medium" variant="solid" onClick={() => {}}>
+        <BasicButton size="medium" onClick={() => {}}>
           medium
         </BasicButton>
-        <BasicButton size="small" variant="solid" onClick={() => {}}>
+        <BasicButton size="small" onClick={() => {}}>
           small
         </BasicButton>
         <IconButton aria-label="확인" iconName="check" onClick={() => {}} />
@@ -158,17 +149,13 @@ const Dashboard = () => {
       </ModalLayout>
 
       <div className="flex flex-col gap-4 pt-5">
-        <Badge status="healthy" />
-        <Badge status="degraded" />
-        <Badge status="outage" />
+        <Badge label="정상" status="healthy" />
+        <Badge label="지연" status="degraded" />
+        <Badge label="장애" status="outage" />
         <Badge className="border-blue-200 bg-blue-50 text-blue-700" label="커스텀 배지" />
       </div>
 
-      <Chip
-        checked={isChecked}
-        label={isChecked ? "확인완료" : "확인전"}
-        onCheckedChange={setIsChecked}
-      />
+      <Chip label="Text" selected={isSelect} onClick={() => setIsSelected((prev) => !prev)} />
 
       <div className="flex flex-col gap-3 pt-6">
         <h2>Skeleton Test</h2>
