@@ -14,6 +14,9 @@ const API_NAV_ITEMS = [
   { id: "public-data-lost-items", label: "공공데이터포털 분실물 정보 조회" },
 ];
 
+const ACTIVE_NAV_ITEM_CLASS =
+  "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default";
+
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isApiDetailOpen, setIsApiDetailOpen] = useState(false);
@@ -22,6 +25,13 @@ const Sidebar = () => {
 
   const { data: user } = useUserQuery();
   const { isPending, mutate: logout } = useLogoutMutation();
+
+  const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      "flex items-center border border-transparent px-2 py-1",
+      isOpen ? "w-full" : "justify-center",
+      isActive && ACTIVE_NAV_ITEM_CLASS
+    );
 
   useEffect(() => {
     if (isApiRoute) {
@@ -70,18 +80,8 @@ const Sidebar = () => {
 
           <nav className="typo-header4-semibold text-[#393939]">
             <ul className={cn("flex flex-col gap-2", !isOpen && "items-center")}>
-              <li className={isOpen ? "w-full" : ""}>
-                <NavLink
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center border border-transparent px-2 py-1",
-                      isOpen ? "w-full" : "justify-center",
-                      isActive &&
-                        "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
-                    )
-                  }
-                  to="/"
-                >
+              <li className={cn(isOpen && "w-full")}>
+                <NavLink className={navLinkClassName} to="/">
                   <Icon className="p-4" name="sidebarDashboard" size={54} />
                   {isOpen && "대시보드"}
                 </NavLink>
@@ -93,8 +93,7 @@ const Sidebar = () => {
                   className={cn(
                     "flex items-center border border-transparent px-2 py-1",
                     isOpen ? "w-full justify-between" : "justify-center",
-                    isApiRoute &&
-                      "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
+                    isApiRoute && ACTIVE_NAV_ITEM_CLASS
                   )}
                   onClick={() => {
                     setIsApiDetailOpen((prev) => {
@@ -135,18 +134,8 @@ const Sidebar = () => {
                   </ul>
                 )}
               </li>
-              <li className={isOpen ? "w-full" : ""}>
-                <NavLink
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center border border-transparent px-2 py-1",
-                      isOpen ? "w-full" : "justify-center",
-                      isActive &&
-                        "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
-                    )
-                  }
-                  to="/errors"
-                >
+              <li className={cn(isOpen && "w-full")}>
+                <NavLink className={navLinkClassName} to="/errors">
                   <Icon className="p-4" name="sidebarError" size={54} />
                   {isOpen && "장애/에러 로그"}
                 </NavLink>
