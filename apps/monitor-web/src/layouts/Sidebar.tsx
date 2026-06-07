@@ -16,7 +16,7 @@ const API_NAV_ITEMS = [
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isApiDetailOpen, setIsApiDetailOpen] = useState(false);
   const { pathname } = useLocation();
   const isApiRoute = pathname.startsWith("/api/");
 
@@ -25,7 +25,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     if (isApiRoute) {
-      setIsDetailOpen(true);
+      setIsApiDetailOpen(true);
       setIsOpen(true);
     }
   }, [isApiRoute]);
@@ -55,7 +55,7 @@ const Sidebar = () => {
               className="absolute -right-14 size-9 rounded-[10px] border border-border-neutural-default bg-white p-2 flex-center"
               onClick={() => {
                 setIsOpen((prev) => {
-                  if (prev) setIsDetailOpen(false);
+                  if (prev) setIsApiDetailOpen(false);
                   return !prev;
                 });
               }}
@@ -89,7 +89,7 @@ const Sidebar = () => {
               <li className={isOpen ? "w-full" : ""}>
                 <button
                   aria-controls="api-nav-items"
-                  aria-expanded={isDetailOpen}
+                  aria-expanded={isApiDetailOpen}
                   className={cn(
                     "flex items-center border border-transparent px-2 py-1",
                     isOpen ? "w-full justify-between" : "justify-center",
@@ -97,7 +97,7 @@ const Sidebar = () => {
                       "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
                   )}
                   onClick={() => {
-                    setIsDetailOpen((prev) => {
+                    setIsApiDetailOpen((prev) => {
                       if (!prev) setIsOpen(true);
                       return !prev;
                     });
@@ -110,12 +110,12 @@ const Sidebar = () => {
                   {isOpen && (
                     <Icon
                       className="text-[#757575]"
-                      name={isDetailOpen ? "arrowDown" : "arrowUp"}
+                      name={isApiDetailOpen ? "arrowDown" : "arrowUp"}
                       size={20}
                     />
                   )}
                 </button>
-                {isDetailOpen && (
+                {isApiDetailOpen && (
                   <ul id="api-nav-items" className="max-h-48 overflow-y-auto">
                     {API_NAV_ITEMS.map(({ id, label }) => (
                       <li key={id}>
