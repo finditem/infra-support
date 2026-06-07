@@ -1,0 +1,90 @@
+name: Design Tokens Auto PR
+
+on:
+  push:
+    branches:
+      - design-tokens
+    paths:
+      - 'packages/design-tokens/tokens/**'
+  pull_request:
+    types: [closed]
+    branches:
+      - develop
+
+jobs:
+  create-pr:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Create PR if not exists
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          EXISTING=$(gh pr list --head design-tokens --base develop --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING already exists, skipping"
+          else
+            gh pr create \
+              --title "chore(design-tokens): Figma 토큰 업데이트" \
+              --body "$(cat <<'EOF'
+          ## 변경 내용
+
+          Figma에서 디자인 토큰이 업데이트되었습니다.
+
+          ## 체크리스트
+
+          - [ ] `tokens.json` 변경사항 확인
+          - [ ] 빌드 후 `dist/` 산출물 검토
+          EOF
+          )" \
+              --head design-tokens \
+              --base develop
+          fi
+
+  sync-branch:
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.ref == 'design-tokens'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout design-tokens branch
+        uses: actions/checkout@v4
+        with:
+          ref: design-tokens
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Rebase design-tokens onto develop
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin develop
+          git reset --hard origin/develop
+          git push --force-with-lease origin design-tokens
