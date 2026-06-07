@@ -86,7 +86,7 @@ const Sidebar = () => {
                   {isOpen && "대시보드"}
                 </NavLink>
               </li>
-              <li className={isOpen ? "w-full" : ""}>
+              <li className={cn(isOpen && "w-full")}>
                 <button
                   aria-controls="api-nav-items"
                   aria-expanded={isApiDetailOpen}
