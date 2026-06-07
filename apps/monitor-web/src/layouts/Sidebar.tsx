@@ -14,9 +14,9 @@ const API_NAV_ITEMS = [
   { id: "public-data-lost-items", label: "공공데이터포털 분실물 정보 조회" },
 ];
 
-const Nav = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(true);
-  const [isDetailOpen, setIsDetailOpen] = useState<boolean>(false);
+const Sidebar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const { pathname } = useLocation();
   const isApiRoute = pathname.startsWith("/api/");
 
@@ -26,6 +26,7 @@ const Nav = () => {
   useEffect(() => {
     if (isApiRoute) {
       setIsDetailOpen(true);
+      setIsOpen(true);
     }
   }, [isApiRoute]);
 
@@ -37,91 +38,131 @@ const Nav = () => {
         isOpen ? "w-[400px]" : "w-[133px]"
       )}
     >
-      <div className="flex h-full flex-col justify-between px-6 pb-4">
-        <div className="flex flex-col gap-5">
-          <header className="relative flex items-center justify-start gap-[14px]">
+      <div className="flex h-full flex-col px-6 pb-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-5">
+          <header
+            className={cn(
+              "relative flex items-center gap-[14px]",
+              isOpen ? "justify-start" : "justify-center"
+            )}
+          >
             <Icon name="baseLogo" size={40} />
             {isOpen && (
               <span className="text-[20px] font-bold leading-[28px]">찾아줘! API 모니터링</span>
             )}
             <button
-              className="absolute -right-16 size-9 rounded-[10px]"
-              onClick={() => setIsOpen((prev) => !prev)}
+              aria-label={isOpen ? "사이드바 접기" : "사이드바 펼치기"}
+              className="absolute -right-14 size-9 rounded-[10px] border border-border-neutural-default bg-white p-2 flex-center"
+              onClick={() => {
+                setIsOpen((prev) => {
+                  if (prev) setIsDetailOpen(false);
+                  return !prev;
+                });
+              }}
             >
-              <Icon name="baseLogo" />
+              <Icon
+                className="text-fg-neutural-default"
+                name={isOpen ? "arrowLeft" : "arrowRight"}
+                size={22}
+              />
             </button>
           </header>
-          <nav
-            className={cn(
-              "typo-header4-semibold flex flex-col items-start gap-2",
-              isOpen ? "text-[#393939]" : "text-fg-primary-normal-default"
-            )}
-          >
-            <NavLink
-              className={({ isActive }) =>
-                cn(
-                  "flex w-full items-center border border-transparent px-2 py-1",
-                  isActive &&
-                    "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
-                )
-              }
-              to="/"
-            >
-              <Icon className="p-4" name="sidebarDashboard" size={54} />
-              {isOpen && "대시보드"}
-            </NavLink>
-            <button
-              className={cn(
-                "flex w-full items-center justify-between border border-transparent px-2 py-1",
-                isApiRoute &&
-                  "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
-              )}
-              onClick={() => setIsDetailOpen((prev) => !prev)}
-            >
-              <div className="flex items-center">
-                <Icon className="p-4" name="sidebarDetail" size={54} />
-                {isOpen && "API 상세"}
-              </div>
-              {isOpen && <Icon className="text-[#757575]" name="check" size={20} />}
-            </button>
-            {isDetailOpen && (
-              <ul className="max-h-[50%] overflow-y-auto">
-                {API_NAV_ITEMS.map(({ id, label }) => (
-                  <li key={id}>
-                    <NavLink
-                      className={({ isActive }) =>
-                        cn(
-                          "block px-[50px] py-[14px] text-fg-neutural-default",
-                          isActive && "text-fg-primary-normal-default"
-                        )
-                      }
-                      to={`/api/${id}`}
-                    >
-                      {label}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <NavLink
-              className={({ isActive }) =>
-                cn(
-                  "flex w-full items-center border border-transparent px-2 py-1",
-                  isActive &&
-                    "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
-                )
-              }
-              to="/errors"
-            >
-              <Icon className="p-4" name="sidebarError" size={54} />
-              {isOpen && "장애/에러 로그"}
-            </NavLink>
+
+          <nav className="typo-header4-semibold text-[#393939]">
+            <ul className={cn("flex flex-col gap-2", !isOpen && "items-center")}>
+              <li className={isOpen ? "w-full" : ""}>
+                <NavLink
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center border border-transparent px-2 py-1",
+                      isOpen ? "w-full" : "justify-center",
+                      isActive &&
+                        "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
+                    )
+                  }
+                  to="/"
+                >
+                  <Icon className="p-4" name="sidebarDashboard" size={54} />
+                  {isOpen && "대시보드"}
+                </NavLink>
+              </li>
+              <li className={isOpen ? "w-full" : ""}>
+                <button
+                  aria-controls="api-nav-items"
+                  aria-expanded={isDetailOpen}
+                  className={cn(
+                    "flex items-center border border-transparent px-2 py-1",
+                    isOpen ? "w-full justify-between" : "justify-center",
+                    isApiRoute &&
+                      "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
+                  )}
+                  onClick={() => {
+                    setIsDetailOpen((prev) => {
+                      if (!prev) setIsOpen(true);
+                      return !prev;
+                    });
+                  }}
+                >
+                  <div className="flex items-center">
+                    <Icon className="p-4" name="sidebarDetail" size={54} />
+                    {isOpen && "API 상세"}
+                  </div>
+                  {isOpen && (
+                    <Icon
+                      className="text-[#757575]"
+                      name={isDetailOpen ? "arrowDown" : "arrowUp"}
+                      size={20}
+                    />
+                  )}
+                </button>
+                {isDetailOpen && (
+                  <ul id="api-nav-items" className="max-h-48 overflow-y-auto">
+                    {API_NAV_ITEMS.map(({ id, label }) => (
+                      <li key={id}>
+                        <NavLink
+                          className={({ isActive }) =>
+                            cn(
+                              "block px-[50px] py-[14px] text-fg-neutural-default",
+                              isActive && "text-fg-primary-normal-default"
+                            )
+                          }
+                          to={`/api/${id}`}
+                        >
+                          {label}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+              <li className={isOpen ? "w-full" : ""}>
+                <NavLink
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center border border-transparent px-2 py-1",
+                      isOpen ? "w-full" : "justify-center",
+                      isActive &&
+                        "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default"
+                    )
+                  }
+                  to="/errors"
+                >
+                  <Icon className="p-4" name="sidebarError" size={54} />
+                  {isOpen && "장애/에러 로그"}
+                </NavLink>
+              </li>
+            </ul>
           </nav>
         </div>
 
-        <div className="flex items-center justify-between py-3">
+        <footer
+          className={cn(
+            "flex shrink-0 items-center py-3",
+            isOpen ? "justify-between" : "justify-center"
+          )}
+        >
           <div className="flex items-center gap-[10px]">
-            <div className="size-10 rounded-full bg-[#AAAAAA]" />
+            <Icon name="user" size={40} />
             {isOpen && <span>{user ? "관리자" : "로그인이 필요합니다."}</span>}
           </div>
           {!!user && isOpen && (
@@ -129,10 +170,10 @@ const Nav = () => {
               로그아웃
             </BasicButton>
           )}
-        </div>
+        </footer>
       </div>
     </aside>
   );
 };
 
-export default Nav;
+export default Sidebar;
