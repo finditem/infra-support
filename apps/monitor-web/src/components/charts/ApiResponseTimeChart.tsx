@@ -14,10 +14,33 @@ import { API_LINE_COLORS } from "./_internal/charts.constants";
 import ApiResponseTimeTooltip from "./_component/ApiResponseTimeTooltip";
 import ErrorDot from "./_component/ErrorDot";
 
+/**
+ * API별 응답 시간 변화를 표시하는 라인 차트 컴포넌트입니다.
+ *
+ * @remarks
+ * - `apiId`별로 데이터를 그룹화해 API마다 별도 라인을 렌더링합니다.
+ * - X축은 09:00부터 다음날 06:00까지 3시간 단위로 고정 표시합니다.
+ * - `outage` 상태인 데이터만 에러 dot으로 표시합니다.
+ * - 부모 요소가 높이를 제공해야 `ResponsiveContainer`가 정상 렌더링 됩니다.
+ *
+ * @authore junyeol
+ */
+
 interface ApiResponseTimeChartProps {
+  /** API 응답 시간 차트에 표시할 데이터 */
   data: ApiResponseTimeData[];
+  /** 차트 컨테이너에 적용할 추가 클래스명 */
   className?: string;
 }
+
+/**
+ * @example
+ * ```tsx
+ * <div className="h-[320px]">
+ *   <ApiResponseTimeChart data={chartData} />
+ * </div>
+ * ```
+ */
 
 const ApiResponseTimeChart = ({ className, data }: ApiResponseTimeChartProps) => {
   if (data.length === 0) {
