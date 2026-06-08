@@ -2,6 +2,15 @@ import type { ChartTooltipProps } from "../types";
 import { STATUS_LABEL } from "../_internal/charts.constants";
 import { formatDateTime } from "../utils";
 
+/**
+ * API 응답 시간 차트의 커스텀 툴팁 컴포넌트입니다.
+ *
+ * @remarks
+ * - `hover`된 로그의 API 이름, 응답 속도, 테스트 날짜, 상태를 표시합니다.
+ *
+ * @author junyeol
+ */
+
 const ApiResponseTimeTooltip = ({ active, payload }: ChartTooltipProps) => {
   if (!active || !payload?.length) {
     return null;
