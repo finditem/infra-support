@@ -1,12 +1,12 @@
 import { Routes, Route } from "react-router-dom";
 import { Dashboard, Login, ErrorLog, ApiDetail, ApiEdit, ErrorDetail, NotFound } from "./pages";
-import { Nav, ToastContainer } from "./layouts";
+import { Sidebar, ToastContainer } from "./layouts";
 import { AuthRoute } from "./components";
 
 export default function App() {
   return (
     <div className="flex h-screen">
-      <Nav />
+      <Sidebar />
 
       <main className="flex-1 overflow-y-auto bg-[#F7F7F7] p-8">
         <Routes>

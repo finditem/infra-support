@@ -20,7 +20,7 @@ const NotFound = () => {
 
         <BasicButton className="h-[56px] w-[150px] px-[25px] py-4" onClick={handleGoHome}>
           <span className="flex items-center gap-1">
-            <Icon name="leftArrow" size={22} />
+            <Icon name="arrowLeft" size={22} />
             <span className="typo-header4-bold">돌아가기</span>
           </span>
         </BasicButton>
