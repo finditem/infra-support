@@ -1,6 +1,13 @@
 {
   "tailwindCSS.experimental.configFile": "apps/monitor-web/tailwind.config.ts",
-  "cSpell.words": ["jikwon", "junyeol", "supabase"],
+  "cSpell.words": [
+    "jikwon",
+    "junyeol",
+    "Kakao",
+    "neutural",
+    "supabase",
+    "VWORLD"
+  ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
