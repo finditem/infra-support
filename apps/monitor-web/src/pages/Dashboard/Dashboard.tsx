@@ -12,6 +12,7 @@ import {
   Badge,
   Chip,
   Skeleton,
+  TextareaField,
 } from "@/components";
 import { useToast } from "@/hooks";
 
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
   const [isSelect, setIsSelected] = useState(false);
+  const [description, setDescription] = useState("");
 
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -83,7 +85,8 @@ const Dashboard = () => {
       <div className="flex flex-col gap-4">
         <SearchInput />
         <SearchInput placeholder="검색 Placeholder" />
-        <SearchInput paramKey="default" placeholder="기본값" showSearchButton={false} />
+        <SearchInput paramKey="default" placeholder="기본값" />
+        <SearchInput disabled placeholder="비활성화 검색" />
       </div>
 
       <div className="flex flex-col gap-4">
@@ -91,7 +94,24 @@ const Dashboard = () => {
         <TextField placeholder="기본 입력" />
 
         {/* label */}
-        <TextField id="with-label" label="이름" placeholder="이름을 입력하세요" />
+        <TextField
+          id="name"
+          label="이름"
+          placeholder="이름을 입력하세요"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onClear={() => setEmail("")}
+        />
+
+        <TextField
+          id="password"
+          label="비밀번호"
+          placeholder="비밀번호를 입력하세요"
+          type="password"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onClear={() => setEmail("")}
+        />
 
         {/* 에러 메시지 */}
         <TextField
@@ -103,14 +123,43 @@ const Dashboard = () => {
           placeholder="이메일을 입력하세요"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onClear={() => setEmail("")}
         />
 
-        {/* 성공 메시지 */}
+        {/* 도움말 */}
         <TextField
-          id="with-success"
+          id="with-caption"
+          caption="사용 가능한 닉네임입니다."
           label="닉네임"
           placeholder="닉네임을 입력하세요"
-          successMessage="사용 가능한 닉네임입니다."
+        />
+
+        {/* TextareaField - 기본 */}
+        <TextareaField label="설명 (기본)" placeholder="상세 내용을 입력하세요." />
+
+        {/* TextareaField - 에러 */}
+        <TextareaField
+          errorMessage="내용을 반드시 입력해야 합니다."
+          label="설명 (에러)"
+          placeholder="에러 상태의 스타일을 확인하세요."
+        />
+
+        {/* TextareaField - 도움말(caption) */}
+        <TextareaField
+          caption="상세 정보는 필수 입력 사항이 아닙니다."
+          label="설명 (도움말)"
+          maxLength={100}
+          placeholder="글자 수 세기 및 도움말을 확인하세요."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+
+        {/* TextareaField - 비활성화 */}
+        <TextareaField
+          disabled
+          label="설명 (비활성화)"
+          placeholder="비활성화 상태입니다."
+          value="이미 입력된 값이 있어도 비활성화되어 수정할 수 없습니다."
         />
       </div>
       <div className="gap-4 flex-center">
