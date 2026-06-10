@@ -1,5 +1,14 @@
 import { Routes, Route } from "react-router-dom";
-import { Dashboard, Login, ErrorLog, ApiDetail, ApiEdit, ErrorDetail, NotFound } from "./pages";
+import {
+  Dashboard,
+  Login,
+  ErrorLog,
+  ApiDetail,
+  ApiEdit,
+  ErrorDetail,
+  NotFound,
+  Example,
+} from "./pages";
 import { Sidebar, ToastContainer } from "./layouts";
 import { AuthRoute } from "./components";
 
@@ -11,6 +20,7 @@ export default function App() {
       <main className="flex-1 overflow-y-auto bg-[#F7F7F7] p-8">
         <Routes>
           <Route element={<Dashboard />} path="/" />
+          <Route element={<Example />} path="/example" />
 
           <Route element={<AuthRoute requireAuth={false} />}>
             <Route element={<Login />} path="/login" />
