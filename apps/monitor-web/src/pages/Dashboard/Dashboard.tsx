@@ -91,7 +91,24 @@ const Dashboard = () => {
         <TextField placeholder="기본 입력" />
 
         {/* label */}
-        <TextField id="with-label" label="이름" placeholder="이름을 입력하세요" />
+        <TextField
+          id="name"
+          label="이름"
+          placeholder="이름을 입력하세요"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onClear={() => setEmail("")}
+        />
+
+        <TextField
+          id="password"
+          label="비밀번호"
+          placeholder="비밀번호를 입력하세요"
+          type="password"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onClear={() => setEmail("")}
+        />
 
         {/* 에러 메시지 */}
         <TextField
@@ -103,14 +120,15 @@ const Dashboard = () => {
           placeholder="이메일을 입력하세요"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onClear={() => setEmail("")}
         />
 
-        {/* 성공 메시지 */}
+        {/* 도움말 */}
         <TextField
-          id="with-success"
+          id="with-caption"
+          caption="사용 가능한 닉네임입니다."
           label="닉네임"
           placeholder="닉네임을 입력하세요"
-          successMessage="사용 가능한 닉네임입니다."
         />
       </div>
       <div className="gap-4 flex-center">

@@ -38,7 +38,7 @@ const ClearButton = ({
   return (
     <button
       aria-label={ariaLabel}
-      className={cn("rounded-full bg-black p-0.5 text-white flex-center", className)}
+      className={cn("rounded-full bg-fg-neutural-default p-1 text-white flex-center", className)}
       type="button"
       onClick={onClick}
     >
