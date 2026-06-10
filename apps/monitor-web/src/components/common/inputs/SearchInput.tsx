@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "@/utils";
 import ClearButton from "../buttons/ClearButton";
+import { Icon } from "@/components";
 
 /**
  * URL 쿼리스트링 기반 검색 입력 컴포넌트의 props
@@ -21,10 +22,10 @@ interface SearchInputProps {
   placeholder?: string;
   /** 입력 최대 글자 수 (default: 30) */
   maxLength?: number;
-  /** 검색 버튼 표시 여부 (default: true) */
-  showSearchButton?: boolean;
   /** form 요소에 추가할 스타일 클래스 */
   className?: string;
+  /** 비활성화 여부 */
+  disabled?: boolean;
 }
 
 /**
@@ -34,17 +35,14 @@ interface SearchInputProps {
  *
  * // 커스텀 쿼리 키 — URL: ?keyword=검색어
  * <SearchInput paramKey="keyword" placeholder="검색어를 입력하세요" />
- *
- * // 검색 버튼 숨기기 — URL: ?q=검색어
- * <SearchInput placeholder="검색어를 입력하세요" showSearchButton={false} />
  */
 
 const SearchInput = ({
   paramKey = "q",
   placeholder = "검색어를 입력해 주세요.",
   maxLength = 30,
-  showSearchButton = true,
   className,
+  disabled,
 }: SearchInputProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentQuery = searchParams.get(paramKey) ?? "";
@@ -79,28 +77,35 @@ const SearchInput = ({
         <input
           aria-label="검색어"
           className={cn(
-            "border-1 rounded-4 border-gray-300 px-4 py-2 pr-8",
-            "focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            "typo-body1-regular w-[518px] bg-white py-5 pl-[46px] pr-4",
+            "rounded-[10px] border border-border-neutural-normal-default",
+            "disabled:cursor-not-allowed disabled:bg-fill-neutural-subtle-disabled disabled:text-fg-neutural-disabled"
           )}
+          disabled={disabled}
           maxLength={maxLength}
           placeholder={placeholder}
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />
-        {value && (
-          <div className="absolute right-2">
+
+        <button
+          aria-label="검색"
+          className={cn(
+            "absolute left-4 top-1/2 flex -translate-y-1/2 items-center justify-center",
+            "text-border-primary-normal-default disabled:text-border-primary-normal-disabled"
+          )}
+          disabled={disabled}
+          type="submit"
+        >
+          <Icon name="search" size={24} />
+        </button>
+
+        {value && !disabled && (
+          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center">
             <ClearButton onClick={() => setValue("")} />
           </div>
         )}
       </div>
-      {showSearchButton && (
-        <button
-          className="rounded-4 bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-          type="submit"
-        >
-          검색
-        </button>
-      )}
     </form>
   );
 };

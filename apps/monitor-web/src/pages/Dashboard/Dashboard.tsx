@@ -85,7 +85,8 @@ const Dashboard = () => {
       <div className="flex flex-col gap-4">
         <SearchInput />
         <SearchInput placeholder="검색 Placeholder" />
-        <SearchInput paramKey="default" placeholder="기본값" showSearchButton={false} />
+        <SearchInput paramKey="default" placeholder="기본값" />
+        <SearchInput disabled placeholder="비활성화 검색" />
       </div>
 
       <div className="flex flex-col gap-4">
