@@ -47,6 +47,7 @@ const SearchInput = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const currentQuery = searchParams.get(paramKey) ?? "";
   const [value, setValue] = useState(currentQuery);
+  const showClearButton = !!value && !disabled;
 
   useEffect(() => {
     setValue(currentQuery);
@@ -78,6 +79,7 @@ const SearchInput = ({
           aria-label="검색어"
           className={cn(
             "typo-body1-regular w-[518px] bg-white py-5 pl-[46px] pr-4",
+            showClearButton && "pr-10",
             "rounded-[10px] border border-border-neutural-normal-default",
             "disabled:cursor-not-allowed disabled:bg-fill-neutural-subtle-disabled disabled:text-fg-neutural-disabled"
           )}
@@ -100,8 +102,8 @@ const SearchInput = ({
           <Icon name="search" size={24} />
         </button>
 
-        {value && !disabled && (
-          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center">
+        {showClearButton && (
+          <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center justify-center">
             <ClearButton onClick={() => setValue("")} />
           </div>
         )}

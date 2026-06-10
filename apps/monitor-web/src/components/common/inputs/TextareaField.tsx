@@ -74,6 +74,7 @@ const TextareaField = ({
         )}
         value={value}
         {...props}
+        maxLength={props.maxLength ?? 1000}
       />
 
       <div className="flex items-center justify-between">

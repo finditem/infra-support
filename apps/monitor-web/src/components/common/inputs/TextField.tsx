@@ -62,7 +62,7 @@ const TextField = ({
   const inputId = id ?? generatedId;
   const errorId = errorMessage ? `${inputId}-error` : undefined;
   const captionId = caption && !errorMessage ? `${inputId}-caption` : undefined;
-  const showClearButton = !disabled && !!value;
+  const showClearButton = !disabled && !!value && !!onClear;
 
   return (
     <div className="flex flex-col gap-3">
