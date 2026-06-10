@@ -12,6 +12,7 @@ import {
   Badge,
   Chip,
   Skeleton,
+  TextareaField,
 } from "@/components";
 import { useToast } from "@/hooks";
 
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
   const [isSelect, setIsSelected] = useState(false);
+  const [description, setDescription] = useState("");
 
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -129,6 +131,34 @@ const Dashboard = () => {
           caption="사용 가능한 닉네임입니다."
           label="닉네임"
           placeholder="닉네임을 입력하세요"
+        />
+
+        {/* TextareaField - 기본 */}
+        <TextareaField label="설명 (기본)" placeholder="상세 내용을 입력하세요." />
+
+        {/* TextareaField - 에러 */}
+        <TextareaField
+          errorMessage="내용을 반드시 입력해야 합니다."
+          label="설명 (에러)"
+          placeholder="에러 상태의 스타일을 확인하세요."
+        />
+
+        {/* TextareaField - 도움말(caption) */}
+        <TextareaField
+          caption="상세 정보는 필수 입력 사항이 아닙니다."
+          label="설명 (도움말)"
+          maxLength={100}
+          placeholder="글자 수 세기 및 도움말을 확인하세요."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+
+        {/* TextareaField - 비활성화 */}
+        <TextareaField
+          disabled
+          label="설명 (비활성화)"
+          placeholder="비활성화 상태입니다."
+          value="이미 입력된 값이 있어도 비활성화되어 수정할 수 없습니다."
         />
       </div>
       <div className="gap-4 flex-center">

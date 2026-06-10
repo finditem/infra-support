@@ -16,6 +16,8 @@ interface TextareaFieldProps extends TextareaHTMLAttributes<HTMLTextAreaElement>
   label?: string;
   /** 에러 상태일 때 표시할 에러 메시지 */
   errorMessage?: string;
+  /** 도움말 메시지. `errorMessage`가 없을 때만 하단에 표시됩니다. */
+  caption?: string;
 }
 
 /**
@@ -26,42 +28,71 @@ interface TextareaFieldProps extends TextareaHTMLAttributes<HTMLTextAreaElement>
  *
  * // 에러 표시
  * <TextareaField label="내용" error="필수 입력 항목입니다." />
+ *
+ * // 도움말 표시
+ * <TextareaField label="내용" caption="최대 1000자까지 입력 가능합니다." />
  * ```
  */
 
-const TextareaField = ({ className, label, errorMessage, id, ...props }: TextareaFieldProps) => {
+const TextareaField = ({
+  className,
+  label,
+  errorMessage,
+  caption,
+  id,
+  value,
+  ...props
+}: TextareaFieldProps) => {
   const generatedId = useId();
   const textareaId = id ?? generatedId;
   const errorId = `${textareaId}-error`;
+  const captionId = `${textareaId}-caption`;
+
+  const hasError = !!errorMessage;
+  const showCaption = !hasError && !!caption;
+  const describedBy = hasError ? errorId : showCaption ? captionId : undefined;
 
   return (
-    <div className="flex w-full flex-col gap-1.5">
+    <div className="flex w-full flex-col gap-4">
       {label && (
-        <label className="text-sm text-gray-700" htmlFor={textareaId}>
+        <label className="typo-header4-regular text-layout-header" htmlFor={textareaId}>
           {label}
         </label>
       )}
 
       <textarea
         id={textareaId}
-        aria-describedby={errorMessage ? errorId : undefined}
-        aria-invalid={!!errorMessage}
+        aria-describedby={describedBy}
+        aria-invalid={hasError}
         className={cn(
-          "w-full rounded-md border border-gray-300 px-3 py-2 text-sm",
-          "placeholder:text-gray-400",
-          "focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500",
-          "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
-          errorMessage && "border-red-500 focus:ring-red-500",
+          "typo-header4-medium w-full rounded-[10px] border border-border-neutural-normal-default px-4 py-5",
+          "placeholder:text-fg-neutural-placeholder",
+          "disabled:cursor-not-allowed disabled:bg-fill-neutural-subtle-disabled disabled:text-fg-neutural-disabled",
+          "h-[300px] resize-none",
+          errorMessage && "border-error focus:border-error",
           className
         )}
+        value={value}
         {...props}
       />
 
-      {errorMessage && (
-        <p id={errorId} className="text-sm text-red-500">
-          {errorMessage}
-        </p>
-      )}
+      <div className="flex items-center justify-between">
+        {errorMessage && (
+          <p id={errorId} className="typo-body1-regular text-error">
+            {errorMessage}
+          </p>
+        )}
+
+        {showCaption && (
+          <p id={captionId} className="typo-body1-regular text-layout-body">
+            {caption}
+          </p>
+        )}
+
+        <span className="typo-body1-regular ml-auto text-layout-body">
+          {String(value ?? "").length}/{props.maxLength ?? 1000}
+        </span>
+      </div>
     </div>
   );
 };
