@@ -15,6 +15,7 @@ import ArrowLeft from "@/assets/icons/arrow-left.svg?react";
 import ArrowRight from "@/assets/icons/arrow-right.svg?react";
 import ArrowUp from "@/assets/icons/arrow-up.svg?react";
 import User from "@/assets/icons/user.svg?react";
+import Search from "@/assets/icons/search.svg?react";
 
 export const ICON_MAP = {
   alert: AlertIcon,
@@ -34,4 +35,5 @@ export const ICON_MAP = {
   arrowRight: ArrowRight,
   arrowUp: ArrowUp,
   user: User,
+  search: Search,
 } as const;
