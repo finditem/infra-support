@@ -8,23 +8,25 @@ export default function App() {
     <div className="flex h-screen">
       <Sidebar />
 
-      <main className="flex-1 overflow-y-auto bg-[#F7F7F7] p-8">
-        <Routes>
-          <Route element={<Dashboard />} path="/" />
+      <main className="relative flex flex-1 flex-col overflow-x-auto overflow-y-auto bg-[#F7F7F7] p-8">
+        <div className="flex min-w-[1520px] flex-1 flex-col">
+          <Routes>
+            <Route element={<Dashboard />} path="/" />
 
-          <Route element={<AuthRoute requireAuth={false} />}>
-            <Route element={<Login />} path="/login" />
-          </Route>
+            <Route element={<AuthRoute requireAuth={false} />}>
+              <Route element={<Login />} path="/login" />
+            </Route>
 
-          <Route element={<AuthRoute requireAuth={true} />}>
-            <Route element={<ErrorLog />} path="/errors" />
-            <Route element={<ApiDetail />} path="/api/:apiId" />
-            <Route element={<ApiEdit />} path="/api/:apiId/edit" />
-            <Route element={<ErrorDetail />} path="/api/:apiId/errors/:errorId" />
-          </Route>
+            <Route element={<AuthRoute requireAuth={true} />}>
+              <Route element={<ErrorLog />} path="/errors" />
+              <Route element={<ApiDetail />} path="/api/:apiId" />
+              <Route element={<ApiEdit />} path="/api/:apiId/edit" />
+              <Route element={<ErrorDetail />} path="/api/:apiId/errors/:errorId" />
+            </Route>
 
-          <Route element={<NotFound />} path="*" />
-        </Routes>
+            <Route element={<NotFound />} path="*" />
+          </Routes>
+        </div>
       </main>
 
       <ToastContainer />

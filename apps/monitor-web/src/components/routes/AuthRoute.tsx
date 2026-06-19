@@ -37,7 +37,7 @@ const AuthRoute = ({ requireAuth }: AuthRouteProps) => {
 
   if (isLoading) {
     return (
-      <div className="h-full flex-center">
+      <div className="absolute inset-0 bg-[#F7F7F7] flex-center">
         <LoadingSpinner />
       </div>
     );
