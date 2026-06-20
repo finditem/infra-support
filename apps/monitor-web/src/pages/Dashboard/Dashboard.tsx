@@ -13,8 +13,10 @@ import {
   Chip,
   Skeleton,
   TextareaField,
+  ApiResponseTimeChart,
 } from "@/components";
 import { useToast } from "@/hooks";
+import { MOCK_RESPONSE_TIME_DATA } from "@/mock";
 
 const Dashboard = () => {
   const [checkedSm, setCheckedSm] = useState(false);
@@ -200,6 +202,10 @@ const Dashboard = () => {
         <Skeleton className="h-6 w-40" rounded="md" />
         <Skeleton className="h-6 w-40" rounded="lg" />
         <Skeleton className="h-6 w-40" rounded="full" />
+      </div>
+
+      <div className="h-[320px] w-full">
+        <ApiResponseTimeChart data={MOCK_RESPONSE_TIME_DATA} />
       </div>
     </div>
   );
