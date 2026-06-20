@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   CartesianGrid,
   Line,
@@ -43,21 +44,32 @@ interface ApiResponseTimeChartProps {
  */
 
 const ApiResponseTimeChart = ({ className, data }: ApiResponseTimeChartProps) => {
+  const apiSeries = useMemo(() => {
+    if (data.length === 0) return [];
+    return Object.values(
+      data.reduce<Record<string, ApiResponseTimeData[]>>((series, item) => {
+        series[item.apiId] ??= [];
+        series[item.apiId].push(item);
+
+        return series;
+      }, {})
+    ).map((series) => series.sort((a, b) => a.checkedAt - b.checkedAt));
+  }, [data]);
+
+  const xAxisTicks = useMemo(() => {
+    if (data.length === 0) return [];
+    const minTimestamp = Math.min(...data.map((item) => item.checkedAt));
+    return createThreeHourTicks(minTimestamp);
+  }, [data]);
+
+  const xAxisDomain = useMemo(() => {
+    if (xAxisTicks.length === 0) return [0, 0];
+    return [xAxisTicks[0], xAxisTicks[xAxisTicks.length - 1]];
+  }, [xAxisTicks]);
+
   if (data.length === 0) {
     return null;
   }
-
-  const xAxisTicks = createThreeHourTicks(data[0].checkedAt);
-  const xAxisDomain = [xAxisTicks[0], xAxisTicks[xAxisTicks.length - 1]];
-
-  const apiSeries = Object.values(
-    data.reduce<Record<string, ApiResponseTimeData[]>>((series, item) => {
-      series[item.apiId] ??= [];
-      series[item.apiId].push(item);
-
-      return series;
-    }, {})
-  ).map((series) => series.sort((a, b) => a.checkedAt - b.checkedAt));
 
   return (
     <div className={cn("h-full w-full", className)}>
@@ -98,13 +110,13 @@ const ApiResponseTimeChart = ({ className, data }: ApiResponseTimeChartProps) =>
           />
           {apiSeries.map((series, index) => (
             <Line
-              key={series[0].apiId}
+              key={series[0]?.apiId ?? index}
               activeDot={false}
               data={series}
               dataKey="responseTime"
               dot={<ErrorDot />}
               isAnimationActive={false}
-              name={series[0].apiName}
+              name={series[0]?.apiName ?? ""}
               stroke={API_LINE_COLORS[index % API_LINE_COLORS.length]}
               strokeWidth={2}
               type="linear"
