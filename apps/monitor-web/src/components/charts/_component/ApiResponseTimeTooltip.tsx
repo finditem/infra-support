@@ -1,6 +1,6 @@
-import type { ChartTooltipProps } from "../types";
+import type { ChartTooltipProps } from "@/types";
+import { formatDateTime } from "@/utils";
 import { STATUS_LABEL } from "../_internal/charts.constants";
-import { formatDateTime } from "../utils";
 
 /**
  * API 응답 시간 차트의 커스텀 툴팁 컴포넌트입니다.

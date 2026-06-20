@@ -1,4 +1,4 @@
-import type { ChartDotProps } from "../types";
+import type { ChartDotProps } from "@/types";
 
 /**
  * 장애 상태 로그에 표시할 에러 dot 컴포넌트입니다.

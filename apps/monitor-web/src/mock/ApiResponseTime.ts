@@ -1,4 +1,4 @@
-import type { ApiResponseTimeData } from "@/components";
+import type { ApiResponseTimeData } from "@/types";
 
 const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
   {

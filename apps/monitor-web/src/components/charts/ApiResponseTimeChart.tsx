@@ -8,8 +8,8 @@ import {
   YAxis,
 } from "recharts";
 import { cn } from "@/utils";
-import type { ApiResponseTimeData } from "./types";
-import { formatTime, createThreeHourTicks } from "./utils";
+import type { ApiResponseTimeData } from "@/types";
+import { createThreeHourTicks, formatTime } from "@/utils";
 import { API_LINE_COLORS } from "./_internal/charts.constants";
 import ApiResponseTimeTooltip from "./_component/ApiResponseTimeTooltip";
 import ErrorDot from "./_component/ErrorDot";

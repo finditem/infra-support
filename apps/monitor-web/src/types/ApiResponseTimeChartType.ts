@@ -1,4 +1,4 @@
-import type { ApiStatus } from "@/types";
+import type { ApiStatus } from "./ApiStatusType";
 
 /**
  * API 응답 시간 차트에 전달되는 데이터 타입입니다.
