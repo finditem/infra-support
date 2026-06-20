@@ -1,6 +1,6 @@
 import type { ApiResponseTimeData } from "@/types";
 
-const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
+export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
   {
     id: "api-1-1",
     apiId: "api-1",
@@ -642,5 +642,3 @@ const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     status: "degraded",
   },
 ];
-
-export default MOCK_RESPONSE_TIME_DATA;

@@ -43,7 +43,7 @@ const ApiResponseTimeTooltip = ({ active, payload }: ChartTooltipProps) => {
 
       <dl className="flex items-start gap-7">
         {tooltipItems.map(({ label, value }) => (
-          <div key={label} className="mr-6 flex flex-col gap-1">
+          <div key={label} className="flex flex-col gap-1">
             <dt className="typo-body2-semibold text-layout-body">{label}</dt>
             <dd className="typo-body1-semibold text-layout-header">{value}</dd>
           </div>
