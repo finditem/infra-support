@@ -16,14 +16,7 @@ const ErrorDot = ({ cx, cy, payload }: ChartDotProps) => {
   }
 
   return (
-    <circle
-      className="fill-fg-state-error"
-      cx={cx}
-      cy={cy}
-      r={6}
-      stroke="#FFFFFF"
-      strokeWidth={1}
-    />
+    <circle className="fill-fg-state-error stroke-white" cx={cx} cy={cy} r={6} strokeWidth={1} />
   );
 };
 
