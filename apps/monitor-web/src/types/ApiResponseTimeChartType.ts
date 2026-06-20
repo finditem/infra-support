@@ -24,6 +24,10 @@ export interface ApiResponseTimeData {
   checkedAt: number;
   /** API 상태값 */
   status: ApiStatus;
+  /** API HTTP 상태값 */
+  httpStatus: string;
+  /** 에러 메시지 */
+  errorMessage: string;
 }
 
 /**

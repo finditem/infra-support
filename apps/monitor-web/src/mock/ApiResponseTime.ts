@@ -8,6 +8,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1680,
     checkedAt: new Date("2026-06-06T09:00:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-1-5",
@@ -16,6 +18,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1940,
     checkedAt: new Date("2026-06-06T11:36:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-1-2",
@@ -24,6 +28,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 480,
     checkedAt: new Date("2026-06-06T14:42:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-1-6",
@@ -32,6 +38,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 690,
     checkedAt: new Date("2026-06-06T17:23:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-1-3",
@@ -40,6 +48,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1350,
     checkedAt: new Date("2026-06-06T20:27:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-1-7",
@@ -48,6 +58,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 920,
     checkedAt: new Date("2026-06-06T23:41:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-1-8",
@@ -56,6 +68,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1880,
     checkedAt: new Date("2026-06-07T02:48:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-1-4",
@@ -64,6 +78,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 5000,
     checkedAt: new Date("2026-06-07T05:34:00").getTime(),
     status: "outage",
+    httpStatus: "HTTP 503",
+    errorMessage: "-",
   },
   {
     id: "api-2-1",
@@ -72,6 +88,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2240,
     checkedAt: new Date("2026-06-06T09:00:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-2-5",
@@ -80,6 +98,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1870,
     checkedAt: new Date("2026-06-06T12:24:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-2-2",
@@ -88,6 +108,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 410,
     checkedAt: new Date("2026-06-06T16:11:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-2-6",
@@ -96,6 +118,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 560,
     checkedAt: new Date("2026-06-06T19:05:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-2-3",
@@ -104,6 +128,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 980,
     checkedAt: new Date("2026-06-06T23:38:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-2-7",
@@ -112,6 +138,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 720,
     checkedAt: new Date("2026-06-07T01:26:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-2-8",
@@ -120,6 +148,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 440,
     checkedAt: new Date("2026-06-07T03:17:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-2-4",
@@ -128,6 +158,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 370,
     checkedAt: new Date("2026-06-07T04:52:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-3-1",
@@ -136,6 +168,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2760,
     checkedAt: new Date("2026-06-06T09:00:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-3-5",
@@ -144,6 +178,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2420,
     checkedAt: new Date("2026-06-06T12:51:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-3-6",
@@ -152,6 +188,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 650,
     checkedAt: new Date("2026-06-06T15:08:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-3-2",
@@ -160,6 +198,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 720,
     checkedAt: new Date("2026-06-06T17:26:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-3-7",
@@ -168,6 +208,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 880,
     checkedAt: new Date("2026-06-06T21:32:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-3-8",
@@ -176,6 +218,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1240,
     checkedAt: new Date("2026-06-07T00:44:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-3-3",
@@ -184,6 +228,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2100,
     checkedAt: new Date("2026-06-07T02:14:00").getTime(),
     status: "outage",
+    httpStatus: "HTTP 503",
+    errorMessage: "-",
   },
   {
     id: "api-3-4",
@@ -192,6 +238,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 830,
     checkedAt: new Date("2026-06-07T05:46:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-4-1",
@@ -200,6 +248,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1560,
     checkedAt: new Date("2026-06-06T09:00:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-4-5",
@@ -208,6 +258,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1810,
     checkedAt: new Date("2026-06-06T11:17:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-4-2",
@@ -216,6 +268,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 240,
     checkedAt: new Date("2026-06-06T13:58:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-4-6",
@@ -224,6 +278,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 265,
     checkedAt: new Date("2026-06-06T17:42:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-4-7",
@@ -232,6 +288,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 250,
     checkedAt: new Date("2026-06-06T20:16:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-4-3",
@@ -240,6 +298,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 230,
     checkedAt: new Date("2026-06-06T22:43:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-4-8",
@@ -248,6 +308,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 215,
     checkedAt: new Date("2026-06-07T02:31:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-4-4",
@@ -256,6 +318,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 190,
     checkedAt: new Date("2026-06-07T05:12:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-5-1",
@@ -264,6 +328,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2380,
     checkedAt: new Date("2026-06-06T09:00:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-5-5",
@@ -272,6 +338,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2050,
     checkedAt: new Date("2026-06-06T12:36:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-5-6",
@@ -280,6 +348,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 610,
     checkedAt: new Date("2026-06-06T15:47:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-5-2",
@@ -288,6 +358,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 860,
     checkedAt: new Date("2026-06-06T18:37:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-5-7",
@@ -296,6 +368,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 730,
     checkedAt: new Date("2026-06-06T21:24:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-5-3",
@@ -304,6 +378,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 590,
     checkedAt: new Date("2026-06-07T00:49:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-5-8",
@@ -312,6 +388,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 540,
     checkedAt: new Date("2026-06-07T03:08:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-5-4",
@@ -320,6 +398,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 510,
     checkedAt: new Date("2026-06-07T05:27:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-6-1",
@@ -328,6 +408,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2920,
     checkedAt: new Date("2026-06-06T09:00:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-6-5",
@@ -336,6 +418,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2540,
     checkedAt: new Date("2026-06-06T12:18:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-6-2",
@@ -344,6 +428,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 720,
     checkedAt: new Date("2026-06-06T15:24:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-6-6",
@@ -352,6 +438,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 790,
     checkedAt: new Date("2026-06-06T18:09:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-6-3",
@@ -360,6 +448,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 930,
     checkedAt: new Date("2026-06-06T21:41:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-6-7",
@@ -368,6 +458,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 860,
     checkedAt: new Date("2026-06-07T00:27:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-6-8",
@@ -376,6 +468,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 780,
     checkedAt: new Date("2026-06-07T02:52:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-6-4",
@@ -384,6 +478,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 740,
     checkedAt: new Date("2026-06-07T04:19:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-7-1",
@@ -392,6 +488,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1720,
     checkedAt: new Date("2026-06-06T09:00:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-7-5",
@@ -400,6 +498,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2130,
     checkedAt: new Date("2026-06-06T13:29:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-7-2",
@@ -408,6 +508,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 340,
     checkedAt: new Date("2026-06-06T16:53:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-7-6",
@@ -416,6 +518,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 360,
     checkedAt: new Date("2026-06-06T19:34:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-7-7",
@@ -424,6 +528,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 375,
     checkedAt: new Date("2026-06-06T22:18:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-7-3",
@@ -432,6 +538,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 380,
     checkedAt: new Date("2026-06-07T01:17:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-7-8",
@@ -440,6 +548,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 345,
     checkedAt: new Date("2026-06-07T03:39:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-7-4",
@@ -448,6 +558,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 320,
     checkedAt: new Date("2026-06-07T05:03:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-8-1",
@@ -456,6 +568,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2640,
     checkedAt: new Date("2026-06-06T09:00:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-8-5",
@@ -464,6 +578,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 2310,
     checkedAt: new Date("2026-06-06T13:16:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-8-6",
@@ -472,6 +588,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 710,
     checkedAt: new Date("2026-06-06T16:38:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-8-2",
@@ -480,6 +598,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 750,
     checkedAt: new Date("2026-06-06T19:12:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-8-7",
@@ -488,6 +608,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 810,
     checkedAt: new Date("2026-06-06T22:07:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-8-8",
@@ -496,6 +618,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 880,
     checkedAt: new Date("2026-06-07T00:58:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-8-3",
@@ -504,6 +628,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 920,
     checkedAt: new Date("2026-06-07T02:36:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-8-4",
@@ -512,6 +638,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 870,
     checkedAt: new Date("2026-06-07T05:51:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-1-9",
@@ -520,6 +648,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 420,
     checkedAt: new Date("2026-06-06T13:08:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-1-10",
@@ -528,6 +658,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1480,
     checkedAt: new Date("2026-06-07T01:14:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-2-9",
@@ -536,6 +668,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 680,
     checkedAt: new Date("2026-06-06T14:09:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-2-10",
@@ -544,6 +678,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1260,
     checkedAt: new Date("2026-06-06T21:46:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-3-9",
@@ -552,6 +688,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 980,
     checkedAt: new Date("2026-06-06T19:04:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-3-10",
@@ -560,6 +698,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1560,
     checkedAt: new Date("2026-06-06T23:18:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-4-9",
@@ -568,6 +708,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 520,
     checkedAt: new Date("2026-06-06T15:31:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-4-10",
@@ -576,6 +718,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 840,
     checkedAt: new Date("2026-06-07T00:38:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-5-9",
@@ -584,6 +728,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1040,
     checkedAt: new Date("2026-06-06T17:16:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-5-10",
@@ -592,6 +738,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1380,
     checkedAt: new Date("2026-06-06T23:27:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-6-9",
@@ -600,6 +748,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1180,
     checkedAt: new Date("2026-06-06T16:02:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-6-10",
@@ -608,6 +758,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1520,
     checkedAt: new Date("2026-06-06T23:54:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-7-9",
@@ -616,6 +768,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 620,
     checkedAt: new Date("2026-06-06T15:12:00").getTime(),
     status: "healthy",
+    httpStatus: "HTTP 200",
+    errorMessage: "-",
   },
   {
     id: "api-7-10",
@@ -624,6 +778,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 910,
     checkedAt: new Date("2026-06-07T00:06:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-8-9",
@@ -632,6 +788,8 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1120,
     checkedAt: new Date("2026-06-06T18:02:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
   {
     id: "api-8-10",
@@ -640,5 +798,7 @@ export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
     responseTime: 1640,
     checkedAt: new Date("2026-06-07T01:42:00").getTime(),
     status: "degraded",
+    httpStatus: "HTTP 429",
+    errorMessage: "-",
   },
 ];
