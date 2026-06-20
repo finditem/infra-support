@@ -77,12 +77,17 @@ const ApiResponseTimeTooltip = ({ active, payload }: ChartTooltipProps) => {
 
       <svg
         aria-hidden="true"
-        className="absolute bottom-[-30px] left-1/2 -translate-x-1/2"
+        className="absolute bottom-[-29px] left-1/2 -translate-x-1/2"
         height="30"
         viewBox="0 0 40 30"
         width="40"
       >
         <path className="fill-bg-layout-1depth" d="M0 0 L20 30 L40 0 Z" />
+        <path
+          className="fill-none stroke-border-divider-default"
+          d="M0 0 L20 30 L40 0"
+          strokeWidth="1"
+        />
       </svg>
     </div>
   );
