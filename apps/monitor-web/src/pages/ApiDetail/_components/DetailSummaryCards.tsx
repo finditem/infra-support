@@ -1,33 +1,19 @@
-import { ReactNode } from "react";
-import type { ApiSummaryData } from "../_types";
+import { Icon, IconName } from "@/components";
+import { cn } from "@/utils";
 
-interface DetailSummaryCardsProps {
-  data: ApiSummaryData;
-}
+const SUMMARY_CARD_DATA = [
+  { label: "상태", value: "정상", icon: "activity", isStatus: true },
+  { label: "마지막 체크 시간", value: "2026-04-24 13:20", icon: "clockBackward" },
+  { label: "마지막 응답 속도", value: "443ms", icon: "lightningFilled" },
+  { label: "성공률 (24h)", value: "99%", icon: "trendUp" },
+] as const;
 
-const DetailSummaryCards = ({ data }: DetailSummaryCardsProps) => {
+const DetailSummaryCards = () => {
   return (
-    <section className="my-8 flex items-center rounded-xl border border-[#DFDFDF] bg-white">
-      <dl className="flex w-full">
-        <SummaryCard label="평균 응답 속도">
-          <div className="flex items-baseline gap-3">
-            <div className="flex items-baseline gap-1 text-[#1D1D1D]">
-              <span className="typo-header3-bold">{data.avgResponseTime}</span>
-              <span className="typo-header3-medium">ms</span>
-            </div>
-            <div className="typo-body2-medium flex gap-3 whitespace-nowrap text-[#1D1D1D]/40">
-              <span>최고 {data.maxResponseTime}ms</span>
-              <span>최저 {data.minResponseTime}ms</span>
-            </div>
-          </div>
-        </SummaryCard>
-
-        <SummaryCard label="성공률 (24h)" value={`${data.successRate}%`} />
-
-        <SummaryCard label="장애 횟수 (24h)" value={`${data.errorCount}회`} />
-
-        <SummaryCard label="마지막 장애 발생" value={data.lastErrorAt} />
-      </dl>
+    <section className="mb-3 mt-6 grid w-full grid-cols-4 gap-3">
+      {SUMMARY_CARD_DATA.map((item) => (
+        <SummaryCard key={item.label} {...item} />
+      ))}
     </section>
   );
 };
@@ -36,13 +22,26 @@ export default DetailSummaryCards;
 
 interface SummaryCardProps {
   label: string;
-  value?: string;
-  children?: ReactNode;
+  icon: IconName;
+  value: string;
+  isStatus?: boolean;
 }
 
-const SummaryCard = ({ label, value, children }: SummaryCardProps) => (
-  <div className="flex flex-col gap-[13px] px-12 py-8">
-    <dt className="typo-body2-bold text-[#1D1D1D]">{label}</dt>
-    <dd className="typo-header3-bold text-[#1D1D1D]">{children || <span>{value}</span>}</dd>
+const SummaryCard = ({ label, icon, value, isStatus }: SummaryCardProps) => (
+  <div className="flex items-center gap-4 rounded-xl border border-border-neutural-normal-default bg-white p-8">
+    <div className="size-16 rounded-full bg-fill-primary-normal-disabled flex-center">
+      <Icon name={icon} size={32} />
+    </div>
+    <div className="flex flex-col gap-2">
+      <span className="typo-body2-medium text-layout-body">{label}</span>
+      <div className="flex items-center gap-[11px]">
+        {isStatus && (
+          <div aria-hidden className="size-3 rounded-full bg-fg-primary-normal-default" />
+        )}
+        <span className={cn("typo-header4-bold", isStatus && "text-fg-primary-normal-default")}>
+          {value}
+        </span>
+      </div>
+    </div>
   </div>
 );

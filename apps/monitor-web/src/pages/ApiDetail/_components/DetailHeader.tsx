@@ -1,6 +1,4 @@
 import { Badge, BasicButton, Icon } from "@/components";
-import { cn } from "@/utils";
-import type { ApiStatus } from "@/types";
 import type { ApiDetailData } from "../_types";
 
 interface DetailHeaderProps {
@@ -8,98 +6,68 @@ interface DetailHeaderProps {
 }
 
 const DetailHeader = ({ apiData }: DetailHeaderProps) => {
-  const headerInfoList = [
-    { label: "카테고리", value: apiData.category },
-    { label: "응답", value: apiData.responseTime },
-    {
-      label: "마지막 체크",
-      value: apiData.lastChecked,
-      dateTime: apiData.lastChecked,
-    },
-    { label: "최근 24시간 성공률", value: apiData.successRate },
-  ];
-
   return (
     <section
       aria-labelledby="api-detail-title"
       className="-mx-8 -mt-8 flex items-center justify-between border border-[#E2E8F0] bg-white p-10"
     >
       <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-2">
-          <h1 id="api-detail-title" className="text-[26px] font-bold leading-9">
-            {apiData.name}
-          </h1>
-          <Badge aria-label={`HTTP 상태 코드: ${apiData.statusCode}`} label={apiData.statusCode} />
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-4">
+            <img
+              alt={`${apiData.name} 로고}`}
+              className="size-9 rounded-md"
+              src="/src/assets/mocks/api-detail-mock.png"
+            />
+            <h1 id="api-detail-title" className="typo-header2-bold text-layout-header">
+              {apiData.name}
+            </h1>
+            <Badge
+              aria-label={`HTTP 상태 코드: ${apiData.statusCode}`}
+              label={apiData.statusCode}
+            />
+          </div>
+          <p className="typo-body2-regular text-layout-body">
+            카카오 지도 표시 및 좌표·주소 변환에 사용하는 지도 API입니다.
+          </p>
         </div>
-        <dl className="flex gap-6">
-          <StatusItem status={apiData.status} />
-          {headerInfoList.map((info) => (
-            <InfoItem key={info.label} {...info} />
-          ))}
-        </dl>
+
+        <div className="typo-body2-medium flex items-center gap-6">
+          <div className="flex gap-3">
+            <span className="text-layout-body">카테고리</span>
+            <span className="typo-header3-bold text-layout-header">map</span>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-layout-body">출처</span>
+            <a
+              aria-label="Kakao developers 개발자 센터 (새 창 열림)"
+              className="typo-header3-bold flex text-yellow-400 hover:underline hover:underline-offset-2"
+              href="https://developers.kakao.com/console/app/1353127"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Kakao <Icon name="arrowUpRight" size={28} />
+            </a>
+          </div>
+        </div>
       </div>
 
-      <BasicButton className="h-[80px] min-w-[121px] rounded-xl border border-[#DFDFDF] bg-white px-7 py-8 text-[#1D1D1D]">
-        <span className="flex items-center gap-1">
-          <Icon name="editPencil" size={24} />
-          <span className="typo-header3-medium">수정</span>
-        </span>
-      </BasicButton>
+      <div className="flex items-center gap-4">
+        <BasicButton className="min-h-[56px] w-[150px] py-4">
+          <span className="flex gap-2">
+            <Icon name="arrowRotateRight" size={24} />
+            <span className="typo-header4-bold">수동요청</span>
+          </span>
+        </BasicButton>
+        <BasicButton className="min-h-[56px] min-w-[115px] border border-border-neutural-normal-default bg-white py-4 text-[#5D5D5D]">
+          <span className="flex items-center gap-1">
+            <Icon name="editPencil" size={24} />
+            <span className="typo-header4-semibold">수정</span>
+          </span>
+        </BasicButton>
+      </div>
     </section>
   );
 };
 
 export default DetailHeader;
-
-const STATUS_CONFIG = {
-  healthy: {
-    label: "정상",
-    color: "bg-fg-primary-normal-default",
-    textColor: "text-fg-primary-normal-default",
-  },
-  outage: {
-    label: "장애",
-    color: "bg-[#FF4D4F]",
-    textColor: "text-[#FF4D4F]",
-  },
-  degraded: {
-    label: "지연",
-    color: "bg-[#FAAD14]",
-    textColor: "text-[#FAAD14]",
-  },
-} as const;
-
-const StatusItem = ({ status }: { status: ApiStatus }) => {
-  const { label, color, textColor } = STATUS_CONFIG[status];
-
-  return (
-    <div className="flex flex-col gap-2">
-      <dt className="typo-body2-medium text-[#1D1D1D]/40">상태</dt>
-      <dd className="flex items-center gap-2">
-        <div aria-hidden="true" className={cn("size-3 rounded-full", color)} />
-        <span className={cn("typo-header3-medium", textColor)}>{label}</span>
-      </dd>
-    </div>
-  );
-};
-
-interface InfoItemProps {
-  label: string;
-  value: string;
-  dateTime?: string;
-}
-
-const InfoItem = ({ label, value, dateTime }: InfoItemProps) => {
-  const Tag = dateTime ? "time" : "span";
-
-  return (
-    <div className="flex flex-col gap-2">
-      <dt className="typo-body2-medium text-[#1D1D1D]/40">{label}</dt>
-      <dd>
-        <Tag className="typo-header3-medium text-[#1D1D1D]" {...(dateTime && { dateTime })}>
-          {value}
-        </Tag>
-      </dd>
-    </div>
-  );
-};
