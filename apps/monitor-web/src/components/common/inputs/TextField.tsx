@@ -67,7 +67,7 @@ const TextField = ({
   return (
     <div className="flex flex-col gap-3">
       {label && (
-        <label className="text-body1-regular text-layout-body" htmlFor={inputId}>
+        <label className="typo-body2-regular text-layout-header" htmlFor={inputId}>
           {label}
         </label>
       )}
