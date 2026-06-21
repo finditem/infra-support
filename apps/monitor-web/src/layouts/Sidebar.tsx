@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { BasicButton, Icon } from "@/components";
 import { useLogoutMutation, useUserQuery } from "@/queries";
 import { cn } from "@/utils";
@@ -21,6 +21,7 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isApiDetailOpen, setIsApiDetailOpen] = useState(false);
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const isApiRoute = pathname.startsWith("/api/");
 
   const { data: user } = useUserQuery();
@@ -56,10 +57,14 @@ const Sidebar = () => {
               isOpen ? "justify-start" : "justify-center"
             )}
           >
-            <Icon name="baseLogo" size={40} />
-            {isOpen && (
-              <span className="text-[20px] font-bold leading-[28px]">찾아줘! API 모니터링</span>
-            )}
+            <Link className="flex items-center gap-[14px] outline-none" to="/">
+              <Icon name="baseLogo" size={40} />
+              {isOpen && (
+                <span className="text-[20px] font-bold leading-[28px] text-layout-header">
+                  찾아줘! API 모니터링
+                </span>
+              )}
+            </Link>
             <button
               aria-label={isOpen ? "사이드바 접기" : "사이드바 펼치기"}
               className="absolute -right-14 size-9 rounded-[10px] border border-border-neutural-default bg-white p-2 flex-center"
@@ -151,14 +156,27 @@ const Sidebar = () => {
           )}
         >
           <div className="flex items-center gap-[10px]">
-            <Icon name="user" size={40} />
-            {isOpen && <span>{user ? "관리자" : "로그인이 필요합니다."}</span>}
+            <Icon className="rounded-full" name={user ? "baseLogo" : "user"} size={40} />
+            {isOpen && (
+              <span className="typo-body1-semibold text-layout-header">
+                {user ? "관리자" : "로그인이 필요합니다."}
+              </span>
+            )}
           </div>
-          {!!user && isOpen && (
-            <BasicButton loading={isPending} onClick={() => logout()}>
-              로그아웃
-            </BasicButton>
-          )}
+          {isOpen &&
+            (user ? (
+              <BasicButton
+                className="border border-border-primary-normal-default bg-white text-fill-primary-strong-default"
+                loading={isPending}
+                onClick={() => logout()}
+              >
+                로그아웃
+              </BasicButton>
+            ) : (
+              <BasicButton className="min-h-[43px] min-w-[70px]" onClick={() => navigate("/login")}>
+                로그인
+              </BasicButton>
+            ))}
         </footer>
       </div>
     </aside>
