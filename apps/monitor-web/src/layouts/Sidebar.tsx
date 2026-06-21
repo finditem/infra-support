@@ -57,7 +57,11 @@ const Sidebar = () => {
               isOpen ? "justify-start" : "justify-center"
             )}
           >
-            <Link className="flex items-center gap-[14px] outline-none" to="/">
+            <Link
+              aria-label="찾아줘! API 모니터링 홈"
+              className="flex items-center gap-[14px] outline-none"
+              to="/"
+            >
               <Icon name="baseLogo" size={40} />
               {isOpen && (
                 <span className="text-[20px] font-bold leading-[28px] text-layout-header">
@@ -165,6 +169,7 @@ const Sidebar = () => {
           </div>
           {isOpen &&
             (user ? (
+              // TODO(지권): outline 스타일 추가 후 변경 예정
               <BasicButton
                 className="border border-border-primary-normal-default bg-white text-fill-primary-strong-default"
                 loading={isPending}
@@ -173,6 +178,7 @@ const Sidebar = () => {
                 로그아웃
               </BasicButton>
             ) : (
+              // TODO(지권): as prop 패턴 추가 후 navigate 제거 예정
               <BasicButton className="min-h-[43px] min-w-[70px]" onClick={() => navigate("/login")}>
                 로그인
               </BasicButton>
