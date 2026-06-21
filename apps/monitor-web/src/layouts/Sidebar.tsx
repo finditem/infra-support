@@ -43,7 +43,7 @@ const Sidebar = () => {
   return (
     <aside
       className={cn(
-        "flex h-screen shrink-0 flex-col gap-5 bg-white px-[10px] pb-5 pt-10",
+        "relative z-10 flex h-screen shrink-0 flex-col gap-5 bg-white px-[10px] pb-5 pt-10",
         "border border-[#E2E8F0]",
         isOpen ? "w-[400px]" : "w-[133px]"
       )}
