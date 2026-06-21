@@ -29,7 +29,7 @@ const LoginForm = () => {
       </fieldset>
 
       <BasicButton
-        className="min-h-[56px] text-[20px] font-bold leading-6"
+        className="typo-header4-bold min-h-[56px] disabled:text-fg-neutural-disabled"
         disabled={isDisabled}
         loading={isPending}
         type="submit"
