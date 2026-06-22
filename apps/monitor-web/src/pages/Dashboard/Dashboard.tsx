@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DashboardHeader } from "./_components";
+import { DashboardHeader, DashboardResponseTimeChart } from "./_components";
 import type { DashboardTimeRange } from "./_types";
 
 const Dashboard = () => {
@@ -8,6 +8,10 @@ const Dashboard = () => {
   return (
     <>
       <DashboardHeader range={range} onRangeChange={setRange} />
+
+      <main className="mt-[30px]">
+        <DashboardResponseTimeChart />
+      </main>
     </>
   );
 };
