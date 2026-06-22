@@ -1,3 +1,4 @@
+//TODO(준열) : API 상세 페이지 작업 후 아이콘 수정 필요
 import { Icon } from "@/components";
 import type { IconName } from "@/components";
 import { cn } from "@/utils";

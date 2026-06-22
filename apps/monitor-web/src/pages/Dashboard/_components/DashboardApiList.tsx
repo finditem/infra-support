@@ -1,3 +1,4 @@
+//TODO(준열): Badge 컴포넌트 label type 개선 후 수정 예정
 import type { ReactNode } from "react";
 import { Badge } from "@/components";
 import { MOCK_DASHBOARD_API_LIST } from "@/mock";

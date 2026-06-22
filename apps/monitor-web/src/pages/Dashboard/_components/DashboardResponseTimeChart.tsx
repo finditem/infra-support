@@ -1,3 +1,4 @@
+//TODO(준열): Supabase 연결 후 하드코딩 텍스트 수정 예정, 장애 관련 텍스트 디자인 시안 확정 후 수정 예정
 import { ApiResponseTimeChart, Icon } from "@/components";
 import { MOCK_RESPONSE_TIME_DATA } from "@/mock";
 
