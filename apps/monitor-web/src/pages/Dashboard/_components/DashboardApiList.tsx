@@ -60,7 +60,7 @@ const API_TABLE_COLUMNS: {
 
 const DashboardApiList = () => {
   return (
-    <section className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-8 py-8">
+    <section className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-12 py-8">
       <h2 className="typo-header4-bold text-layout-header">전체 API 목록</h2>
 
       <div className="mt-6 overflow-hidden rounded-xl">
