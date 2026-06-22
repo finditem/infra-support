@@ -14,12 +14,11 @@ const DashboardTimeToggle = ({ range, onRangeChange }: DashboardTimeRangeProps) 
   return (
     <div
       aria-label="조회 기간"
-      role="radiogroup"
+      role="group"
       className="flex rounded-full bg-bg-layout-1depth p-[6px] shadow-[inset_0_4px_12px_-4px_rgba(0,0,0,0.12)]"
     >
       <button
-        aria-checked={range === "24h"}
-        role="radio"
+        aria-pressed={range === "24h"}
         className={cn(
           TIME_TOGGLE_BUTTON_STYLE,
           range === "24h" ? SELECTED_TIME_TOGGLE_BUTTON_STYLE : UNSELECTED_TIME_TOGGLE_BUTTON_STYLE
@@ -31,8 +30,7 @@ const DashboardTimeToggle = ({ range, onRangeChange }: DashboardTimeRangeProps) 
       </button>
 
       <button
-        aria-checked={range === "7d"}
-        role="radio"
+        aria-pressed={range === "7d"}
         className={cn(
           TIME_TOGGLE_BUTTON_STYLE,
           range === "7d" ? SELECTED_TIME_TOGGLE_BUTTON_STYLE : UNSELECTED_TIME_TOGGLE_BUTTON_STYLE
