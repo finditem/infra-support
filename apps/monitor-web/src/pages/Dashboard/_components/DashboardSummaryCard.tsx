@@ -62,7 +62,7 @@ const DashboardSummaryCard = () => {
             </span>
 
             <div className="flex flex-col gap-2">
-              <h2 className="typo-body2-medium text-layout-body">{card.title}</h2>
+              <p className="typo-body2-medium text-layout-body">{card.title}</p>
               <div className="flex items-baseline gap-3">
                 <span className="typo-header4-bold text-layout-header">{card.mainValue}</span>
 

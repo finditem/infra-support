@@ -15,7 +15,7 @@ const Dashboard = () => {
     <>
       <DashboardHeader range={range} onRangeChange={setRange} />
 
-      <main className="mt-[30px] flex flex-col gap-[30px]">
+      <div className="mt-[30px] flex flex-col gap-[30px]">
         <DashboardSummaryCard />
 
         <div className="grid grid-cols-[minmax(0,1fr)_372px] gap-6">
@@ -24,7 +24,7 @@ const Dashboard = () => {
         </div>
 
         <DashboardApiList />
-      </main>
+      </div>
     </>
   );
 };
