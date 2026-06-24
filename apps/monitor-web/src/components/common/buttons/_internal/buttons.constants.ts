@@ -16,6 +16,6 @@ export const BASE_STYLES =
   "relative inline-flex min-w-20 items-center justify-center gap-2 rounded-lg transition-colors text-white";
 
 export const STATE_STYLES =
-  "bg-fill-primary-strong-default hover:bg-fill-primary-strong-hover active:bg-fill-primary-strong-pressed disabled:cursor-not-allowed disabled:bg-fill-neutural-disabled disabled:text-fg-neutural-disabled";
+  "bg-fill-primary-strong-default hover:bg-fill-primary-strong-hover active:bg-fill-primary-strong-pressed disabled:cursor-not-allowed disabled:bg-fill-neutural-subtle-disabled disabled:text-fg-neutural-disabled";
 
 export const LOADING_STYLES = "pointer-events-none bg-[#C0C0C0]";
