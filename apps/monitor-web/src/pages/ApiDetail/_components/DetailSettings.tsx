@@ -46,7 +46,7 @@ const DetailSettings = () => {
           <SettingItem className="gap-4 px-6 py-5" label="활성 상태">
             <span className="flex items-center gap-1 text-fg-primary-normal-pressed">
               {isActive ? (
-                <div className="flex size-4 items-center justify-center rounded-full border border-[#009E53] bg-white">
+                <div className="size-4 rounded-full border border-[#009E53] bg-white flex-center">
                   <div aria-hidden className="size-2 rounded-full bg-[#0AA874]" />
                 </div>
               ) : (
@@ -61,7 +61,7 @@ const DetailSettings = () => {
           <SettingItem className="gap-4 px-6 py-5" label="알림">
             <span className="flex items-center gap-1 text-fg-primary-normal-pressed">
               {isNotificationEnabled ? (
-                <div className="flex size-4 items-center justify-center rounded-full border border-[#009E53] bg-white">
+                <div className="size-4 rounded-full border border-[#009E53] bg-white flex-center">
                   <div aria-hidden className="size-2 rounded-full bg-[#0AA874]" />
                 </div>
               ) : (
