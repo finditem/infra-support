@@ -10,18 +10,18 @@ const NotFound = () => {
 
   return (
     <div className="-m-8 size-[calc(100%+64px)] bg-gradient-to-b from-[#F0F9F6] to-[#F4F5F7] flex-center">
-      <div className="flex flex-col items-center space-y-12">
-        <div className="gap-9 flex-col-center">
+      <div className="flex flex-col items-center gap-9">
+        <div className="gap-6 flex-col-center">
           <Icon height={250} name="notFound" width={584} />
           <h1 className="typo-header1-medium text-layout-header">
-            존재하지 않는 API ID로 접근했습니다.
+            요청하신 페이지를 찾을 수 없습니다.
           </h1>
         </div>
 
-        <BasicButton className="h-[56px] w-[150px] px-[25px] py-4" onClick={handleGoHome}>
+        <BasicButton className="h-[56px] px-[30px] py-4" onClick={handleGoHome}>
           <span className="flex items-center gap-1">
             <Icon name="arrowLeft" size={22} />
-            <span className="typo-header4-bold">돌아가기</span>
+            <span className="typo-header4-bold">메인 페이지로 이동</span>
           </span>
         </BasicButton>
       </div>
