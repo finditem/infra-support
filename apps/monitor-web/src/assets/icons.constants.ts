@@ -16,6 +16,12 @@ import ArrowRight from "@/assets/icons/arrow-right.svg?react";
 import ArrowUp from "@/assets/icons/arrow-up.svg?react";
 import User from "@/assets/icons/user.svg?react";
 import Search from "@/assets/icons/search.svg?react";
+import ArrowRotateRight from "@/assets/icons/arrow-rotate-right.svg?react";
+import ArrowUpRight from "@/assets/icons/arrow-up-right.svg?react";
+import Activity from "@/assets/icons/activity.svg?react";
+import ClockBackward from "@/assets/icons/clock-backward.svg?react";
+import LightningFilled from "@/assets/icons/lightning-filled.svg?react";
+import TrendUp from "@/assets/icons/trend-up.svg?react";
 
 export const ICON_MAP = {
   alert: AlertIcon,
@@ -36,4 +42,10 @@ export const ICON_MAP = {
   arrowUp: ArrowUp,
   user: User,
   search: Search,
+  arrowRotateRight: ArrowRotateRight,
+  arrowUpRight: ArrowUpRight,
+  activity: Activity,
+  clockBackward: ClockBackward,
+  lightningFilled: LightningFilled,
+  trendUp: TrendUp,
 } as const;

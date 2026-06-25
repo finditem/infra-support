@@ -134,6 +134,16 @@ const customUtilities = plugin(({ addUtilities, addComponents }) => {
       fontWeight: "400",
       lineHeight: "24px",
     },
+    ".typo-caption1-bold": {
+      fontSize: "12px",
+      fontWeight: "700",
+      lineHeight: "24px",
+    },
+    ".typo-caption1-semibold": {
+      fontSize: "18px",
+      fontWeight: "600",
+      lineHeight: "16px",
+    },
   });
 });
 
