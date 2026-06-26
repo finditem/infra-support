@@ -4,6 +4,7 @@ import { Badge } from "@/components";
 import { MOCK_DASHBOARD_API_LIST } from "@/mock";
 import type { ApiStatus } from "@/types";
 import type { ApiListItem } from "../_types";
+import { useNavigate } from "react-router-dom";
 
 const API_STATUS_LABEL: Record<ApiStatus, string> = {
   healthy: "정상",
@@ -60,6 +61,12 @@ const API_TABLE_COLUMNS: {
 ];
 
 const DashboardApiList = () => {
+  const navigate = useNavigate();
+
+  const handleGoApiDetail = (apiId: string) => {
+    navigate(`/api/${apiId}`);
+  };
+
   return (
     <section className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-12 py-8">
       <h2 className="typo-header4-bold text-layout-header">전체 API 목록</h2>
@@ -78,7 +85,12 @@ const DashboardApiList = () => {
 
           <tbody>
             {MOCK_DASHBOARD_API_LIST.map((api) => (
-              <tr key={api.id}>
+              <tr
+                key={api.id}
+                role="link"
+                className="cursor-pointer hover:bg-bg-layout-2depth"
+                onClick={() => handleGoApiDetail(api.id)}
+              >
                 {API_TABLE_COLUMNS.map((column) => (
                   <td
                     key={column.id}
