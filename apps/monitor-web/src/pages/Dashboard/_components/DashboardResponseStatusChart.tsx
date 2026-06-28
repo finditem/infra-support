@@ -25,6 +25,7 @@ const DashboardResponseStatusChart = () => {
                 innerRadius={80}
                 outerRadius={120}
                 paddingAngle={4}
+                pointerEvents="none"
               >
                 {CHART_DATA.map((entry) => (
                   <Cell key={entry.name} fill={entry.color} />
