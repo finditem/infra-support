@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/verify-build.sh\"",
+            "timeout": 120,
+            "statusMessage": "전체 빌드로 변경 사항 검증 중..."
+          }
+        ]
+      }
+    ]
+  }
+}
