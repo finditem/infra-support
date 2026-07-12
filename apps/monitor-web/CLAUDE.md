@@ -78,3 +78,7 @@ pnpm lint    # eslint src --ext ts,tsx
 ```
 
 이 앱의 파일을 수정했다면 위 두 명령이 모두 통과해야 한다.
+
+## 페이지 작업 계획 문서화
+
+특정 페이지(`src/pages/{PageName}/`) 관련 작업을 요청받으면, 구현을 시작하기 전에 `plan-page` 스킬을 실행해 `docs/{PageName}/plan.md`를 확인/갱신한다.
