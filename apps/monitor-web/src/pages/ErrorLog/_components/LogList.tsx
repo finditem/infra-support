@@ -8,7 +8,7 @@ import { cn } from "@/utils";
 import type { LogListItemData } from "../_types";
 
 const LogList = () => {
-  const selectedFilter: LogListFilterKey = "all";
+  const [selectedFilter, setSelectedFilter] = useState<LogListFilterKey>("all");
   const [items, setItems] = useState<LogListItemData[]>(MOCK_ERROR_LOG_ITEMS);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -23,14 +23,25 @@ const LogList = () => {
     };
   }, [items]);
 
+  const filteredItems = useMemo(() => {
+    if (selectedFilter === "unchecked") return items.filter((item) => !item.status);
+    if (selectedFilter === "checked") return items.filter((item) => item.status);
+    return items;
+  }, [items, selectedFilter]);
+
+  const handleFilterChange = (filterKey: LogListFilterKey) => {
+    setSelectedFilter(filterKey);
+    setCurrentPage(1);
+  };
+
   const handleCheckedChange = (itemId: number, checked: boolean) => {
     setItems((prev) =>
       prev.map((item) => (item.id === itemId ? { ...item, status: checked } : item))
     );
   };
 
-  const totalPages = Math.max(1, Math.ceil(items.length / LOG_LIST_PAGE_SIZE));
-  const pagedItems = items.slice(
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / LOG_LIST_PAGE_SIZE));
+  const pagedItems = filteredItems.slice(
     (currentPage - 1) * LOG_LIST_PAGE_SIZE,
     currentPage * LOG_LIST_PAGE_SIZE
   );
@@ -48,7 +59,7 @@ const LogList = () => {
             isActive={selectedFilter === filter.key}
             label={filter.label}
             value={countByKey[filter.key]}
-            onClick={() => {}}
+            onClick={() => handleFilterChange(filter.key)}
           />
         ))}
       </div>
