@@ -38,9 +38,15 @@ const LogList = ({ items, onCheckedChange }: LogListProps) => {
   };
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / LOG_LIST_PAGE_SIZE));
+  const activePage = currentPage > totalPages ? totalPages : currentPage;
+
+  if (currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
+
   const pagedItems = filteredItems.slice(
-    (currentPage - 1) * LOG_LIST_PAGE_SIZE,
-    currentPage * LOG_LIST_PAGE_SIZE
+    (activePage - 1) * LOG_LIST_PAGE_SIZE,
+    activePage * LOG_LIST_PAGE_SIZE
   );
 
   return (
@@ -74,7 +80,7 @@ const LogList = ({ items, onCheckedChange }: LogListProps) => {
         ))}
       </ul>
 
-      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      <Pagination currentPage={activePage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </section>
   );
 };
