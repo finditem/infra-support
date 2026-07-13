@@ -1,4 +1,5 @@
 import type { ApiResponseTimeData } from "@/types";
+import type { ResponseTimeStats } from "../_types";
 
 /**
  * 가장 최근 체크 시각이 속한 24시간(09:00~다음날 06:00) 구간의 데이터만 필터링합니다.
@@ -24,4 +25,29 @@ export const filterLatest24HourData = (data: ApiResponseTimeData[]): ApiResponse
   return data.filter(
     (item) => item.checkedAt >= windowStart && item.checkedAt <= windowEnd.getTime()
   );
+};
+
+/**
+ * 응답 시간 데이터의 평균/최고/최저를 계산합니다.
+ *
+ * @returns 데이터가 없으면 `null`
+ *
+ * @author junyeol
+ */
+
+export const calculateResponseTimeStats = (
+  data: ApiResponseTimeData[]
+): ResponseTimeStats | null => {
+  if (data.length === 0) return null;
+
+  const responseTimes = data.map((item) => item.responseTime);
+  const average = Math.round(
+    responseTimes.reduce((sum, responseTime) => sum + responseTime, 0) / responseTimes.length
+  );
+
+  return {
+    average,
+    max: Math.max(...responseTimes),
+    min: Math.min(...responseTimes),
+  };
 };
