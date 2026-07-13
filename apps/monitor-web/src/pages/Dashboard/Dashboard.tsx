@@ -20,7 +20,7 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-[minmax(0,1fr)_372px] gap-6">
           <DashboardResponseTimeChart range={range} />
-          <DashboardResponseStatusChart />
+          <DashboardResponseStatusChart range={range} />
         </div>
 
         <DashboardApiList />

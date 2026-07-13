@@ -9,3 +9,4 @@
 - [x] DashboardResponseTimeChart/ApiResponseTimeChart: range를 24h 데이터 필터링 + period prop으로 연결해 토글이 실제 차트에 반영되도록 수정
 - [x] DashboardResponseTimeChart: 장애 배지 문구를 range/outage 개수 기반 동적 텍스트로 변경
 - [x] DashboardResponseTimeChart: 평균/최고/최저 응답속도 하드코딩 값을 목업 데이터 기준 계산으로 변경 (calculateResponseTimeStats)
+- [x] DashboardResponseStatusChart: 하드코딩된 CHART_DATA를 range 기준 API별 최신 상태 분포 계산으로 변경 (calculateApiStatusDistribution)
