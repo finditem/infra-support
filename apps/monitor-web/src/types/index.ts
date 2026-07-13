@@ -1,6 +1,7 @@
 export type { ApiStatus } from "./ApiStatusType";
 export type {
   ApiResponseTimeData,
+  ApiResponseTimePeriod,
   ChartDotProps,
   ChartTooltipProps,
 } from "./ApiResponseTimeChartType";

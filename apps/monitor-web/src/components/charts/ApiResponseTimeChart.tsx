@@ -9,8 +9,8 @@ import {
   YAxis,
 } from "recharts";
 import { cn } from "@/utils";
-import type { ApiResponseTimeData } from "@/types";
-import { createThreeHourTicks, formatTime } from "@/utils";
+import type { ApiResponseTimeData, ApiResponseTimePeriod } from "@/types";
+import { createDailyTicks, createThreeHourTicks, formatDate, formatTime } from "@/utils";
 import { API_LINE_COLORS } from "./_internal/charts.constants";
 import ApiResponseTimeTooltip from "./_component/ApiResponseTimeTooltip";
 import ErrorDot from "./_component/ErrorDot";
@@ -20,7 +20,7 @@ import ErrorDot from "./_component/ErrorDot";
  *
  * @remarks
  * - `apiId`별로 데이터를 그룹화해 API마다 별도 라인을 렌더링합니다.
- * - X축은 09:00부터 다음날 06:00까지 3시간 단위로 고정 표시합니다.
+ * - `period`가 `24h`면 X축을 09:00부터 다음날 06:00까지 3시간 단위로, `7d`면 최근 7일을 1일 단위로 표시합니다.
  * - `outage` 상태인 데이터만 에러 dot으로 표시합니다.
  * - 부모 요소가 높이를 제공해야 `ResponsiveContainer`가 정상 렌더링 됩니다.
  *
@@ -30,6 +30,8 @@ import ErrorDot from "./_component/ErrorDot";
 interface ApiResponseTimeChartProps {
   /** API 응답 시간 차트에 표시할 데이터 */
   data: ApiResponseTimeData[];
+  /** X축 기간 단위 */
+  period: ApiResponseTimePeriod;
   /** 차트 컨테이너에 적용할 추가 클래스명 */
   className?: string;
 }
@@ -38,12 +40,12 @@ interface ApiResponseTimeChartProps {
  * @example
  * ```tsx
  * <div className="h-[320px]">
- *   <ApiResponseTimeChart data={chartData} />
+ *   <ApiResponseTimeChart data={chartData} period="24h" />
  * </div>
  * ```
  */
 
-const ApiResponseTimeChart = ({ className, data }: ApiResponseTimeChartProps) => {
+const ApiResponseTimeChart = ({ className, data, period }: ApiResponseTimeChartProps) => {
   const apiSeries = useMemo(() => {
     if (data.length === 0) return [];
     return Object.values(
@@ -58,9 +60,13 @@ const ApiResponseTimeChart = ({ className, data }: ApiResponseTimeChartProps) =>
 
   const xAxisTicks = useMemo(() => {
     if (data.length === 0) return [];
+    if (period === "7d") {
+      const timestamps = data.map((item) => item.checkedAt);
+      return createDailyTicks(Math.min(...timestamps), Math.max(...timestamps));
+    }
     const minTimestamp = Math.min(...data.map((item) => item.checkedAt));
     return createThreeHourTicks(minTimestamp);
-  }, [data]);
+  }, [data, period]);
 
   const xAxisDomain = useMemo(() => {
     if (xAxisTicks.length === 0) return [0, 0];
@@ -87,7 +93,7 @@ const ApiResponseTimeChart = ({ className, data }: ApiResponseTimeChartProps) =>
             dataKey="checkedAt"
             domain={xAxisDomain}
             tick={{ fill: "#858585", fontSize: 12 }}
-            tickFormatter={formatTime}
+            tickFormatter={period === "7d" ? formatDate : formatTime}
             tickLine={false}
             tickMargin={16}
             ticks={xAxisTicks}
