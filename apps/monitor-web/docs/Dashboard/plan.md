@@ -10,3 +10,4 @@
 - [x] DashboardResponseTimeChart: 장애 배지 문구를 range/outage 개수 기반 동적 텍스트로 변경
 - [x] DashboardResponseTimeChart: 평균/최고/최저 응답속도 하드코딩 값을 목업 데이터 기준 계산으로 변경 (calculateResponseTimeStats)
 - [x] DashboardResponseStatusChart: 하드코딩된 CHART_DATA를 range 기준 API별 최신 상태 분포 계산으로 변경 (calculateApiStatusDistribution)
+- [x] DashboardSummaryCard: Supabase 연결 상태 카드를 제외한 응답속도/마지막 장애/장애 API 카드를 range 기준 목업 데이터 계산으로 변경

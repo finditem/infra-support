@@ -16,7 +16,7 @@ const Dashboard = () => {
       <DashboardHeader range={range} onRangeChange={setRange} />
 
       <div className="mt-[30px] flex flex-col gap-[30px]">
-        <DashboardSummaryCard />
+        <DashboardSummaryCard range={range} />
 
         <div className="grid grid-cols-[minmax(0,1fr)_372px] gap-6">
           <DashboardResponseTimeChart range={range} />
