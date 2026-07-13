@@ -31,3 +31,9 @@
 - [x] `items` state를 LogList에서 ErrorLog로 상향 — LogList는 `items`/`onCheckedChange`를 props로 받도록 변경, LogSummaryCards와 동일 데이터 공유
 - [x] `_utils/index.ts`에 `getLogSummaryData` 추가 — 전체 건수, 미확인 건수, 최근 발생 API명(occurredAt 최댓값 기준)을 mock items에서 계산
 - [x] ErrorLog.tsx의 하드코딩된 `{ totalErrors: 0, ... }` 및 onRefresh no-op을 실제 계산값/mock 재설정으로 교체 — 체크 상태 토글 시 요약 카드도 즉시 갱신
+
+## TSDoc 및 \_utils 구조 정리
+
+- [x] `_utils/index.ts`(배럴)에 있던 `getLogSummaryData` 구현을 `_utils/ErrorLogUtils.ts`로 분리하고 index.ts는 re-export만 담당하도록 정리 — 페이지별 `_utils`에 분리 사례가 없어 전역 [utils/](../../src/utils)의 PascalCase+Utils suffix 네이밍(`ApiResponseTimeChartUtils.ts`)을 따름
+- [x] `ErrorLogUtils.ts`의 `getLogSummaryData`에 TSDoc 작성 (`ApiResponseTimeChartUtils.ts` 스타일: 설명 → @remarks → @returns → @author junyeol)
+- [x] `Pagination.tsx` TSDoc은 사용자 요청 범위 밖이라 제거 — TSDoc은 사용자가 지목한 파일에만 작성
