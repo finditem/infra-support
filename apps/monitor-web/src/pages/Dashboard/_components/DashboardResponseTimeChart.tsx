@@ -1,8 +1,15 @@
 //TODO(준열): Supabase 연결 후 하드코딩 텍스트 수정 예정, 장애 관련 텍스트 디자인 시안 확정 후 수정 예정
 import { ApiResponseTimeChart, Icon } from "@/components";
 import { MOCK_RESPONSE_TIME_DATA } from "@/mock";
+import type { DashboardTimeRangeProps } from "../_types";
+import { filterLatest24HourData } from "../_utils";
 
-const DashboardResponseTimeChart = () => {
+type DashboardResponseTimeChartProps = Pick<DashboardTimeRangeProps, "range">;
+
+const DashboardResponseTimeChart = ({ range }: DashboardResponseTimeChartProps) => {
+  const data =
+    range === "24h" ? filterLatest24HourData(MOCK_RESPONSE_TIME_DATA) : MOCK_RESPONSE_TIME_DATA;
+
   return (
     <section className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-8 py-12">
       <div className="flex items-start justify-between">
@@ -23,7 +30,7 @@ const DashboardResponseTimeChart = () => {
         </div>
       </div>
       <div className="mt-[60px] h-[433px]">
-        <ApiResponseTimeChart data={MOCK_RESPONSE_TIME_DATA} />
+        <ApiResponseTimeChart data={data} period={range} />
       </div>
     </section>
   );

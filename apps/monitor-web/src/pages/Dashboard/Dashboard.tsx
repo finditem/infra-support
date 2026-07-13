@@ -19,7 +19,7 @@ const Dashboard = () => {
         <DashboardSummaryCard />
 
         <div className="grid grid-cols-[minmax(0,1fr)_372px] gap-6">
-          <DashboardResponseTimeChart />
+          <DashboardResponseTimeChart range={range} />
           <DashboardResponseStatusChart />
         </div>
 
