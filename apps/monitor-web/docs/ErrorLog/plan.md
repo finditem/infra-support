@@ -62,8 +62,3 @@
 - [ ] 새로고침(`onRefresh`) 진행 중 UI 결정 — 목록 전체를 `LoadingState`로 덮을지, 기존 목록을 유지한 채 새로고침 아이콘 버튼만 로딩/disabled 표시할지 선택 (후자가 사용자 경험상 자연스러움에 가까움)
 - [ ] 목록 조회 실패(쿼리 `isError`) 시 `LogList` 영역에 `ErrorState` 렌더링, 필요 시 `children`으로 재시도 버튼 추가 (쿼리의 `refetch` 연결)
 - [ ] `LogSummaryCards`도 로딩/에러 시 카드 값을 어떻게 보여줄지 결정 (예: 스켈레톤, `-` 플레이스홀더, 또는 `LogList`와 동일한 상태 컴포넌트 공유)
-
-## PR #96 Gemini 리뷰 대응
-
-- [x] [high] `LogList.tsx`: 필터링/체크 상태 변경으로 `filteredItems`가 줄어들 때 `currentPage`가 새 `totalPages`를 초과해 빈 목록이 렌더링되는 문제 — 렌더링 중 `currentPage`를 `totalPages`로 보정하는 `activePage`를 도입하고, `pagedItems`와 `Pagination`의 `currentPage` prop 모두 `activePage`를 사용하도록 수정. 검증 결과 실제 버그로 확인되어 반영
-- [x] [medium] `Pagination.tsx`의 `text-fg-neutural-inversed-default`가 오타라는 지적 — 검증 결과 오탐. `neutural`은 `packages/design-tokens`(preset.cjs, variables.css)에 실제로 정의된 토큰 철자이며, `DashboardTimeToggle.tsx`/`DetailIncidentHistory.tsx` 등 다른 파일에서도 동일하게 사용 중. `neutral`로 고치면 존재하지 않는 클래스가 되므로 수정하지 않음
