@@ -2,14 +2,17 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components";
 import LogListItem from "./LogListItem";
 import Pagination from "./Pagination";
-import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
 import { LOG_LIST_FILTERS, LOG_LIST_PAGE_SIZE, type LogListFilterKey } from "../_constants";
 import { cn } from "@/utils";
 import type { LogListItemData } from "../_types";
 
-const LogList = () => {
+interface LogListProps {
+  items: LogListItemData[];
+  onCheckedChange: (itemId: number, checked: boolean) => void;
+}
+
+const LogList = ({ items, onCheckedChange }: LogListProps) => {
   const [selectedFilter, setSelectedFilter] = useState<LogListFilterKey>("all");
-  const [items, setItems] = useState<LogListItemData[]>(MOCK_ERROR_LOG_ITEMS);
   const [currentPage, setCurrentPage] = useState(1);
 
   const countByKey: Record<LogListFilterKey, number> = useMemo(() => {
@@ -32,12 +35,6 @@ const LogList = () => {
   const handleFilterChange = (filterKey: LogListFilterKey) => {
     setSelectedFilter(filterKey);
     setCurrentPage(1);
-  };
-
-  const handleCheckedChange = (itemId: number, checked: boolean) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, status: checked } : item))
-    );
   };
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / LOG_LIST_PAGE_SIZE));
@@ -72,7 +69,7 @@ const LogList = () => {
             key={item.id}
             data={item}
             isLast={index === pagedItems.length - 1}
-            onCheckedChange={(checked) => handleCheckedChange(item.id, checked)}
+            onCheckedChange={(checked) => onCheckedChange(item.id, checked)}
           />
         ))}
       </ul>

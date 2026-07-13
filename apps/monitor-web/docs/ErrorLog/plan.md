@@ -25,3 +25,9 @@
 - [x] `selectedFilter`를 고정 상수("all")에서 useState로 전환
 - [x] `filteredItems` 계산 추가 — unchecked/checked는 `item.status` 기준으로 필터링, all은 전체 노출
 - [x] 필터 버튼 onClick(no-op)을 `handleFilterChange`로 연결 — 필터 변경 시 currentPage를 1로 초기화
+
+## 요약 카드(LogSummaryCards) mock 데이터 연동
+
+- [x] `items` state를 LogList에서 ErrorLog로 상향 — LogList는 `items`/`onCheckedChange`를 props로 받도록 변경, LogSummaryCards와 동일 데이터 공유
+- [x] `_utils/index.ts`에 `getLogSummaryData` 추가 — 전체 건수, 미확인 건수, 최근 발생 API명(occurredAt 최댓값 기준)을 mock items에서 계산
+- [x] ErrorLog.tsx의 하드코딩된 `{ totalErrors: 0, ... }` 및 onRefresh no-op을 실제 계산값/mock 재설정으로 교체 — 체크 상태 토글 시 요약 카드도 즉시 갱신
