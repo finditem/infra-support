@@ -60,12 +60,17 @@ const ApiResponseTimeChart = ({ className, data, period }: ApiResponseTimeChartP
 
   const xAxisTicks = useMemo(() => {
     if (data.length === 0) return [];
-    if (period === "7d") {
-      const timestamps = data.map((item) => item.checkedAt);
-      return createDailyTicks(Math.min(...timestamps), Math.max(...timestamps));
-    }
-    const minTimestamp = Math.min(...data.map((item) => item.checkedAt));
-    return createThreeHourTicks(minTimestamp);
+
+    let minTimestamp = data[0].checkedAt;
+    let maxTimestamp = data[0].checkedAt;
+    data.forEach((item) => {
+      if (item.checkedAt < minTimestamp) minTimestamp = item.checkedAt;
+      if (item.checkedAt > maxTimestamp) maxTimestamp = item.checkedAt;
+    });
+
+    return period === "7d"
+      ? createDailyTicks(minTimestamp, maxTimestamp)
+      : createThreeHourTicks(minTimestamp);
   }, [data, period]);
 
   const xAxisDomain = useMemo(() => {

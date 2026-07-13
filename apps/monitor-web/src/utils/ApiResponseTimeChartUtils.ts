@@ -60,6 +60,8 @@ export const createThreeHourTicks = (timestamp: number) => {
  *   X축 domain 좌우 끝과 데이터가 어긋나지 않습니다.
  * - 데이터 구간이 정확히 24시간의 배수가 아니면 tick 개수가 7개보다 많아질 수 있습니다
  *   (예: 09:00~다음날 06:00 단위 데이터가 7일치면 달력상 8개 날짜에 걸치므로 8개 tick이 됩니다).
+ * - 밀리초 고정값(24 * 60 * 60 * 1000) 대신 `setDate`로 날짜를 증가시켜, DST가 있는
+ *   타임존에서도 하루 간격이 시간 단위로 밀리지 않도록 합니다.
  *
  * @returns X축에 사용할 timestamp 배열
  *
@@ -67,11 +69,12 @@ export const createThreeHourTicks = (timestamp: number) => {
  */
 
 export const createDailyTicks = (minTimestamp: number, maxTimestamp: number) => {
-  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   const ticks: number[] = [];
+  const current = new Date(minTimestamp);
 
-  for (let current = minTimestamp; current < maxTimestamp; current += ONE_DAY_MS) {
-    ticks.push(current);
+  while (current.getTime() < maxTimestamp) {
+    ticks.push(current.getTime());
+    current.setDate(current.getDate() + 1);
   }
   ticks.push(maxTimestamp);
 

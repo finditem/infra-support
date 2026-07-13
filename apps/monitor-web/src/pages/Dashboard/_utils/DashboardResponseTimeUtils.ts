@@ -10,8 +10,11 @@ import type { ResponseTimeStats } from "../_types";
 export const filterLatest24HourData = (data: ApiResponseTimeData[]): ApiResponseTimeData[] => {
   if (data.length === 0) return [];
 
-  const latestDate = new Date(Math.max(...data.map((item) => item.checkedAt)));
-  const anchorDate = new Date(latestDate);
+  const latestTimestamp = data.reduce(
+    (latest, item) => (item.checkedAt > latest ? item.checkedAt : latest),
+    data[0].checkedAt
+  );
+  const anchorDate = new Date(latestTimestamp);
   if (anchorDate.getHours() < 9) {
     anchorDate.setDate(anchorDate.getDate() - 1);
   }
@@ -40,14 +43,19 @@ export const calculateResponseTimeStats = (
 ): ResponseTimeStats | null => {
   if (data.length === 0) return null;
 
-  const responseTimes = data.map((item) => item.responseTime);
-  const average = Math.round(
-    responseTimes.reduce((sum, responseTime) => sum + responseTime, 0) / responseTimes.length
-  );
+  let sum = 0;
+  let max = data[0].responseTime;
+  let min = data[0].responseTime;
+
+  data.forEach((item) => {
+    sum += item.responseTime;
+    if (item.responseTime > max) max = item.responseTime;
+    if (item.responseTime < min) min = item.responseTime;
+  });
 
   return {
-    average,
-    max: Math.max(...responseTimes),
-    min: Math.min(...responseTimes),
+    average: Math.round(sum / data.length),
+    max,
+    min,
   };
 };
