@@ -1,4 +1,3 @@
-//TODO(준열) : API 상세 페이지 작업 후 아이콘 수정 필요
 import { Icon } from "@/components";
 import type { IconName } from "@/components";
 import { cn } from "@/utils";
@@ -8,6 +7,7 @@ interface SummaryCard {
   icon: IconName;
   iconSize?: number;
   iconBgClassName?: string;
+  iconClassName?: string;
   title: string;
   mainValue: string;
   subValues?: string[];
@@ -16,21 +16,22 @@ interface SummaryCard {
 const SUMMARY_CARDS: SummaryCard[] = [
   {
     id: "response-time",
-    icon: "sidebarDetail",
+    icon: "lightningFilled",
     title: "평균 응답 속도",
     mainValue: "443ms",
     subValues: ["최고 1,230ms", "최저 210ms"],
   },
   {
     id: "supabase-status",
-    icon: "check",
+    icon: "activity",
     title: "Supabase 연결/조회 상태",
     mainValue: "정상",
   },
   {
     id: "last-outage",
-    icon: "alert",
+    icon: "clockBackward",
     iconBgClassName: "bg-fill-state-error",
+    iconClassName: "text-fg-state-error",
     title: "마지막 장애 발생",
     mainValue: "2026-04-24 13:20",
   },
@@ -38,6 +39,7 @@ const SUMMARY_CARDS: SummaryCard[] = [
     id: "outage-api",
     icon: "sidebarDetail",
     iconSize: 24,
+    iconClassName: "text-fill-primary-strong-default",
     title: "장애 발생 API",
     mainValue: "Kakao MAP API",
   },
@@ -58,7 +60,7 @@ const DashboardSummaryCard = () => {
                 card.iconBgClassName ?? "bg-fill-primary-normal-disabled"
               )}
             >
-              <Icon name={card.icon} size={card.iconSize ?? 32} />
+              <Icon className={card.iconClassName} name={card.icon} size={card.iconSize ?? 32} />
             </span>
 
             <div className="flex flex-col gap-2">
