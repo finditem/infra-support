@@ -106,7 +106,7 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
       <Badge
         className={cn(
           "border-transparent py-1",
-          value < 10 ? "px-[6px]" : "px-[4px]",
+          value < 10 ? "px-1.5" : "px-1",
           isActive ? "bg-[#E3FCEE] text-[#0AA874]" : "bg-[#F2F2F2] text-[#1D1D1D]/40"
         )}
         label={value}
