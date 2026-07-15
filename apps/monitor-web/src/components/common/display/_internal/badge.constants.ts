@@ -10,9 +10,9 @@ import type { ApiStatus } from "@/types";
  */
 
 export const API_STATUS_BADGE_STYLES: Record<ApiStatus, string> = {
-  healthy: "text-[12px] font-bold leading-6 text-[#0AA874] bg-white border-[#0AA874]",
-  degraded: "text-[12px] font-bold leading-6 text-[#FF8A05] bg-white border-[#FF8A05]",
-  outage: "text-[12px] font-bold leading-6 text-[#FF3030] bg-white border-[#FF3030]",
+  healthy: "typo-body2-semibold text-[#0AA874] bg-white border-[#0AA874]",
+  degraded: "typo-body2-semibold text-[#FF8A05] bg-white border-[#FF8A05]",
+  outage: "typo-body2-semibold text-[#FF3030] bg-white border-[#FF3030]",
 };
 
 /**

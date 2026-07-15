@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components";
 import { MOCK_DASHBOARD_API_LIST } from "@/mock";
 import type { ApiStatus } from "@/types";
+import { cn } from "@/utils";
 import type { ApiListItem } from "../_types";
 import { useNavigate } from "react-router-dom";
 
@@ -10,6 +11,12 @@ const API_STATUS_LABEL: Record<ApiStatus, string> = {
   healthy: "정상",
   degraded: "지연",
   outage: "장애",
+};
+
+const API_STATUS_BADGE_BG: Record<ApiStatus, string> = {
+  healthy: "bg-fill-primary-normal-default",
+  degraded: "bg-fill-state-warning",
+  outage: "bg-fill-state-error",
 };
 
 const API_TABLE_COLUMNS: {
@@ -52,7 +59,8 @@ const API_TABLE_COLUMNS: {
     label: "상태",
     render: (api) => (
       <Badge
-        className="min-w-[52px] px-2"
+        className={cn("h-[32px] w-[72px] border-0", API_STATUS_BADGE_BG[api.apiStatus])}
+        dot
         label={API_STATUS_LABEL[api.apiStatus]}
         status={api.apiStatus}
       />
