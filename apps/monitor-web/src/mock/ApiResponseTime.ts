@@ -1,6 +1,72 @@
-import type { ApiResponseTimeData } from "@/types";
+import type { ApiResponseTimeData, ApiStatus } from "@/types";
+
+/**
+ * 7일 뷰를 위해 최근일(2026-06-06/07) 이전 6일치 raw 체크 데이터를 시드 고정 난수로 생성합니다.
+ *
+ * @remarks
+ * - 09:00~30:00(다음날 06:00) 3시간 슬롯은 `createThreeHourTicks`가 만드는 tick과 맞춰, 이후 일 단위 집계 시 그대로 버킷팅할 수 있게 합니다.
+ * - `Math.random` 대신 시드 고정 LCG를 사용해 리로드/빌드마다 데이터가 흔들리지 않게 합니다.
+ *
+ * @author junyeol
+ */
+
+const PAST_DAYS_API_META: Array<{ id: string; name: string; base: number }> = [
+  { id: "api-1", name: "Kakao Map API", base: 900 },
+  { id: "api-2", name: "Kakao Share API", base: 1200 },
+  { id: "api-3", name: "Payment API", base: 1400 },
+  { id: "api-4", name: "User API", base: 400 },
+  { id: "api-5", name: "Notification API", base: 900 },
+  { id: "api-6", name: "Search API", base: 1100 },
+  { id: "api-7", name: "Storage API", base: 700 },
+  { id: "api-8", name: "Analytics API", base: 1000 },
+];
+
+const PAST_DAYS_HOUR_SLOTS = [0, 3, 6, 9, 12, 15, 18, 21];
+
+const createSeededRandom = (seed: number) => {
+  let value = seed;
+  return () => {
+    value = (value * 1664525 + 1013904223) % 4294967296;
+    return value / 4294967296;
+  };
+};
+
+const resolvePastDayStatus = (rand: number): { status: ApiStatus; httpStatus: string } => {
+  if (rand > 0.96) return { status: "outage", httpStatus: "HTTP 503" };
+  if (rand > 0.85) return { status: "degraded", httpStatus: "HTTP 429" };
+  return { status: "healthy", httpStatus: "HTTP 200" };
+};
+
+const PAST_DAYS_RESPONSE_TIME_DATA: ApiResponseTimeData[] = PAST_DAYS_API_META.flatMap(
+  ({ id, name, base }, apiIndex) => {
+    const random = createSeededRandom(apiIndex * 97 + 13);
+
+    return [6, 5, 4, 3, 2, 1].flatMap((daysAgo) =>
+      PAST_DAYS_HOUR_SLOTS.map((hourOffset, slotIndex) => {
+        const checkedAt = new Date("2026-06-06T00:00:00");
+        checkedAt.setDate(checkedAt.getDate() - daysAgo);
+        checkedAt.setHours(9 + hourOffset, Math.floor(random() * 50), 0, 0);
+
+        const jitter = Math.floor((random() - 0.5) * base * 0.6);
+        const { status, httpStatus } = resolvePastDayStatus(random());
+
+        return {
+          id: `${id}-d${daysAgo}-${slotIndex}`,
+          apiId: id,
+          apiName: name,
+          responseTime: Math.max(120, base + jitter),
+          checkedAt: checkedAt.getTime(),
+          status,
+          httpStatus,
+          errorMessage: "-",
+        };
+      })
+    );
+  }
+);
 
 export const MOCK_RESPONSE_TIME_DATA: ApiResponseTimeData[] = [
+  ...PAST_DAYS_RESPONSE_TIME_DATA,
   {
     id: "api-1-1",
     apiId: "api-1",

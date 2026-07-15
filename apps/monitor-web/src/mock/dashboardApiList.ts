@@ -47,9 +47,9 @@ export const MOCK_DASHBOARD_API_LIST: ApiListItem[] = [
     apiSource: "Kakao",
     apiCategory: "share",
     lastCheckedAt: "2026-04-24 13:20",
-    responseTime: 443,
-    recentSuccessRate: 100,
-    apiStatus: "healthy",
+    responseTime: 890,
+    recentSuccessRate: 92,
+    apiStatus: "degraded",
   },
   {
     id: "kakao-auth-api",
@@ -58,8 +58,8 @@ export const MOCK_DASHBOARD_API_LIST: ApiListItem[] = [
     apiCategory: "auth",
     lastCheckedAt: "2026-04-24 13:20",
     responseTime: 443,
-    recentSuccessRate: 100,
-    apiStatus: "healthy",
+    recentSuccessRate: 61,
+    apiStatus: "outage",
   },
   {
     id: "public-items-found",
