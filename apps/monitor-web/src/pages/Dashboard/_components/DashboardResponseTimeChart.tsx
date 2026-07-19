@@ -1,29 +1,58 @@
-//TODO(준열): Supabase 연결 후 하드코딩 텍스트 수정 예정, 장애 관련 텍스트 디자인 시안 확정 후 수정 예정
+//TODO(준열): Supabase 연결 후 목업 데이터를 실제 데이터로 교체 예정
 import { ApiResponseTimeChart, Icon } from "@/components";
 import { MOCK_RESPONSE_TIME_DATA } from "@/mock";
+import { cn } from "@/utils";
+import type { DashboardTimeRangeProps } from "../_types";
+import { calculateResponseTimeStats, filterLatest24HourData } from "../_utils";
 
-const DashboardResponseTimeChart = () => {
+type DashboardResponseTimeChartProps = Pick<DashboardTimeRangeProps, "range">;
+
+const RANGE_LABEL: Record<DashboardResponseTimeChartProps["range"], string> = {
+  "24h": "최근 24시간",
+  "7d": "최근 7일",
+};
+
+const DashboardResponseTimeChart = ({ range }: DashboardResponseTimeChartProps) => {
+  const data =
+    range === "24h" ? filterLatest24HourData(MOCK_RESPONSE_TIME_DATA) : MOCK_RESPONSE_TIME_DATA;
+
+  const outageCount = data.filter((item) => item.status === "outage").length;
+  const hasOutage = outageCount > 0;
+  const stats = calculateResponseTimeStats(data);
+
   return (
     <section className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-8 py-12">
       <div className="flex items-start justify-between">
         <div>
           <h2 className="typo-header4-bold">전체 API 응답 속도 추이</h2>
           <p className="typo-body2-medium mt-3 text-layout-body">
-            평균 443ms 최고 1,230ms 최저 210ms
+            {stats
+              ? `평균 ${stats.average.toLocaleString()}ms 최고 ${stats.max.toLocaleString()}ms 최저 ${stats.min.toLocaleString()}ms`
+              : "데이터 없음"}
           </p>
         </div>
 
         <div className="flex items-center gap-[10px]">
-          <span className="size-4 rounded-full bg-fill-primary-strong-default text-white flex-center">
+          <span
+            className={cn(
+              "size-4 rounded-full text-white flex-center",
+              hasOutage ? "bg-fg-state-error" : "bg-fill-primary-strong-default"
+            )}
+          >
             <Icon height={7} name="check" width={10} />
           </span>
-          <p className="typo-body2-medium text-fg-primary-strong-default">
-            최근 24시간 기준 장애 없음
+          <p
+            className={cn(
+              "typo-body2-medium",
+              hasOutage ? "text-fg-state-error" : "text-fg-primary-strong-default"
+            )}
+          >
+            {RANGE_LABEL[range]} 기준 {hasOutage ? `장애 발생 ${outageCount}건` : "장애 없음"}
           </p>
         </div>
       </div>
       <div className="mt-[60px] h-[433px]">
-        <ApiResponseTimeChart data={MOCK_RESPONSE_TIME_DATA} />
+        <ApiResponseTimeChart data={data} period={range} />
       </div>
     </section>
   );

@@ -1,14 +1,19 @@
 import { useMemo, useState } from "react";
 import { Badge } from "@/components";
 import LogListItem from "./LogListItem";
-import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
-import { LOG_LIST_FILTERS, type LogListFilterKey } from "../_constants";
+import Pagination from "./Pagination";
+import { LOG_LIST_FILTERS, LOG_LIST_PAGE_SIZE, type LogListFilterKey } from "../_constants";
 import { cn } from "@/utils";
 import type { LogListItemData } from "../_types";
 
-const LogList = () => {
-  const selectedFilter: LogListFilterKey = "all";
-  const [items, setItems] = useState<LogListItemData[]>(MOCK_ERROR_LOG_ITEMS);
+interface LogListProps {
+  items: LogListItemData[];
+  onCheckedChange: (itemId: number, checked: boolean) => void;
+}
+
+const LogList = ({ items, onCheckedChange }: LogListProps) => {
+  const [selectedFilter, setSelectedFilter] = useState<LogListFilterKey>("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const countByKey: Record<LogListFilterKey, number> = useMemo(() => {
     const checkedCount = items.filter((item) => item.status).length;
@@ -21,11 +26,28 @@ const LogList = () => {
     };
   }, [items]);
 
-  const handleCheckedChange = (itemId: number, checked: boolean) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, status: checked } : item))
-    );
+  const filteredItems = useMemo(() => {
+    if (selectedFilter === "unchecked") return items.filter((item) => !item.status);
+    if (selectedFilter === "checked") return items.filter((item) => item.status);
+    return items;
+  }, [items, selectedFilter]);
+
+  const handleFilterChange = (filterKey: LogListFilterKey) => {
+    setSelectedFilter(filterKey);
+    setCurrentPage(1);
   };
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / LOG_LIST_PAGE_SIZE));
+  const activePage = currentPage > totalPages ? totalPages : currentPage;
+
+  if (currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
+
+  const pagedItems = filteredItems.slice(
+    (activePage - 1) * LOG_LIST_PAGE_SIZE,
+    activePage * LOG_LIST_PAGE_SIZE
+  );
 
   return (
     <section className="mt-3 flex flex-col rounded-xl border border-[#DFDFDF] bg-white">
@@ -40,22 +62,25 @@ const LogList = () => {
             isActive={selectedFilter === filter.key}
             label={filter.label}
             value={countByKey[filter.key]}
-            onClick={() => {}}
+            onClick={() => handleFilterChange(filter.key)}
           />
         ))}
       </div>
 
       <LogListHeader />
 
-      <ul className="pb-6">
-        {items.map((item) => (
+      <ul>
+        {pagedItems.map((item, index) => (
           <LogListItem
             key={item.id}
             data={item}
-            onCheckedChange={(checked) => handleCheckedChange(item.id, checked)}
+            isLast={index === pagedItems.length - 1}
+            onCheckedChange={(checked) => onCheckedChange(item.id, checked)}
           />
         ))}
       </ul>
+
+      <Pagination currentPage={activePage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </section>
   );
 };
@@ -80,7 +105,8 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
       <span className={cn(isActive ? "text-[#1D1D1D]" : "text-[#1D1D1D]/40")}>{label}</span>
       <Badge
         className={cn(
-          "border-transparent px-[6px] py-1 tabular-nums",
+          "border-transparent py-1",
+          value < 10 ? "px-1.5" : "px-1",
           isActive ? "bg-[#E3FCEE] text-[#0AA874]" : "bg-[#F2F2F2] text-[#1D1D1D]/40"
         )}
         label={value}

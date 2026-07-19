@@ -4,12 +4,18 @@ import { cn } from "@/utils";
 
 interface LogListItemProps {
   data: LogListItemData;
+  isLast?: boolean;
   onCheckedChange: (checked: boolean) => void;
 }
 
-const LogListItem = ({ data, onCheckedChange }: LogListItemProps) => {
+const LogListItem = ({ data, isLast = false, onCheckedChange }: LogListItemProps) => {
   return (
-    <li className="flex items-center justify-between border-b border-[#1D1D1D]/10 px-12 py-6">
+    <li
+      className={cn(
+        "flex items-center justify-between px-12 py-6",
+        !isLast && "border-b border-[#1D1D1D]/10"
+      )}
+    >
       <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-2">
         <div className="flex items-center gap-3">
           <span className="typo-header3-bold">{data.apiName}</span>
