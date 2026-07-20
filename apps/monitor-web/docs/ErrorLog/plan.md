@@ -51,7 +51,7 @@
 ## LogSummaryCards 새로고침 버튼 기능 연결
 
 - [x] 현재 `ErrorLog.tsx`의 `onRefresh`가 mock 배열 재할당(no-op에 가까움)으로 되어 있는 부분을, 위 Supabase 전환 이후에는 쿼리 refetch(TanStack Query의 `refetch` 또는 `queryClient.invalidateQueries(errorLogQueryKeys.list())`)로 교체 — `useErrorLogListQuery`의 `refetch`를 그대로 연결
-- [ ] 새로고침 진행 중 로딩 상태를 `IconButton`(현재 `iconName="refresh"`)에 시각적으로 반영할지 여부 결정 (예: 아이콘 회전 애니메이션, disabled 처리)
+- [x] 새로고침 버튼에 30초 쿨타임 적용 — 클릭 시 `IconButton`을 일반 `button`으로 교체(아이콘/카운트다운 텍스트를 조건부 렌더링해야 해서 아이콘 전용인 `IconButton`으로는 표현 불가)하고, `cooldown` state를 30부터 1초 간격으로 감소시키며 `disabled` 처리. 쿨타임 중에는 아이콘 대신 남은 초를 텍스트로 표시
 - [ ] 새로고침 성공/실패에 대한 사용자 피드백(토스트 등) 필요 여부 확인 — 프로젝트에 `useToast` 훅이 이미 있으므로 재사용 검토
 
 ## 데이터 없음/로딩/에러 상태 UI

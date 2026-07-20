@@ -1,5 +1,9 @@
-import { IconButton } from "@/components";
+import { useEffect, useState } from "react";
+import { Icon } from "@/components";
+import { cn } from "@/utils";
 import type { LogSummaryData } from "../_types";
+
+const REFRESH_COOLDOWN_SECONDS = 30;
 
 interface LogSummaryCardsProps {
   data: LogSummaryData;
@@ -7,6 +11,21 @@ interface LogSummaryCardsProps {
 }
 
 const LogSummaryCards = ({ data, onRefresh }: LogSummaryCardsProps) => {
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown === 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const handleRefreshClick = () => {
+    onRefresh();
+    setCooldown(REFRESH_COOLDOWN_SECONDS);
+  };
+
   return (
     <section
       aria-label="error-summary-cards"
@@ -22,13 +41,22 @@ const LogSummaryCards = ({ data, onRefresh }: LogSummaryCardsProps) => {
         <SummaryCard label="최근 발생 에러 API" value={data.recentErrorApiName || "-"} />
       </dl>
 
-      <IconButton
+      <button
         aria-label="에러 로그 새로고침"
-        className="size-[60px] rounded-xl border border-[#DFDFDF] flex-center"
-        iconName="refresh"
-        iconSize={20}
-        onClick={onRefresh}
-      />
+        className={cn(
+          "size-[60px] rounded-xl border border-[#DFDFDF] flex-center",
+          cooldown > 0 && "text-[#1D1D1D]/40"
+        )}
+        disabled={cooldown > 0}
+        type="button"
+        onClick={handleRefreshClick}
+      >
+        {cooldown > 0 ? (
+          <span className="typo-body2-semibold tabular-nums">{cooldown}</span>
+        ) : (
+          <Icon name="refresh" size={20} />
+        )}
+      </button>
     </section>
   );
 };
