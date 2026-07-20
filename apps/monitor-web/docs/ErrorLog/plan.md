@@ -59,6 +59,6 @@
 - [ ] 사전 확인: `components/status/`에 `EmptyState`, `LoadingState`, `ErrorState`가 이미 구현되어 있음(`message`/`icon`/`iconSize`/`iconClassName` props 공통, `ErrorState`는 `children` 추가 지원). 신규 컴포넌트를 만들지 말고 이 셋을 재사용
 - [ ] 목록 조회 결과가 빈 배열일 때 `LogList`(또는 `ErrorLog.tsx`)에서 기존 `ul` 대신 `EmptyState` 렌더링 — 필터 적용 후 빈 결과(예: "확인전" 필터인데 전부 확인완료)와 원본 데이터 자체가 없는 경우를 같은 메시지로 둘지, 문구를 구분할지 결정
 - [ ] 최초 목록 조회 중(쿼리 `isPending`)에는 `LogList` 영역에 `LoadingState` 렌더링 — Supabase 전환(`useErrorLogListQuery`) 작업과 함께 진행
-- [ ] 새로고침(`onRefresh`) 진행 중 UI 결정 — 목록 전체를 `LoadingState`로 덮을지, 기존 목록을 유지한 채 새로고침 아이콘 버튼만 로딩/disabled 표시할지 선택 (후자가 사용자 경험상 자연스러움에 가까움)
+- [x] 새로고침(`onRefresh`) 진행 중 UI 결정 — 기존 `LoadingState`를 재사용하되, `LogHeader`/`LogSummaryCards`는 유지하고 `LogList` 영역만 `isFetching`일 때 `LoadingState`(메시지: "새로고침하는 중입니다.")로 교체. 버튼 자체에 로딩 표시하는 방식은 추후 필요 시 검토
 - [ ] 목록 조회 실패(쿼리 `isError`) 시 `LogList` 영역에 `ErrorState` 렌더링, 필요 시 `children`으로 재시도 버튼 추가 (쿼리의 `refetch` 연결)
 - [ ] `LogSummaryCards`도 로딩/에러 시 카드 값을 어떻게 보여줄지 결정 (예: 스켈레톤, `-` 플레이스홀더, 또는 `LogList`와 동일한 상태 컴포넌트 공유)

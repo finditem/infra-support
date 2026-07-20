@@ -5,7 +5,7 @@ import { LoadingState, ErrorState } from "@/components";
 import { getLogSummaryData } from "./_utils";
 
 const ErrorLog = () => {
-  const { data, isPending, isError, refetch } = useErrorLogListQuery();
+  const { data, isPending, isFetching, isError, refetch } = useErrorLogListQuery();
   const { mutate: updateChecked } = useUpdateErrorLogCheckedMutation();
 
   const items = useMemo(() => data ?? [], [data]);
@@ -37,7 +37,11 @@ const ErrorLog = () => {
     <>
       <LogHeader />
       <LogSummaryCards data={summaryData} onRefresh={refetch} />
-      <LogList items={items} onCheckedChange={handleCheckedChange} />
+      {isFetching ? (
+        <LoadingState message="에러 로그를 새로고침하는 중입니다." />
+      ) : (
+        <LogList items={items} onCheckedChange={handleCheckedChange} />
+      )}
     </>
   );
 };
