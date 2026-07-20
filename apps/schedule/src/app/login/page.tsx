@@ -42,6 +42,7 @@ const LoginPage = () => {
         <label className="flex flex-col gap-1 text-sm text-text-muted">
           이메일
           <input
+            aria-label="이메일"
             className="rounded-md border border-border bg-surface-elevated px-3 py-2 text-text-default outline-none focus:border-primary"
             required
             type="email"
@@ -53,6 +54,7 @@ const LoginPage = () => {
         <label className="flex flex-col gap-1 text-sm text-text-muted">
           비밀번호
           <input
+            aria-label="비밀번호"
             className="rounded-md border border-border bg-surface-elevated px-3 py-2 text-text-default outline-none focus:border-primary"
             required
             type="password"
