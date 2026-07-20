@@ -1,6 +1,6 @@
 import { Icon } from "@/components";
 import type { IconName } from "@/components";
-import { MOCK_RESPONSE_TIME_DATA } from "@/mock";
+import { useApiResponseTimeQuery } from "@/queries";
 import { cn, formatDateTime } from "@/utils";
 import type { DashboardTimeRangeProps } from "../_types";
 import { calculateResponseTimeStats, filterLatest24HourData, findLatestOutage } from "../_utils";
@@ -19,8 +19,12 @@ interface SummaryCard {
 type DashboardSummaryCardProps = Pick<DashboardTimeRangeProps, "range">;
 
 const DashboardSummaryCard = ({ range }: DashboardSummaryCardProps) => {
-  const data =
-    range === "24h" ? filterLatest24HourData(MOCK_RESPONSE_TIME_DATA) : MOCK_RESPONSE_TIME_DATA;
+  const { data: responseTimeData, isLoading } = useApiResponseTimeQuery();
+  const responseTimeList = responseTimeData ?? [];
+
+  const supabaseStatusLabel = isLoading ? "확인 중" : "정상";
+
+  const data = range === "24h" ? filterLatest24HourData(responseTimeList) : responseTimeList;
 
   const stats = calculateResponseTimeStats(data);
   const latestOutage = findLatestOutage(data);
@@ -39,7 +43,7 @@ const DashboardSummaryCard = ({ range }: DashboardSummaryCardProps) => {
       id: "supabase-status",
       icon: "activity",
       title: "Supabase 연결/조회 상태",
-      mainValue: "정상",
+      mainValue: supabaseStatusLabel,
     },
     {
       id: "last-outage",
