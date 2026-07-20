@@ -40,17 +40,17 @@
 
 ## mock 데이터를 Supabase 실 데이터로 전환
 
-- [ ] 사전 확인: `error_logs` 테이블은 이미 존재하고 monitor-server(`monitoring.repository.ts`의 `insertErrorLog`)가 기록은 하지만, 조회용 API/쿼리 경로가 아직 없음. `mock.queries.ts`(`apis` 테이블을 monitor-web에서 Supabase로 직접 `.from().select()` 조회하는 기존 패턴)를 그대로 따를지, monitor-server에 GET 라우트를 새로 만들지 먼저 결정 필요
-- [ ] `error_logs` 테이블 컬럼(`id, api_id, status, error_type, error_message, response_time, http_status, is_checked, occurred_at, created_at`)과 현재 `LogListItemData`(`id, apiName, errorType, errorStatus, errorMessage, occurredAt, status`) 필드 매핑 정의 — `apiName`은 `apis` 테이블과 join 필요, `is_checked` → `status`, `errorStatus`는 `status` 컬럼과 이름이 겹치므로 매핑 시 혼동 주의
-- [ ] `queries/errorLog/` 도메인 추가 — `queryKeys.ts`에 `errorLogQueryKeys`(list/detail) factory 추가
-- [ ] `queries/errorLog/errorLog.queries.ts`에 `useErrorLogListQuery` 작성 (`useAppQuery` 기반, `mock.queries.ts`의 `getApis` 패턴 참고)
-- [ ] 확인 상태 토글(`is_checked`)을 Supabase에 반영하는 `useAppMutation` 기반 훅 추가 — 현재 `LogList`의 `onCheckedChange`가 로컬 state만 바꾸는 부분을 대체
-- [ ] `ErrorLog.tsx`의 `useState<LogListItemData[]>(MOCK_ERROR_LOG_ITEMS)`를 위 쿼리 훅으로 교체, 로딩/에러 상태 UI 처리 방식 결정 (기존 `components/status/LoadingState`, `ErrorState` 재사용 여부 확인)
-- [ ] mock 관련 코드(`@/mock/errorLog.ts`, `MOCK_ERROR_LOG_ITEMS` import) 정리 — 실 데이터 전환 완료 후 제거 여부는 다른 페이지의 mock 제거 여부와 일관되게 결정
+- [x] 사전 확인: `error_logs` 테이블은 이미 존재하고 monitor-server(`monitoring.repository.ts`의 `insertErrorLog`)가 기록은 하지만, 조회용 API/쿼리 경로가 아직 없음. `mock.queries.ts`(`apis` 테이블을 monitor-web에서 Supabase로 직접 `.from().select()` 조회하는 기존 패턴)를 그대로 따를지, monitor-server에 GET 라우트를 새로 만들지 먼저 결정 필요 — monitor-server의 유일한 라우트(`/api/monitor`)는 cron 트리거 전용(POST)이라 조회용 GET을 새로 만들 이유가 없음. monitor-web에서 `mock.queries.ts` 패턴 그대로 Supabase 직접 조회로 결정
+- [x] `error_logs` 테이블 컬럼(`id, api_id, status, error_type, error_message, response_time, http_status, is_checked, occurred_at, created_at`)과 현재 `LogListItemData`(`id, apiName, errorType, errorStatus, errorMessage, occurredAt, status`) 필드 매핑 정의 — `apiName`은 `apis` 테이블과 join 필요, `is_checked` → `status`, `errorStatus`는 `status` 컬럼과 이름이 겹치므로 매핑 시 혼동 주의. `errorLog.queries.ts`의 `mapToLogListItem`으로 구현. 실 데이터 확인 중 `error_logs.status`에 DB CHECK 제약이 없어 한글 값(`"지연"`)이 섞여있던 것을 발견해 `degraded`로 정정(DB UPDATE). `LogListItemData.id`가 `number`였으나 실제 컬럼은 `uuid`라 `string`으로 변경(`LogList.tsx`, `ErrorLog.tsx`, 그리고 같은 타입을 쓰는 `ApiDetail/_components/DetailIncidentHistory.tsx`도 함께 수정)
+- [x] `queries/errorLog/` 도메인 추가 — `queryKeys.ts`에 `errorLogQueryKeys` factory 추가. `detail`은 이 페이지에서 아직 쓰이지 않고 `ErrorDetail` 페이지도 빈 스텁이라 `list()`만 추가(YAGNI), 필요해지면 추가
+- [x] `queries/errorLog/errorLog.queries.ts`에 `useErrorLogListQuery` 작성 (`useAppQuery` 기반, `mock.queries.ts`의 `getApis` 패턴 참고). `occurred_at`은 기존 `utils/ApiResponseTimeChartUtils.ts`의 `formatDateTime`을 재사용해 `yyyy-MM-dd HH:mm`으로 표시
+- [x] 확인 상태 토글(`is_checked`)을 Supabase에 반영하는 `useAppMutation` 기반 훅(`useUpdateErrorLogCheckedMutation`) 추가 — 성공 시 `errorLogQueryKeys.list()` invalidate. 기존 `LogList`의 `onCheckedChange` 로컬 state 변경을 대체
+- [x] `ErrorLog.tsx`의 `useState<LogListItemData[]>(MOCK_ERROR_LOG_ITEMS)`를 `useErrorLogListQuery`로 교체. 로딩/에러는 기존 `LoadingState`/`ErrorState` 재사용해 최초 조회 단계만 우선 처리(새로고침 중 UI, 빈 목록 처리는 아래 별도 섹션에서 이어서 결정)
+- [ ] mock 관련 코드(`@/mock/errorLog.ts`, `MOCK_ERROR_LOG_ITEMS` import) 정리 — `ApiDetail/_components/DetailIncidentHistory.tsx`가 여전히 `MOCK_ERROR_LOG_ITEMS`를 사용 중이라 지금은 제거하지 않음. 해당 컴포넌트도 실 데이터로 전환되는 시점에 함께 정리
 
 ## LogSummaryCards 새로고침 버튼 기능 연결
 
-- [ ] 현재 `ErrorLog.tsx`의 `onRefresh`가 mock 배열 재할당(no-op에 가까움)으로 되어 있는 부분을, 위 Supabase 전환 이후에는 쿼리 refetch(TanStack Query의 `refetch` 또는 `queryClient.invalidateQueries(errorLogQueryKeys.list())`)로 교체
+- [x] 현재 `ErrorLog.tsx`의 `onRefresh`가 mock 배열 재할당(no-op에 가까움)으로 되어 있는 부분을, 위 Supabase 전환 이후에는 쿼리 refetch(TanStack Query의 `refetch` 또는 `queryClient.invalidateQueries(errorLogQueryKeys.list())`)로 교체 — `useErrorLogListQuery`의 `refetch`를 그대로 연결
 - [ ] 새로고침 진행 중 로딩 상태를 `IconButton`(현재 `iconName="refresh"`)에 시각적으로 반영할지 여부 결정 (예: 아이콘 회전 애니메이션, disabled 처리)
 - [ ] 새로고침 성공/실패에 대한 사용자 피드백(토스트 등) 필요 여부 확인 — 프로젝트에 `useToast` 훅이 이미 있으므로 재사용 검토
 

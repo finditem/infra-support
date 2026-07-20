@@ -28,7 +28,7 @@ const DetailIncidentHistory = () => {
   const navigate = useNavigate();
   const [incidents, setIncidents] = useState(MOCK_ERROR_LOG_ITEMS);
 
-  const handleResolve = (id: number) => {
+  const handleResolve = (id: string) => {
     setIncidents((prev) => prev.map((item) => (item.id === id ? { ...item, status: true } : item)));
   };
 
@@ -88,7 +88,7 @@ export default DetailIncidentHistory;
 
 interface DetailIncidentHistoryItemProps {
   item: LogListItemData;
-  onResolve: (id: number) => void;
+  onResolve: (id: string) => void;
   onNavigate: () => void;
 }
 
