@@ -13,13 +13,15 @@ interface LogSummaryCardsProps {
 const LogSummaryCards = ({ data, onRefresh }: LogSummaryCardsProps) => {
   const [cooldown, setCooldown] = useState(0);
 
+  const isCoolingDown = cooldown > 0;
+
   useEffect(() => {
-    if (cooldown === 0) return;
+    if (!isCoolingDown) return;
     const timer = setInterval(() => {
-      setCooldown((prev) => Math.max(0, prev - 1));
+      setCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
     return () => clearInterval(timer);
-  }, [cooldown]);
+  }, [isCoolingDown]);
 
   const handleRefreshClick = () => {
     onRefresh();
