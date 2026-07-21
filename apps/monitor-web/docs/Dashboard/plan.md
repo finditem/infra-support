@@ -58,3 +58,10 @@
 - 위 스케줄 변경에 따라, 세션 중 수동 트리거로 쌓인 비정렬 테스트 데이터(2026-07-20 13:36/13:55/13:57×2/14:22 UTC, 5개 배치 40건) 삭제하고, 새 3시간 그리드의 새벽 슬롯(2026-07-20 15:00/18:00/21:00 UTC = KST 7/21 00/03/06시) 목업 데이터 24건(API 8개, 전부 healthy) 추가.
 - cron 주기가 3시간으로 촘촘해지면서, "하루 3번뿐이라 진짜 rolling 24h면 데이터가 부족하다"는 이전 전제가 깨져 `filterLatest24HourData`를 다시 "어제 자정~지금"에서 **`now() - 24시간`(진짜 rolling 24시간)**으로 재수정. "최근 24시간" 라벨과 실제 동작(이전엔 최대 47~48시간까지 늘어날 수 있었음)이 정확히 일치하게 됨.
 - 스케줄 변경 전 이미 예약되어 있던 옛 스케줄 실행 결과(`2026-07-21 04:00` UTC = KST 13시, 새 3시간 그리드엔 없는 시각) 8건 삭제. rolling 24h 윈도우로 바뀌면서 새로 필요해진 그리드 슬롯(`2026-07-20 06/09/12시` UTC)에도 목업 데이터 24건(API 8개, 전부 healthy) 추가해 최근 24시간 그리드가 끊김 없이 채워지도록 정리.
+
+### Gemini 코드리뷰 반영: ErrorBoundary 추가 및 Supabase 연결 상태 isError 표시 (2026-07-21)
+
+- PR #103에 달린 Gemini 리뷰 중 "DashboardSummaryCard가 isError 없이 isLoading만으로 상태를 표시해 위험하다"는 지적을 재검토. 앞서 `throwOnError: true` + ErrorBoundary 미마운트 문제로 `isLoading`만 반영하기로 결정했던 사항이었으나, 사용자와 논의 후 근본 해결로 방향 전환.
+- `useApiResponseTimeQuery`의 `throwOnError`를 `true` → `false`로 변경. `throwOnError: true`에서는 쿼리가 에러 상태가 되는 순간 hook 호출 자체가 렌더링 중 throw되어 `isError`를 정상적으로 관측할 수 있는 렌더 경로가 존재하지 않았음(항상 throw로 대체됨). `false`로 바꿔 `isError`가 실제로 관측 가능한 상태값이 되도록 함.
+- `DashboardSummaryCard`에 `isError` 분기 복원: `isLoading ? "확인 중" : isError ? "연결 실패" : "정상"`.
+- `Dashboard.tsx` 루트를 기존 `components/common/feedback/ErrorBoundary.tsx`(이미 존재하지만 어디에도 마운트되어 있지 않았음)로 감싸고, fallback으로 기존 `components/status/ErrorState.tsx`를 사용. 이 쿼리와 무관한 다른 렌더링 에러가 나도 전체 화면이 깨지지 않도록 하는 일반 안전망 역할.

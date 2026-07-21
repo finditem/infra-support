@@ -52,7 +52,9 @@ export const getApiResponseTimeData = async (): Promise<ApiResponseTimeData[]> =
 };
 
 export const useApiResponseTimeQuery = () => {
+  // throwOnError: false — DashboardSummaryCard가 isError로 "연결 실패" 상태를 직접 표시해야 해서,
+  // 다른 쿼리들과 달리 에러를 ErrorBoundary로 던지지 않고 쿼리 상태로 노출한다.
   return useAppQuery(monitoringQueryKeys.responseTime(), getApiResponseTimeData, {
-    throwOnError: true,
+    throwOnError: false,
   });
 };

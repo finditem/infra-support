@@ -19,10 +19,10 @@ interface SummaryCard {
 type DashboardSummaryCardProps = Pick<DashboardTimeRangeProps, "range">;
 
 const DashboardSummaryCard = ({ range }: DashboardSummaryCardProps) => {
-  const { data: responseTimeData, isLoading } = useApiResponseTimeQuery();
+  const { data: responseTimeData, isLoading, isError } = useApiResponseTimeQuery();
   const responseTimeList = responseTimeData ?? [];
 
-  const supabaseStatusLabel = isLoading ? "확인 중" : "정상";
+  const supabaseStatusLabel = isLoading ? "확인 중" : isError ? "연결 실패" : "정상";
 
   const data = range === "24h" ? filterLatest24HourData(responseTimeList) : responseTimeList;
 
