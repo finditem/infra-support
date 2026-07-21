@@ -38,3 +38,23 @@
 - 증상: `monitoring_results`에 실제로 새 데이터가 쌓였는데도 대시보드 차트에는 반영되지 않음.
 - 원인 1(코드 버그, 수정 완료): `apis(name)` embed의 실제 PostgREST 응답은 `monitoring_results → apis`가 many-to-one이라 단일 객체(`{"apis":{"name":"..."}}`)로 오는데, `Database` 제네릭이 없는 supabase-js 클라이언트라 타입 추론이 배열로 나와 `row.apis?.[0]?.name`으로 접근하고 있었음. anon key로 실제 REST 엔드포인트를 직접 호출해 응답 형태가 객체임을 확인 후 `row.apis?.name`으로 수정, 타입 캐스팅도 `as unknown as MonitoringResultRow[]`로 조정(컴파일러가 제안한 방식). 다만 이 버그만으로는 "차트에 아예 안 보임"까지는 설명되지 않고 `apiName`이 `"-"`로만 나오는 정도의 영향.
 - 원인 2(클라이언트 캐시, 코드 변경 없음): `lib/queryClient.ts`의 `staleTime: 60_000`, `refetchOnWindowFocus: false`이고 refetch interval도 없어서, 브라우저 탭을 계속 켜둔 채로는(리로드/재마운트 없이는) cron 수정 이전에 캐시된 빈 배열 응답이 자동으로 다시 fetch되지 않음. 브라우저 새로고침(F5)이나 라우트 이동 후 재진입으로 해소.
+
+### 해결됨: 24h 뷰 윈도우가 실제 cron 주기와 안 맞던 문제 (2026-07-21)
+
+- 증상: 데이터가 쌓여도 24h 뷰 차트에 선이 안 그려짐(점 1개짜리 API가 많아서였던 초기 증상과 별개로, 근본적인 윈도우 설계 문제).
+- 원인: 기존 `filterLatest24HourData`는 "가져온 데이터 중 가장 최근 checkedAt이 속한 09:00~다음날 06:59" 구간을 계산했는데, 이건 원래 목업 데이터(하루 종일 촘촘한 패턴)에 맞춘 로직이라 실제 cron(하루 3번, UTC 0/4/9시 = KST 9/13/18시)과 안 맞음. 22시간짜리 창 중 실제 체크가 있는 구간은 9시간(09~18시 KST)뿐이라 항상 절반 이상이 비고, 창이 아직 안 끝난 시점(예: 오늘 다음날 06:59 전)엔 데이터가 더 적어 보임.
+- 조치: `filterLatest24HourData`를 "어제 00:00(로컬 자정)~지금"으로 재설계 — 매일 어제치 크론 3번 + 오늘 지금까지의 크론 결과가 항상 함께 보이도록 변경. cron이 KST 18시~다음날 09시엔 안 돌기 때문에 로컬 자정을 경계로 잡아도 실제 체크 시각과 겹치지 않음(사용자 확인). X축 눈금(`createThreeHourTicks`)도 고정 8개(09~30시) 대신 `createDailyTicks`와 같은 패턴(minTimestamp~maxTimestamp를 3시간 간격으로 채우고 마지막에 maxTimestamp 추가)으로 변경, 날짜가 바뀌어도 라벨은 `HH:mm`만 표시(날짜 구분 없음, 사용자 확인).
+- 영향 파일: `pages/Dashboard/_utils/DashboardResponseTimeUtils.ts`(`filterLatest24HourData`), `utils/ApiResponseTimeChartUtils.ts`(`createThreeHourTicks`, 시그니처 `(timestamp)` → `(minTimestamp, maxTimestamp)`로 변경), `components/charts/ApiResponseTimeChart.tsx`(호출부 인자 및 TSDoc 갱신).
+
+### 차트 UX 개선 (2026-07-21)
+
+- 툴팁 위치가 recharts의 axis 기반 shared tooltip 때문에 부정확했던 문제를 `Tooltip content={() => null}` + 각 dot(`ErrorDot`)의 `onMouseEnter`/`onMouseLeave`로 hover 상태를 직접 제어하는 방식으로 교체. 같은 시간대에 여러 API가 겹쳐도 실제 hover한 dot의 데이터/좌표만 정확히 표시됨. 모든 지점(정상 포함)에 투명 hit 영역(r=10)을 추가해 아무 지점이나 정밀하게 hover 가능.
+- 툴팁에 `apiName` 표시 추가(기존엔 데이터에 있는데 렌더링 안 하고 있었음), 에러 메시지에 `truncate` 적용.
+- 차트 하단에 API별 색상-이름 legend를 직접 그려서 추가(recharts `Legend`는 축 너비를 고려하지 않아 왼쪽 정렬이 어긋나 미사용).
+
+### pg_cron 스케줄을 3시간 간격으로 변경 + 24h 윈도우를 rolling 24시간으로 재수정 (2026-07-21)
+
+- pg_cron `monitor-cron`을 `0 0,4,9 * * *`(하루 3번) → `0 */3 * * *`(UTC 3시간마다, 하루 8번, KST 9/12/15/18/21/00/03/06시)로 변경(`apply_migration: change_monitor_cron_to_every_3_hours`). X축 3시간 그리드와 정확히 일치하고, 새벽 시간대 커버리지도 확보.
+- 위 스케줄 변경에 따라, 세션 중 수동 트리거로 쌓인 비정렬 테스트 데이터(2026-07-20 13:36/13:55/13:57×2/14:22 UTC, 5개 배치 40건) 삭제하고, 새 3시간 그리드의 새벽 슬롯(2026-07-20 15:00/18:00/21:00 UTC = KST 7/21 00/03/06시) 목업 데이터 24건(API 8개, 전부 healthy) 추가.
+- cron 주기가 3시간으로 촘촘해지면서, "하루 3번뿐이라 진짜 rolling 24h면 데이터가 부족하다"는 이전 전제가 깨져 `filterLatest24HourData`를 다시 "어제 자정~지금"에서 **`now() - 24시간`(진짜 rolling 24시간)**으로 재수정. "최근 24시간" 라벨과 실제 동작(이전엔 최대 47~48시간까지 늘어날 수 있었음)이 정확히 일치하게 됨.
+- 스케줄 변경 전 이미 예약되어 있던 옛 스케줄 실행 결과(`2026-07-21 04:00` UTC = KST 13시, 새 3시간 그리드엔 없는 시각) 8건 삭제. rolling 24h 윈도우로 바뀌면서 새로 필요해진 그리드 슬롯(`2026-07-20 06/09/12시` UTC)에도 목업 데이터 24건(API 8개, 전부 healthy) 추가해 최근 24시간 그리드가 끊김 없이 채워지도록 정리.

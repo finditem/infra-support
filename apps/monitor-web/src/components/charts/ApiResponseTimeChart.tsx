@@ -21,7 +21,7 @@ import ErrorDot, { type HoveredDotPoint } from "./_component/ErrorDot";
  * @remarks
  * - `apiId`별로 데이터를 그룹화해 API마다 별도 라인을 렌더링하고, 하단에 색상-API 매핑을 보여주는
  *   legend를 직접 그립니다(recharts `Legend`는 축 너비를 고려하지 않아 왼쪽 정렬이 어긋나 미사용).
- * - `period`가 `24h`면 데이터 구간(어제 00:00~지금)을 3시간 단위로, `7d`면 최근 7일을 1일 단위로 표시합니다.
+ * - `period`가 `24h`면 데이터 구간(최근 24시간)을 3시간 단위로, `7d`면 최근 7일을 1일 단위로 표시합니다.
  * - `outage` 상태인 데이터만 에러 dot으로 표시합니다.
  * - 툴팁은 recharts의 axis 기반 자동 감지 대신, 각 dot의 hover 이벤트로 직접 제어합니다.
  *   같은 시간대에 여러 API 결과가 겹쳐 있어도 실제로 hover한 dot의 데이터/좌표만 정확히 표시됩니다.
