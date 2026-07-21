@@ -1,4 +1,5 @@
 //TODO(준열): Badge 컴포넌트 label type 개선 후 수정 예정
+import { useMemo } from "react";
 import type { ReactNode } from "react";
 import { Badge } from "@/components";
 import { useApiResponseTimeQuery, useMockListQuery } from "@/queries";
@@ -73,7 +74,10 @@ const DashboardApiList = () => {
   const navigate = useNavigate();
   const { data: apis } = useMockListQuery();
   const { data: responseTimeData } = useApiResponseTimeQuery();
-  const apiList = buildDashboardApiList(apis ?? [], responseTimeData ?? []);
+  const apiList = useMemo(
+    () => buildDashboardApiList(apis ?? [], responseTimeData ?? []),
+    [apis, responseTimeData]
+  );
 
   const handleGoApiDetail = (apiId: string) => {
     navigate(`/api/${apiId}`);

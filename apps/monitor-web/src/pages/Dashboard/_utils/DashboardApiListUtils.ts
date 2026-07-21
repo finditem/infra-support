@@ -13,12 +13,20 @@ export const buildDashboardApiList = (
   apis: ApiListSourceItem[],
   responseTimeData: ApiResponseTimeData[]
 ): ApiListItem[] => {
-  return apis.map((api) => {
-    const records = responseTimeData
-      .filter((item) => item.apiId === api.id)
-      .sort((a, b) => b.checkedAt - a.checkedAt);
+  // responseTimeData는 이미 checked_at 오름차순으로 조회되므로, 재정렬 없이 apiId별로
+  // 그룹화만 해서 마지막 요소를 최신 데이터로 사용한다.
+  const recordsByApiId = responseTimeData.reduce<Record<string, ApiResponseTimeData[]>>(
+    (acc, item) => {
+      acc[item.apiId] ??= [];
+      acc[item.apiId].push(item);
+      return acc;
+    },
+    {}
+  );
 
-    const latest = records[0];
+  return apis.map((api) => {
+    const records = recordsByApiId[api.id] ?? [];
+    const latest = records[records.length - 1];
     const successCount = records.filter((item) => item.status !== "outage").length;
 
     return {
