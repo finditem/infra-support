@@ -87,7 +87,9 @@ const updateErrorLogChecked = async ({ id, checked }: UpdateErrorLogCheckedVaria
  * 에러 로그 확인 상태(`is_checked`)를 갱신하는 React Query 뮤테이션 훅입니다.
  *
  * @remarks
- * - 성공 시 `errorLogQueryKeys.list()` 캐시를 무효화해 목록을 다시 조회합니다.
+ * - `onMutate`에서 목록 캐시를 낙관적으로 갱신해 체크 상태가 즉시 반영되도록 합니다.
+ * - 실패 시 `onError`에서 이전 캐시로 롤백하고, 성공/실패와 무관하게 `onSettled`에서
+ *   `errorLogQueryKeys.list()`를 무효화해 서버 상태와 동기화합니다.
  *
  * @returns 확인 상태 변경 뮤테이션 결과 객체
  */
@@ -96,7 +98,23 @@ export const useUpdateErrorLogCheckedMutation = () => {
   const queryClient = useQueryClient();
 
   return useAppMutation(updateErrorLogChecked, {
-    onSuccess: () => {
+    onMutate: async ({ id, checked }) => {
+      await queryClient.cancelQueries({ queryKey: errorLogQueryKeys.list() });
+
+      const previousLogs = queryClient.getQueryData<LogListItemData[]>(errorLogQueryKeys.list());
+
+      queryClient.setQueryData<LogListItemData[]>(errorLogQueryKeys.list(), (old) =>
+        old?.map((log) => (log.id === id ? { ...log, status: checked } : log))
+      );
+
+      return { previousLogs };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousLogs) {
+        queryClient.setQueryData(errorLogQueryKeys.list(), context.previousLogs);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: errorLogQueryKeys.list() });
     },
   });
