@@ -18,8 +18,11 @@ const ErrorLog = () => {
 
   const handleRefresh = async () => {
     setIsManualRefreshing(true);
-    await refetch();
-    setIsManualRefreshing(false);
+    try {
+      await refetch();
+    } finally {
+      setIsManualRefreshing(false);
+    }
   };
 
   if (isPending) {
