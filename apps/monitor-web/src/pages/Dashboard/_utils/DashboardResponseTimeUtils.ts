@@ -1,33 +1,22 @@
 import type { ApiResponseTimeData } from "@/types";
 import type { ResponseTimeStats } from "../_types";
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 /**
- * 가장 최근 체크 시각이 속한 24시간(09:00~다음날 06:00) 구간의 데이터만 필터링합니다.
+ * 지금부터 24시간 전까지의 데이터만 필터링합니다.
+ *
+ * @remarks
+ * - 모니터링 cron이 3시간마다(하루 8번) 돌기 때문에, 캘린더 자정 기준이 아닌
+ *   순수 rolling 24시간 윈도우로도 항상 8개 안팎의 포인트가 안정적으로 확보됩니다.
  *
  * @author junyeol
  */
 
 export const filterLatest24HourData = (data: ApiResponseTimeData[]): ApiResponseTimeData[] => {
-  if (data.length === 0) return [];
+  const windowStart = Date.now() - ONE_DAY_MS;
 
-  const latestTimestamp = data.reduce(
-    (latest, item) => (item.checkedAt > latest ? item.checkedAt : latest),
-    data[0].checkedAt
-  );
-  const anchorDate = new Date(latestTimestamp);
-  if (anchorDate.getHours() < 9) {
-    anchorDate.setDate(anchorDate.getDate() - 1);
-  }
-  anchorDate.setHours(9, 0, 0, 0);
-
-  const windowStart = anchorDate.getTime();
-  const windowEnd = new Date(anchorDate);
-  windowEnd.setDate(windowEnd.getDate() + 1);
-  windowEnd.setHours(6, 59, 59, 999);
-
-  return data.filter(
-    (item) => item.checkedAt >= windowStart && item.checkedAt <= windowEnd.getTime()
-  );
+  return data.filter((item) => item.checkedAt >= windowStart);
 };
 
 /**
