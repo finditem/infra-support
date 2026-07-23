@@ -1,3 +1,7 @@
 if git diff --cached --name-only | grep -q '^apps/monitor-web/'; then
   cd apps/monitor-web && pnpm exec commitlint --edit ${1}
 fi
+
+if git diff --cached --name-only | grep -q '^apps/schedule/'; then
+  cd apps/schedule && pnpm exec commitlint --edit ${1}
+fi
