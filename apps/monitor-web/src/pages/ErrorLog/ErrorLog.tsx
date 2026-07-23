@@ -1,29 +1,57 @@
 import { useMemo, useState } from "react";
 import { LogHeader, LogSummaryCards, LogList } from "./_components";
-import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
+import { useErrorLogListQuery, useUpdateErrorLogCheckedMutation } from "@/queries";
+import { LoadingState, ErrorState } from "@/components";
 import { getLogSummaryData } from "./_utils";
-import type { LogListItemData } from "./_types";
 
 const ErrorLog = () => {
-  const [items, setItems] = useState<LogListItemData[]>(MOCK_ERROR_LOG_ITEMS);
+  const { data, isPending, isError, refetch } = useErrorLogListQuery();
+  const { mutate: updateChecked } = useUpdateErrorLogCheckedMutation();
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
+  const items = useMemo(() => data ?? [], [data]);
   const summaryData = useMemo(() => getLogSummaryData(items), [items]);
 
-  const handleCheckedChange = (itemId: number, checked: boolean) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, status: checked } : item))
-    );
+  const handleCheckedChange = (itemId: string, checked: boolean) => {
+    updateChecked({ id: itemId, checked });
   };
 
-  const handleRefresh = () => {
-    setItems(MOCK_ERROR_LOG_ITEMS);
+  const handleRefresh = async () => {
+    setIsManualRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsManualRefreshing(false);
+    }
   };
+
+  if (isPending) {
+    return (
+      <>
+        <LogHeader />
+        <LoadingState message="에러 로그를 불러오는 중입니다." />
+      </>
+    );
+  }
+
+  if (isError) {
+    return (
+      <>
+        <LogHeader />
+        <ErrorState message="에러 로그를 불러오지 못했습니다." />
+      </>
+    );
+  }
 
   return (
     <>
       <LogHeader />
       <LogSummaryCards data={summaryData} onRefresh={handleRefresh} />
-      <LogList items={items} onCheckedChange={handleCheckedChange} />
+      {isManualRefreshing ? (
+        <LoadingState message="에러 로그를 새로고침하는 중입니다." />
+      ) : (
+        <LogList items={items} onCheckedChange={handleCheckedChange} />
+      )}
     </>
   );
 };
