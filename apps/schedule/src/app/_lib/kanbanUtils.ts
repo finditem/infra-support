@@ -1,6 +1,8 @@
 import {
-  differenceInCalendarWeeks,
+  addWeeks,
+  differenceInCalendarDays,
   format,
+  getDay,
   isBefore,
   startOfMonth,
   startOfToday,
@@ -21,8 +23,14 @@ const MEMBER_COLORS = [
 export const getMonday = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
 
 export const getWeekLabel = (weekStart: Date) => {
-  const weekOfMonth =
-    differenceInCalendarWeeks(weekStart, startOfMonth(weekStart), { weekStartsOn: 1 }) + 1;
+  const monthStart = startOfMonth(weekStart);
+  // 월의 1일이 월요일이 아니면, 그 달의 첫 번째 월요일을 1주차 기준으로 삼는다.
+  // (그렇지 않으면 1일이 월요일이 아닌 달에서 "N월 1주차"가 아예 존재하지 않는 경우가 생긴다.)
+  const firstMondayOfMonth =
+    getDay(monthStart) === 1
+      ? monthStart
+      : startOfWeek(addWeeks(monthStart, 1), { weekStartsOn: 1 });
+  const weekOfMonth = Math.round(differenceInCalendarDays(weekStart, firstMondayOfMonth) / 7) + 1;
 
   return `${format(weekStart, "yyyy'년' M'월'")} ${weekOfMonth}주차`;
 };
