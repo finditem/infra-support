@@ -1,4 +1,5 @@
 import { format, startOfMonth } from "date-fns";
+import { NavBar } from "@/components/NavBar";
 import CalendarHeader from "./_components/CalendarHeader";
 import CalendarView from "./_components/CalendarView";
 import { mockAvailability, mockProfileColorMap, mockProfiles } from "./_lib/calendarMockData";
@@ -14,6 +15,7 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
+      <NavBar />
       <CalendarHeader monthLabel={format(monthStart, "yyyy'년' M'월'")} monthStart={monthStart} />
       <CalendarView
         availability={availability}

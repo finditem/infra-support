@@ -23,3 +23,11 @@
 - [x] pnpm build / pnpm lint 검증
 - [ ] Supabase `availability` 테이블 연동 (조회/등록/삭제) — 다음 단계
 - [ ] 여러 팀원 가능 시간 겹침 표시(공통 가능 시간) — 다음 단계
+
+## 상단 네비게이션 바 추가 (일정/캘린더 이동 + 로그아웃 통합)
+
+- [x] NavBar 공용 컴포넌트 생성 (로고, "일정"/"캘린더" 링크, 로그아웃 버튼, `usePathname` 활성 표시) — `src/components/NavBar.tsx`
+- [x] KanbanHeader에서 로그아웃 버튼 제거 (NavBar로 이동)
+- [x] CalendarHeader에서 로그아웃 버튼, "메인으로" 링크 제거 (NavBar로 대체)
+- [x] page.tsx, calendar/page.tsx에 NavBar 배치
+- [x] pnpm build / pnpm lint 검증
