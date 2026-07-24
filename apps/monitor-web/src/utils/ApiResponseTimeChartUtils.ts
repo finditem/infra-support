@@ -32,23 +32,30 @@ export const formatDateTime = (timestamp: number) =>
 export const formatDate = (timestamp: number) => format(new Date(timestamp), "MM.dd");
 
 /**
- * 기준 날짜의 09:00부터 다음날 06:00까지 3시간 단위 tick을 생성합니다.
+ * 데이터의 최솟값부터 3시간 간격으로 tick을 채우고, 마지막에 최댓값을 그대로 추가합니다.
+ *
+ * @remarks
+ * - `createDailyTicks`와 같은 패턴으로, 첫 tick은 minTimestamp, 마지막 tick은
+ *   maxTimestamp와 정확히 일치해 X축 domain 좌우 끝과 데이터가 어긋나지 않습니다.
+ * - 24h 뷰가 어제 00:00~지금(최대 이틀)까지 걸칠 수 있어, 하루로 고정된 구간이 아니라
+ *   실제 데이터 범위 기준으로 tick을 생성합니다.
  *
  * @returns X축에 사용할 timestamp 배열
  *
  * @author junyeol
  */
 
-export const createThreeHourTicks = (timestamp: number) => {
-  const baseDate = new Date(timestamp);
+export const createThreeHourTicks = (minTimestamp: number, maxTimestamp: number) => {
+  const ticks: number[] = [];
+  const current = new Date(minTimestamp);
 
-  return [9, 12, 15, 18, 21, 24, 27, 30].map((hour) => {
-    const date = new Date(baseDate);
+  while (current.getTime() < maxTimestamp) {
+    ticks.push(current.getTime());
+    current.setHours(current.getHours() + 3);
+  }
+  ticks.push(maxTimestamp);
 
-    date.setHours(hour, 0, 0, 0);
-
-    return date.getTime();
-  });
+  return ticks;
 };
 
 /**

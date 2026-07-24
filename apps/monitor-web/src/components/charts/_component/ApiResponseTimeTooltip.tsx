@@ -5,7 +5,7 @@ import { formatDateTime } from "@/utils";
  * API 응답 시간 차트의 커스텀 툴팁 컴포넌트입니다.
  *
  * @remarks
- * - `hover`된 로그의 API 이름, 응답 속도, HTTP 상태, 에러 메시지를 표시합니다.
+ * - `hover`된 로그의 API 이름, 체크 시각, 상태, 응답 속도, HTTP 상태, 에러 메시지를 표시합니다.
  *
  * @author junyeol
  */
@@ -36,8 +36,11 @@ const ApiResponseTimeTooltip = ({ active, payload }: ChartTooltipProps) => {
   const data = payload[0].payload;
 
   return (
-    <div className="relative flex h-[227px] w-[282px] flex-col gap-4 rounded-[10px] border border-border-divider-default bg-bg-layout-1depth p-6 shadow-sm">
+    <div className="relative flex w-[282px] flex-col gap-4 rounded-[10px] border border-border-divider-default bg-bg-layout-1depth p-6 shadow-sm">
       <div className="flex flex-col gap-1">
+        <div className="truncate text-[18px] font-bold leading-[25px] text-layout-header">
+          {data.apiName}
+        </div>
         <div className="text-[18px] font-medium leading-[25px] text-layout-body">
           {formatDateTime(data.checkedAt)}
         </div>
@@ -67,9 +70,14 @@ const ApiResponseTimeTooltip = ({ active, payload }: ChartTooltipProps) => {
           </dd>
         </div>
 
-        <div className="flex items-center justify-between">
-          <dt className="text-[20px] font-medium leading-[27px] text-layout-body">에러 메시지</dt>
-          <dd className="text-[22px] font-semibold leading-[30px] text-layout-header">
+        <div className="flex items-center justify-between gap-2">
+          <dt className="shrink-0 text-[20px] font-medium leading-[27px] text-layout-body">
+            에러 메시지
+          </dt>
+          <dd
+            className="min-w-0 truncate text-right text-[22px] font-semibold leading-[30px] text-layout-header"
+            title={data.errorMessage}
+          >
             {data.errorMessage}
           </dd>
         </div>
