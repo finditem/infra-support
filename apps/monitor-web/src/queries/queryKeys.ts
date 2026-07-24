@@ -29,3 +29,13 @@ export const authQueryKeys = {
   all: ["auth"] as const,
   user: () => [...authQueryKeys.all, "user"] as const,
 };
+
+export const monitoringQueryKeys = {
+  all: ["monitoring"] as const,
+  responseTime: () => [...monitoringQueryKeys.all, "responseTime"] as const,
+};
+
+export const errorLogQueryKeys = {
+  all: ["errorLog"] as const,
+  list: () => [...errorLogQueryKeys.all, "list"] as const,
+};
