@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "./_components/KanbanBoard";
 import KanbanHeader from "./_components/KanbanHeader";
 import { getOrCreateWeek } from "./_lib/kanban";
@@ -33,6 +34,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
+      <NavBar />
       <KanbanHeader weekLabel={getWeekLabel(weekStart)} weekStart={weekStart} />
 
       <div className="flex-1 px-8 py-6">

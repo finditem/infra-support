@@ -1,8 +1,28 @@
-const CalendarPage = () => {
+import { format, startOfMonth } from "date-fns";
+import { NavBar } from "@/components/NavBar";
+import CalendarHeader from "./_components/CalendarHeader";
+import CalendarView from "./_components/CalendarView";
+import { mockAvailability, mockProfileColorMap, mockProfiles } from "./_lib/calendarMockData";
+
+interface CalendarPageProps {
+  searchParams: Promise<{ month?: string }>;
+}
+
+const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
+  const { month } = await searchParams;
+  const monthStart = startOfMonth(month ? new Date(month) : new Date());
+  const availability = mockAvailability(monthStart.getFullYear(), monthStart.getMonth() + 1);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-2 bg-surface">
-      <p className="text-text-default">캘린더 페이지</p>
-      <p className="text-text-muted">팀원 가능 시간 조회 기능은 다음 단계에서 구현됩니다.</p>
+    <main className="flex min-h-screen flex-col bg-surface">
+      <NavBar />
+      <CalendarHeader monthLabel={format(monthStart, "yyyy'년' M'월'")} monthStart={monthStart} />
+      <CalendarView
+        availability={availability}
+        monthStart={monthStart}
+        profileColorMap={mockProfileColorMap}
+        profiles={mockProfiles}
+      />
     </main>
   );
 };
