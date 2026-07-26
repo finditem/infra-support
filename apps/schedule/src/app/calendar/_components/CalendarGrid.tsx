@@ -85,7 +85,8 @@ const CalendarGrid = ({
                   return (
                     <span
                       key={block.id}
-                      className={`truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-white ${profile?.colorClassName ?? "bg-fill-neutural-subtle-hover"}`}
+                      className="truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-white"
+                      style={{ backgroundColor: profile?.color ?? "#9CA3AF" }}
                     >
                       {block.startTime}~{block.endTime}
                     </span>
