@@ -24,7 +24,7 @@ const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps)
 
       <div className="mb-4 flex gap-3">
         <div className="flex-1">
-          <p className="mb-[6px] text-[10px] font-semibold uppercase text-text-muted">시작</p>
+          <p className="mb-1.5 text-[10px] font-semibold uppercase text-text-muted">시작</p>
           <select
             className="w-full rounded-[10px] border border-border bg-surface px-2 py-2 text-center text-sm font-medium text-text-default"
             value={startTime}
@@ -38,7 +38,7 @@ const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps)
           </select>
         </div>
         <div className="flex-1">
-          <p className="mb-[6px] text-[10px] font-semibold uppercase text-text-muted">종료</p>
+          <p className="mb-1.5 text-[10px] font-semibold uppercase text-text-muted">종료</p>
           <select
             className="w-full rounded-[10px] border border-border bg-surface px-2 py-2 text-center text-sm font-medium text-text-default"
             value={endTime}
