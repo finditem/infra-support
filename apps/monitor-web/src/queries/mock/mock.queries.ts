@@ -18,7 +18,8 @@ import { apisQueryKeys } from "../queryKeys";
 type ApiItem = {
   id: string;
   name: string;
-  url: string;
+  source: string;
+  category: string;
   created_at: string;
 };
 
@@ -31,7 +32,7 @@ type ApiItem = {
 export const getApis = async (): Promise<ApiItem[]> => {
   const { data, error } = await supabase
     .from("apis")
-    .select("id, name, url, created_at")
+    .select("id, name, source, category, created_at")
     .order("created_at", { ascending: false });
 
   if (error) {

@@ -8,7 +8,7 @@ import type { LogListItemData } from "../_types";
 
 interface LogListProps {
   items: LogListItemData[];
-  onCheckedChange: (itemId: number, checked: boolean) => void;
+  onCheckedChange: (itemId: string, checked: boolean) => void;
 }
 
 const LogList = ({ items, onCheckedChange }: LogListProps) => {
