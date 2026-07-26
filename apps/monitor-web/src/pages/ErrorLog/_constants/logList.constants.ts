@@ -5,3 +5,5 @@ export const LOG_LIST_FILTERS = [
 ] as const;
 
 export type LogListFilterKey = (typeof LOG_LIST_FILTERS)[number]["key"];
+
+export const LOG_LIST_PAGE_SIZE = 10;

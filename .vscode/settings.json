@@ -12,7 +12,8 @@
     "source.fixAll.eslint": "explicit"
   },
   "eslint.workingDirectories": [
-    { "directory": "apps/monitor-web", "changeProcessCWD": true }
+    { "directory": "apps/monitor-web", "changeProcessCWD": true },
+    { "directory": "apps/schedule", "changeProcessCWD": true }
   ],
 
   "eslint.validate": [

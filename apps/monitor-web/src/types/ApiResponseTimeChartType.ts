@@ -1,6 +1,14 @@
 import type { ApiStatus } from "./ApiStatusType";
 
 /**
+ * API 응답 시간 차트가 표시하는 조회 기간입니다.
+ *
+ * @author junyeol
+ */
+
+export type ApiResponseTimePeriod = "24h" | "7d";
+
+/**
  * API 응답 시간 차트에 전달되는 데이터 타입입니다.
  *
  * @remarks

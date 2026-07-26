@@ -1,7 +1,7 @@
 import type { ApiStatus } from "@/types";
 
 export interface LogListItemData {
-  id: number;
+  id: string;
   apiName: string;
   errorType: string;
   errorStatus: ApiStatus;

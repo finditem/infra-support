@@ -8,6 +8,7 @@
 apps/
   monitor-server/   # Next.js API — 모니터링 실행 및 결과 저장 (apps/monitor-server/CLAUDE.md)
   monitor-web/      # Vite/React — 모니터링 데이터 시각화 대시보드 (apps/monitor-web/CLAUDE.md)
+  schedule/         # Next.js App Router — 팀 일정 관리 툴, 별도 Supabase 프로젝트 사용 (apps/schedule/CLAUDE.md)
 packages/
   shared/           # 앱 간 공유 TypeScript 타입 (packages/shared/CLAUDE.md)
   design-tokens/    # 디자인 토큰 (Style Dictionary)
@@ -50,6 +51,7 @@ pnpm lint     # 전체 린트
 - type: `feat`, `fix`, `docs`, `hotfix`, `refactor`, `test`, `chore`, `rename`, `asset`, `design`, `a11y` 중 하나
 - scope 필수 (비워두면 커밋 실패)
 - 예: `feat(dashboard): API 상태 카드 추가`
+- 커밋 메시지 본문은 작성하지 않고 제목 한 줄로 작업 내용을 요약한다. 변경 배경, 세부 사항, 다른 앱과의 차이점 등 상세한 설명은 커밋 메시지가 아니라 PR 본문(`create-pr` 스킬)에 작성한다.
 
 ## 기타 도구
 

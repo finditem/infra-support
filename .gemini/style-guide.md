@@ -36,9 +36,16 @@
 - **HTTP Client:** Axios
 - **Database Client:** Supabase JS
 
+### schedule (팀 일정 관리 툴)
+- **Framework:** Next.js 15 (App Router, 별도 백엔드 앱 없음)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS (앱 로컬 다크 테마, `packages/design-tokens` 미사용)
+- **Auth/Database Client:** Supabase (`@supabase/ssr`, `@supabase/supabase-js`) — monitor-web/monitor-server와 별개의 전용 Supabase 프로젝트 사용
+- **Shared Types:** `packages/shared`를 사용하지 않음 (별도 스키마이므로 `src/types/tables/`에 로컬 정의)
+
 ### 모노레포 도구
 - **Monorepo:** Turborepo + pnpm workspaces
-- **Shared Types:** `packages/shared`
+- **Shared Types:** `packages/shared` (monitor-web/monitor-server 전용, schedule은 미사용)
 
 ## Project Directory & Architecture
 
@@ -46,8 +53,9 @@
 apps/
   monitor-web/     # 프론트엔드 SPA
   monitor-server/  # API 모니터링 서버 스크립트
+  schedule/        # 팀 일정 관리 툴 (Next.js App Router)
 packages/
-  shared/          # 공통 타입 패키지
+  shared/          # 공통 타입 패키지 (monitor-web/monitor-server 전용)
 ```
 
 ### monitor-web (`apps/monitor-web/src/`)

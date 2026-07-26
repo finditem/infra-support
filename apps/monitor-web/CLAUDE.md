@@ -39,6 +39,8 @@ src/
 
 새 페이지를 추가할 때는 위 co-location 구조(`_components`/`_hooks`/`_types`/`_utils` + `index.ts`)를 그대로 따른다. 예: [pages/Dashboard/](src/pages/Dashboard), [pages/ApiDetail/](src/pages/ApiDetail).
 
+`_types`/`_utils`의 `index.ts`는 re-export 전용 배럴 파일이다. 구현은 반드시 별도 파일에 작성한다. 새 유틸 파일을 만들 때는 같은 `_utils` 폴더 안에 참고할 기존 분리 사례가 없으면, 전역 [utils/](src/utils)의 네이밍(PascalCase + `Utils` suffix, 예: `ApiResponseTimeChartUtils.ts`)을 따른다.
+
 ## TypeScript
 
 - `any` 금지. 타입이 불확실하면 `unknown` 사용.
@@ -50,6 +52,11 @@ src/
 - 컴포넌트는 화살표 함수로 작성.
 - `React.FC` 사용하지 않음 — 함수 제네릭 또는 props를 직접 타이핑.
 - 컴포넌트는 하나의 책임에 집중.
+
+## TSDoc
+
+- TSDoc은 먼저 작성해도 되는지 사용자에게 물어보고, 사용자가 지목한 파일/함수에 대해서만 작성한다. 요청받지 않은 인접 파일로 임의로 확장하지 않는다.
+- 작성할 때는 반드시 근처의 기존 TSDoc(예: [ApiResponseTimeChartUtils.ts](src/utils/ApiResponseTimeChartUtils.ts), [Badge.tsx](src/components/common/display/Badge.tsx))을 먼저 확인하고, 설명 → `@remarks`(선택) → `@example`(선택) → `@returns`(선택) → `@author junyeol` 순서와 줄바꿈 구조를 그대로 따른다.
 
 ## 데이터 페칭 (TanStack Query)
 

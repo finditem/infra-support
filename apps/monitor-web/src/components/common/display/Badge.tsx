@@ -20,6 +20,8 @@ type StatusBadgeProps = {
   label: string | number;
   /** 추가 클래스명 */
   className?: string;
+  /** 라벨 왼쪽에 상태 색상 dot 표시 여부 */
+  dot?: boolean;
 };
 
 type CustomBadgeProps = {
@@ -50,7 +52,10 @@ const Badge = (props: BadgeProps) => {
   if (props.status !== undefined) {
     const statusBadgeClass = API_STATUS_BADGE_STYLES[props.status];
     return (
-      <span className={cn(BADGE_BASE_STYLE, statusBadgeClass, props.className)}>{props.label}</span>
+      <span className={cn(BADGE_BASE_STYLE, statusBadgeClass, props.className)}>
+        {props.dot && <span aria-hidden className="mr-1.5 size-3 rounded-full bg-current" />}
+        {props.label}
+      </span>
     );
   }
 
