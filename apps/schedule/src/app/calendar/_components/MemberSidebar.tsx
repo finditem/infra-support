@@ -38,7 +38,11 @@ const MemberSidebar = ({ profiles, selectedProfileId, onSelectProfile }: MemberS
           type="button"
           onClick={() => onSelectProfile(profile.id)}
         >
-          <span aria-hidden className={`size-[10px] rounded-full ${profile.colorClassName}`} />
+          <span
+            aria-hidden
+            className="size-[10px] rounded-full"
+            style={{ backgroundColor: profile.color }}
+          />
           <span className="text-sm text-text-default">{profile.name}</span>
           {selectedProfileId === profile.id && (
             <span className="ml-auto text-xs text-primary">✓</span>
