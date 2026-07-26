@@ -31,3 +31,11 @@
 - [x] CalendarHeader에서 로그아웃 버튼, "메인으로" 링크 제거 (NavBar로 대체)
 - [x] page.tsx, calendar/page.tsx에 NavBar 배치
 - [x] pnpm build / pnpm lint 검증
+
+## Vercel 빌드 실패 수정 (fix/vercel-error, PR #105)
+
+- [x] 원인 파악: PR #105 base(`design/main-kanban`)가 PR #104 리뷰 반영으로 `ProfileWithColor` 타입을 `colorClassName`(Tailwind 클래스)에서 `color`(해시 기반 인라인 HSL)로 변경, Vercel의 PR 병합 빌드에서 캘린더 컴포넌트가 옛 필드를 참조해 타입 에러 발생
+- [x] `design/main-kanban`을 `fix/vercel-error`에 merge
+- [x] MemberSidebar.tsx, CalendarGrid.tsx를 `style={{ backgroundColor: profile.color }}` 방식으로 수정
+- [x] `colorClassName` 잔존 참조 전체 검색으로 없음 확인
+- [x] turbo 캐시 배제(`--force`) 재빌드로 전체 5개 패키지 통과 확인, lockfile drift 없음 확인
