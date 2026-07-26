@@ -1,6 +1,5 @@
-//TODO(준열): Supabase 연결 후 목업 데이터를 실제 데이터로 교체 예정
-import { ApiResponseTimeChart, Icon } from "@/components";
-import { MOCK_RESPONSE_TIME_DATA } from "@/mock";
+import { ApiResponseTimeChart, Icon, LoadingSpinner } from "@/components";
+import { useApiResponseTimeQuery } from "@/queries";
 import { cn } from "@/utils";
 import type { DashboardTimeRangeProps } from "../_types";
 import { calculateResponseTimeStats, filterLatest24HourData } from "../_utils";
@@ -13,8 +12,10 @@ const RANGE_LABEL: Record<DashboardResponseTimeChartProps["range"], string> = {
 };
 
 const DashboardResponseTimeChart = ({ range }: DashboardResponseTimeChartProps) => {
-  const data =
-    range === "24h" ? filterLatest24HourData(MOCK_RESPONSE_TIME_DATA) : MOCK_RESPONSE_TIME_DATA;
+  const { data: responseTimeData, isLoading } = useApiResponseTimeQuery();
+  const responseTimeList = responseTimeData ?? [];
+
+  const data = range === "24h" ? filterLatest24HourData(responseTimeList) : responseTimeList;
 
   const outageCount = data.filter((item) => item.status === "outage").length;
   const hasOutage = outageCount > 0;
@@ -52,7 +53,13 @@ const DashboardResponseTimeChart = ({ range }: DashboardResponseTimeChartProps) 
         </div>
       </div>
       <div className="mt-[60px] h-[433px]">
-        <ApiResponseTimeChart data={data} period={range} />
+        {isLoading ? (
+          <div className="h-full flex-center">
+            <LoadingSpinner size={32} />
+          </div>
+        ) : (
+          <ApiResponseTimeChart data={data} period={range} />
+        )}
       </div>
     </section>
   );

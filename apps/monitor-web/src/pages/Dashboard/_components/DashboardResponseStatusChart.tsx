@@ -1,5 +1,5 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
-import { MOCK_RESPONSE_TIME_DATA } from "@/mock";
+import { useApiResponseTimeQuery } from "@/queries";
 import type { ApiStatus } from "@/types";
 import type { DashboardTimeRangeProps } from "../_types";
 import { calculateApiStatusDistribution, filterLatest24HourData } from "../_utils";
@@ -13,8 +13,10 @@ const STATUS_CHART_META: Record<ApiStatus, { name: string; color: string }> = {
 };
 
 const DashboardResponseStatusChart = ({ range }: DashboardResponseStatusChartProps) => {
-  const data =
-    range === "24h" ? filterLatest24HourData(MOCK_RESPONSE_TIME_DATA) : MOCK_RESPONSE_TIME_DATA;
+  const { data: responseTimeData } = useApiResponseTimeQuery();
+  const responseTimeList = responseTimeData ?? [];
+
+  const data = range === "24h" ? filterLatest24HourData(responseTimeList) : responseTimeList;
 
   const distribution = calculateApiStatusDistribution(data);
   const chartData = (Object.keys(STATUS_CHART_META) as ApiStatus[]).map((status) => ({

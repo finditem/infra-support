@@ -1,4 +1,5 @@
 import type { ProfilesRow, TasksRow } from "@/types/tables";
+import { cn } from "@/utils";
 import type { KanbanFilterState } from "../_types/kanban";
 
 const PRIORITY_OPTIONS: { id: TasksRow["priority"]; label: string }[] = [
@@ -68,11 +69,12 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
 
       <button
         aria-pressed={filter.onlyMine}
-        className={`rounded-full border px-3 py-[6px] text-xs font-semibold transition ${
+        className={cn(
+          "rounded-full border px-3 py-[6px] text-xs font-semibold transition",
           filter.onlyMine
             ? "border-primary bg-primary/10 text-primary"
             : "border-border text-text-muted"
-        }`}
+        )}
         type="button"
         onClick={() => onFilterChange({ ...filter, onlyMine: !filter.onlyMine })}
       >

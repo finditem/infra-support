@@ -21,7 +21,7 @@ const LogListItem = ({ data, isLast = false, onCheckedChange }: LogListItemProps
           <span className="typo-header3-bold">{data.apiName}</span>
           <Badge className="shrink-0 px-2" label={data.errorType} status={data.errorStatus} />
         </div>
-        <span className="typo-body2-medium block w-full truncate text-[#858585]">
+        <span className="typo-body2-medium block max-w-[320px] truncate text-[#858585]">
           {data.errorMessage}
         </span>
       </div>

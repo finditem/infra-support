@@ -15,15 +15,16 @@ const KanbanProgress = ({ progress }: KanbanProgressProps) => {
       {progress.map(({ profile, percent }) => (
         <div key={profile.id} className="flex min-w-[180px] items-center gap-2">
           <span
-            className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${profile.colorClassName}`}
+            className="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+            style={{ backgroundColor: profile.color }}
           >
             {getInitial(profile.name)}
           </span>
           <span className="shrink-0 text-xs font-medium text-text-default">{profile.name}</span>
           <div className="h-[6px] flex-1 overflow-hidden rounded-full bg-fill-neutural-subtle-default">
             <div
-              className={`h-full rounded-full ${profile.colorClassName}`}
-              style={{ width: `${percent}%` }}
+              className="h-full rounded-full"
+              style={{ backgroundColor: profile.color, width: `${percent}%` }}
             />
           </div>
           <span className="shrink-0 text-xs text-text-muted">{percent}%</span>
