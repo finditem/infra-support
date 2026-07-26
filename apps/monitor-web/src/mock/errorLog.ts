@@ -2,7 +2,7 @@ import type { LogListItemData } from "@/pages/ErrorLog/_types";
 
 export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
   {
-    id: 1,
+    id: "1",
     apiName: "Kakao Map API",
     errorType: "404",
     errorStatus: "outage",
@@ -11,7 +11,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 2,
+    id: "2",
     apiName: "Kakao Share SDK",
     errorType: "503",
     errorStatus: "degraded",
@@ -20,7 +20,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 3,
+    id: "3",
     apiName: "Naver Search API",
     errorType: "500",
     errorStatus: "outage",
@@ -29,7 +29,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: true,
   },
   {
-    id: 4,
+    id: "4",
     apiName: "Naver Pay API",
     errorType: "401",
     errorStatus: "degraded",
@@ -38,7 +38,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 5,
+    id: "5",
     apiName: "Toss Payments API",
     errorType: "429",
     errorStatus: "degraded",
@@ -47,7 +47,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: true,
   },
   {
-    id: 6,
+    id: "6",
     apiName: "AWS S3 API",
     errorType: "503",
     errorStatus: "outage",
@@ -56,7 +56,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 7,
+    id: "7",
     apiName: "Google Maps API",
     errorType: "403",
     errorStatus: "degraded",
@@ -65,7 +65,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 8,
+    id: "8",
     apiName: "Slack Webhook API",
     errorType: "404",
     errorStatus: "outage",
@@ -74,7 +74,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: true,
   },
   {
-    id: 9,
+    id: "9",
     apiName: "Firebase Auth API",
     errorType: "500",
     errorStatus: "outage",
@@ -83,7 +83,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 10,
+    id: "10",
     apiName: "Kakao Login API",
     errorType: "401",
     errorStatus: "degraded",
@@ -92,7 +92,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 11,
+    id: "11",
     apiName: "Stripe API",
     errorType: "402",
     errorStatus: "degraded",
@@ -101,7 +101,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: true,
   },
   {
-    id: 12,
+    id: "12",
     apiName: "Twilio SMS API",
     errorType: "503",
     errorStatus: "outage",
@@ -110,7 +110,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 13,
+    id: "13",
     apiName: "SendGrid Mail API",
     errorType: "429",
     errorStatus: "degraded",
@@ -119,7 +119,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 14,
+    id: "14",
     apiName: "Cloudflare API",
     errorType: "500",
     errorStatus: "outage",
@@ -128,7 +128,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: true,
   },
   {
-    id: 15,
+    id: "15",
     apiName: "GitHub API",
     errorType: "403",
     errorStatus: "degraded",
@@ -137,7 +137,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 16,
+    id: "16",
     apiName: "Notion API",
     errorType: "404",
     errorStatus: "outage",
@@ -146,7 +146,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 17,
+    id: "17",
     apiName: "OpenWeather API",
     errorType: "500",
     errorStatus: "outage",
@@ -155,7 +155,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: true,
   },
   {
-    id: 18,
+    id: "18",
     apiName: "PayPal API",
     errorType: "401",
     errorStatus: "degraded",
@@ -164,7 +164,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 19,
+    id: "19",
     apiName: "Zoom API",
     errorType: "503",
     errorStatus: "outage",
@@ -173,7 +173,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: false,
   },
   {
-    id: 20,
+    id: "20",
     apiName: "Discord Webhook API",
     errorType: "429",
     errorStatus: "degraded",
@@ -182,7 +182,7 @@ export const MOCK_ERROR_LOG_ITEMS: LogListItemData[] = [
     status: true,
   },
   {
-    id: 21,
+    id: "21",
     apiName: "Algolia Search API",
     errorType: "500",
     errorStatus: "outage",

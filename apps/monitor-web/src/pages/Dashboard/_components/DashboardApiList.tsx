@@ -1,10 +1,12 @@
 //TODO(준열): Badge 컴포넌트 label type 개선 후 수정 예정
+import { useMemo } from "react";
 import type { ReactNode } from "react";
 import { Badge } from "@/components";
-import { MOCK_DASHBOARD_API_LIST } from "@/mock";
+import { useApiResponseTimeQuery, useMockListQuery } from "@/queries";
 import type { ApiStatus } from "@/types";
 import { cn } from "@/utils";
 import type { ApiListItem } from "../_types";
+import { buildDashboardApiList } from "../_utils";
 import { useNavigate } from "react-router-dom";
 
 const API_STATUS_LABEL: Record<ApiStatus, string> = {
@@ -70,6 +72,12 @@ const API_TABLE_COLUMNS: {
 
 const DashboardApiList = () => {
   const navigate = useNavigate();
+  const { data: apis } = useMockListQuery();
+  const { data: responseTimeData } = useApiResponseTimeQuery();
+  const apiList = useMemo(
+    () => buildDashboardApiList(apis ?? [], responseTimeData ?? []),
+    [apis, responseTimeData]
+  );
 
   const handleGoApiDetail = (apiId: string) => {
     navigate(`/api/${apiId}`);
@@ -92,7 +100,7 @@ const DashboardApiList = () => {
           </thead>
 
           <tbody>
-            {MOCK_DASHBOARD_API_LIST.map((api) => (
+            {apiList.map((api) => (
               <tr
                 key={api.id}
                 role="link"

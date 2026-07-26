@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
+import { cn } from "@/utils";
 import { getInitial, isTaskOverdue } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
 
@@ -24,7 +25,10 @@ const KanbanCard = ({ task, assignee, reporter, subtaskCount, statuses }: Kanban
   return (
     <article className="flex flex-col gap-2 rounded-[10px] border border-border bg-surface-elevated p-3 transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
       <span
-        className={`w-fit rounded-full border px-2 py-[2px] text-[11px] font-semibold ${priority.className}`}
+        className={cn(
+          "w-fit rounded-full border px-2 py-[2px] text-[11px] font-semibold",
+          priority.className
+        )}
       >
         {priority.label}
       </span>
@@ -38,7 +42,8 @@ const KanbanCard = ({ task, assignee, reporter, subtaskCount, statuses }: Kanban
           {assignee && (
             <span className="flex items-center gap-1">
               <span
-                className={`flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-white ${assignee.colorClassName}`}
+                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                style={{ backgroundColor: assignee.color }}
               >
                 {getInitial(assignee.name)}
               </span>
@@ -49,7 +54,8 @@ const KanbanCard = ({ task, assignee, reporter, subtaskCount, statuses }: Kanban
           {reporter && (
             <span className="flex items-center gap-1">
               <span
-                className={`flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-white ${reporter.colorClassName}`}
+                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                style={{ backgroundColor: reporter.color }}
               >
                 {getInitial(reporter.name)}
               </span>
@@ -59,7 +65,7 @@ const KanbanCard = ({ task, assignee, reporter, subtaskCount, statuses }: Kanban
         </div>
 
         {task.due_date && (
-          <span className={overdue ? "font-bold text-fg-state-error" : ""}>
+          <span className={cn(overdue && "font-bold text-fg-state-error")}>
             {format(new Date(task.due_date), "M/d")}
             {overdue && " 초과"}
           </span>

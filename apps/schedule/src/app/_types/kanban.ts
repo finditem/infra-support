@@ -1,6 +1,6 @@
 import type { ProfilesRow, TasksRow } from "@/types/tables";
 
-export type ProfileWithColor = ProfilesRow & { colorClassName: string };
+export type ProfileWithColor = ProfilesRow & { color: string };
 
 export interface KanbanFilterState {
   assigneeId: string | null;
