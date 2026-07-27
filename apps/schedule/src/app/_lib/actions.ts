@@ -3,28 +3,41 @@
 import { createClient } from "@/lib/supabase/server";
 import type { TasksInsert, TasksRow } from "@/types/tables";
 
-interface AddQuickTaskInput {
+interface CreateTaskInput {
+  title: string;
+  body: string | null;
   weekId: string;
   statusId: string;
   assigneeId: string | null;
   reporterId: string | null;
+  priority: TasksRow["priority"];
+  dueDate: string;
+  createdBy: string | null;
 }
 
-export const addQuickTask = async ({
+export const createTask = async ({
+  title,
+  body,
   weekId,
   statusId,
   assigneeId,
   reporterId,
-}: AddQuickTaskInput): Promise<TasksRow | null> => {
+  priority,
+  dueDate,
+  createdBy,
+}: CreateTaskInput): Promise<TasksRow | null> => {
   const supabase = await createClient();
 
   const insertPayload: TasksInsert = {
-    title: "새 일정",
+    title,
+    body,
     status_id: statusId,
     week_id: weekId,
     assignee_id: assigneeId,
     reporter_id: reporterId,
-    created_by: assigneeId,
+    priority,
+    due_date: dueDate,
+    created_by: createdBy,
   };
 
   const { data, error } = await supabase.from("tasks").insert(insertPayload).select("*").single();
