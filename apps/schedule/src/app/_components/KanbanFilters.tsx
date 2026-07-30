@@ -1,12 +1,7 @@
-import type { ProfilesRow, TasksRow } from "@/types/tables";
+import type { ProfilesRow } from "@/types/tables";
 import { cn } from "@/utils";
+import { PRIORITY_META, PRIORITY_ORDER } from "../_lib/kanbanUtils";
 import type { KanbanFilterState } from "../_types/kanban";
-
-const PRIORITY_OPTIONS: { id: TasksRow["priority"]; label: string }[] = [
-  { id: "high", label: "높음" },
-  { id: "medium", label: "중간" },
-  { id: "low", label: "낮음" },
-];
 
 const SELECT_CLASSNAME =
   "rounded-md border border-border bg-surface-elevated px-3 py-[6px] text-xs font-medium text-text-default";
@@ -60,9 +55,9 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         }
       >
         <option value="">우선순위: 전체</option>
-        {PRIORITY_OPTIONS.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.label}
+        {PRIORITY_ORDER.map((priority) => (
+          <option key={priority} value={priority}>
+            {PRIORITY_META[priority].label}
           </option>
         ))}
       </select>

@@ -1,14 +1,8 @@
 import { format } from "date-fns";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
-import { getInitial, isTaskOverdue } from "../_lib/kanbanUtils";
+import { getInitial, isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
-
-const PRIORITY_BADGE: Record<TasksRow["priority"], { label: string; className: string }> = {
-  high: { label: "높음", className: "border-red-200 bg-red-50 text-red-700" },
-  medium: { label: "중간", className: "border-amber-200 bg-amber-50 text-amber-700" },
-  low: { label: "낮음", className: "border-emerald-200 bg-emerald-50 text-emerald-700" },
-};
 
 interface KanbanCardProps {
   task: TasksRow;
@@ -19,7 +13,7 @@ interface KanbanCardProps {
 }
 
 const KanbanCard = ({ task, assignee, reporter, subtaskCount, statuses }: KanbanCardProps) => {
-  const priority = PRIORITY_BADGE[task.priority];
+  const priority = PRIORITY_META[task.priority];
   const overdue = isTaskOverdue(task, statuses);
 
   return (
@@ -27,7 +21,7 @@ const KanbanCard = ({ task, assignee, reporter, subtaskCount, statuses }: Kanban
       <span
         className={cn(
           "w-fit rounded-full border px-2 py-[2px] text-[11px] font-semibold",
-          priority.className
+          priority.badgeClassName
         )}
       >
         {priority.label}

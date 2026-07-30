@@ -1,6 +1,7 @@
 import {
   addWeeks,
   differenceInCalendarDays,
+  endOfWeek,
   format,
   getDay,
   isBefore,
@@ -37,6 +38,37 @@ export const getWeekLabel = (weekStart: Date) => {
 };
 
 export const getInitial = (name: string) => name.slice(-1);
+
+export const PRIORITY_ORDER: TasksRow["priority"][] = ["low", "medium", "high"];
+
+export const PRIORITY_META: Record<
+  TasksRow["priority"],
+  { label: string; color: string; badgeClassName: string }
+> = {
+  high: {
+    label: "높음",
+    color: "#EF4444",
+    badgeClassName: "border-red-200 bg-red-50 text-red-700",
+  },
+  medium: {
+    label: "중간",
+    color: "#F59E0B",
+    badgeClassName: "border-amber-200 bg-amber-50 text-amber-700",
+  },
+  low: {
+    label: "낮음",
+    color: "#10B981",
+    badgeClassName: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  },
+};
+
+/** 마감일 미입력 시 기본값: 평일 등록이면 이번주 일요일, 토/일 등록이면 다음주 일요일. */
+export const getDefaultDueDate = (now: Date = new Date()) => {
+  const day = getDay(now);
+  const sunday = endOfWeek(now, { weekStartsOn: 1 });
+
+  return day === 0 || day === 6 ? addWeeks(sunday, 1) : sunday;
+};
 
 export const buildProfileColorMap = (profiles: ProfilesRow[]) =>
   new Map<string, ProfileWithColor>(

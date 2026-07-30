@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import type { ProfilesRow, TaskStatusesRow, TasksRow } from "@/types/tables";
-import { addQuickTask } from "../_lib/actions";
 import { buildProfileColorMap, calculateMemberProgress, filterTasks } from "../_lib/kanbanUtils";
 import type { KanbanFilterState } from "../_types/kanban";
 import KanbanColumn from "./KanbanColumn";
 import KanbanFilters from "./KanbanFilters";
 import KanbanProgress from "./KanbanProgress";
+import TaskCreateModal from "./TaskCreateModal/TaskCreateModal";
 
 const INITIAL_FILTER: KanbanFilterState = {
   assigneeId: null,
@@ -33,7 +33,7 @@ const KanbanBoard = ({
 }: KanbanBoardProps) => {
   const [tasks, setTasks] = useState(initialTasks);
   const [filter, setFilter] = useState<KanbanFilterState>(INITIAL_FILTER);
-  const [isPending, startTransition] = useTransition();
+  const [creatingStatusId, setCreatingStatusId] = useState<string | null>(null);
 
   const profileMap = useMemo(() => buildProfileColorMap(profiles), [profiles]);
 
@@ -57,19 +57,6 @@ const KanbanBoard = ({
     [topLevelTasks, profileMap, statuses]
   );
 
-  const handleAddTask = (statusId: string) => {
-    startTransition(async () => {
-      const created = await addQuickTask({
-        weekId,
-        statusId,
-        assigneeId: currentProfileId,
-        reporterId: currentProfileId,
-      });
-
-      if (created) setTasks((prev) => [...prev, created]);
-    });
-  };
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-5 rounded-xl border border-border bg-surface-elevated px-8 py-6">
@@ -82,17 +69,31 @@ const KanbanBoard = ({
           {statuses.map((status) => (
             <KanbanColumn
               key={status.id}
-              disabled={isPending}
               profileMap={profileMap}
               status={status}
               statuses={statuses}
               subtaskCountByParent={subtaskCountByParent}
               tasks={filteredTasks.filter((task) => task.status_id === status.id)}
-              onAddTask={handleAddTask}
+              onAddTask={setCreatingStatusId}
             />
           ))}
         </div>
       </div>
+
+      {creatingStatusId && (
+        <TaskCreateModal
+          currentProfileId={currentProfileId}
+          initialStatusId={creatingStatusId}
+          profiles={Array.from(profileMap.values())}
+          statuses={statuses}
+          weekId={weekId}
+          onClose={() => setCreatingStatusId(null)}
+          onCreated={(created) => {
+            setTasks((prev) => [...prev, created]);
+            setCreatingStatusId(null);
+          }}
+        />
+      )}
     </div>
   );
 };
