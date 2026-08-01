@@ -19,6 +19,7 @@ interface TaskCreateModalProps {
   currentProfileId: string | null;
   initialStatusId: string;
   parentId?: string | null;
+  parentTitle?: string | null;
   onClose: () => void;
   onCreated: (task: TasksRow) => void;
 }
@@ -30,6 +31,7 @@ const TaskCreateModal = ({
   currentProfileId,
   initialStatusId,
   parentId = null,
+  parentTitle = null,
   onClose,
   onCreated,
 }: TaskCreateModalProps) => {
@@ -93,8 +95,10 @@ const TaskCreateModal = ({
       <div className="w-[480px] overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)]">
         <div className="flex items-center justify-between border-b border-border px-[18px] py-3">
           <span className="text-xs text-text-muted">
-            팀 일정 <span className="mx-[3px] text-border">/</span>
-            <strong className="font-medium text-text-default"> 새 작업</strong>
+            {parentTitle ?? "팀 일정"} <span className="mx-[3px] text-border">/</span>
+            <strong className="font-medium text-text-default">
+              {parentTitle ? " 새 하위 일정" : " 새 작업"}
+            </strong>
           </span>
           <button
             aria-label="닫기"

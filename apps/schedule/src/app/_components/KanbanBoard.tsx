@@ -23,6 +23,7 @@ interface KanbanBoardProps {
   tasks: TasksRow[];
   currentProfileId: string | null;
   parentId?: string | null;
+  parentTitle?: string | null;
   enableTaskNavigation?: boolean;
 }
 
@@ -33,6 +34,7 @@ const KanbanBoard = ({
   tasks: initialTasks,
   currentProfileId,
   parentId = null,
+  parentTitle = null,
   enableTaskNavigation = true,
 }: KanbanBoardProps) => {
   const [tasks, setTasks] = useState(initialTasks);
@@ -93,6 +95,7 @@ const KanbanBoard = ({
           currentProfileId={currentProfileId}
           initialStatusId={creatingStatusId}
           parentId={parentId}
+          parentTitle={parentTitle}
           profiles={Array.from(profileMap.values())}
           statuses={statuses}
           weekId={weekId}

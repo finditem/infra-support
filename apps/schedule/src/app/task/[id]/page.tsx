@@ -42,6 +42,7 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
           currentProfileId={currentProfile?.id ?? null}
           enableTaskNavigation={false}
           parentId={parentTask.id}
+          parentTitle={parentTask.title}
           profiles={profiles ?? []}
           statuses={statuses ?? []}
           tasks={subtasks ?? []}
