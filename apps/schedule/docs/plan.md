@@ -53,3 +53,16 @@
 - [x] createTask 서버 액션 추가 (title/body/assignee/reporter/priority/due_date/status_id/week_id 전부 insert, created_by는 현재 로그인 프로필) — `_lib/actions.ts` (기존 addQuickTask는 대체되어 제거)
 - [x] KanbanColumn "+ 일정 추가" 클릭 시 addQuickTask 즉시 생성 대신 TaskCreateModal 오픈으로 변경, statusId를 모달 기본 상태값으로 전달 — `KanbanBoard.tsx`, `KanbanColumn.tsx`
 - [x] pnpm build / pnpm lint 검증
+
+## 하위 일정 전용 페이지 (일정 중첩, 2단계까지)
+
+일정(a)을 클릭하면 `/task/[id]`로 이동해 a의 하위 일정(1,2,3...)을 기존 칸반보드와 동일한 UI로 보여준다. a 자체의 상세 편집(제목/본문/속성/삭제)과 3단계 이상 중첩은 이번 범위 밖.
+
+- [x] `KanbanBoard.tsx`: `parentId`/`enableTaskNavigation` prop 추가, `topLevelTasks` 필터를 `parent_id === parentId` 기준으로 일반화, `weekId` 타입 `string | null`로 완화, `TaskCreateModal`에 `parentId` 전달
+- [x] `KanbanColumn.tsx`: `navigable` prop 추가 및 `KanbanCard`로 전달
+- [x] `KanbanCard.tsx`: `navigable` prop 추가, true일 때 `next/link`로 `/task/[id]` 이동 래핑
+- [x] `TaskCreateModal.tsx`: `parentId` prop 추가 및 `createTask` 호출에 전달, `weekId` 타입 완화
+- [x] `_lib/actions.ts`: `CreateTaskInput`/`TasksInsert`에 `parent_id` 추가, `weekId` 타입 완화
+- [x] `src/app/task/[id]/page.tsx` 신규 작성 (부모 일정 + 하위 일정 + statuses/profiles fetch, notFound 가드, KanbanBoard 조립)
+- [x] `src/app/task/[id]/_components/TaskDetailHeader.tsx` 신규 작성 (제목 읽기 전용 표시 + 목록으로 링크)
+- [x] pnpm build / pnpm lint 검증

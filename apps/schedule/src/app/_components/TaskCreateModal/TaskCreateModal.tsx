@@ -13,11 +13,12 @@ import ProfilePickerPopover from "./ProfilePickerPopover";
 import StatusPickerPopover from "./StatusPickerPopover";
 
 interface TaskCreateModalProps {
-  weekId: string;
+  weekId: string | null;
   statuses: TaskStatusesRow[];
   profiles: ProfileWithColor[];
   currentProfileId: string | null;
   initialStatusId: string;
+  parentId?: string | null;
   onClose: () => void;
   onCreated: (task: TasksRow) => void;
 }
@@ -28,6 +29,7 @@ const TaskCreateModal = ({
   profiles,
   currentProfileId,
   initialStatusId,
+  parentId = null,
   onClose,
   onCreated,
 }: TaskCreateModalProps) => {
@@ -66,6 +68,7 @@ const TaskCreateModal = ({
       priority,
       dueDate,
       createdBy: currentProfileId,
+      parentId,
     });
 
     setIsSubmitting(false);

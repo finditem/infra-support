@@ -6,13 +6,14 @@ import type { TasksInsert, TasksRow } from "@/types/tables";
 interface CreateTaskInput {
   title: string;
   body: string | null;
-  weekId: string;
+  weekId: string | null;
   statusId: string;
   assigneeId: string | null;
   reporterId: string | null;
   priority: TasksRow["priority"];
   dueDate: string;
   createdBy: string | null;
+  parentId: string | null;
 }
 
 export const createTask = async ({
@@ -25,6 +26,7 @@ export const createTask = async ({
   priority,
   dueDate,
   createdBy,
+  parentId,
 }: CreateTaskInput): Promise<TasksRow | null> => {
   const supabase = await createClient();
 
@@ -38,6 +40,7 @@ export const createTask = async ({
     priority,
     due_date: dueDate,
     created_by: createdBy,
+    parent_id: parentId,
   };
 
   const { data, error } = await supabase.from("tasks").insert(insertPayload).select("*").single();

@@ -17,11 +17,13 @@ const INITIAL_FILTER: KanbanFilterState = {
 };
 
 interface KanbanBoardProps {
-  weekId: string;
+  weekId: string | null;
   statuses: TaskStatusesRow[];
   profiles: ProfilesRow[];
   tasks: TasksRow[];
   currentProfileId: string | null;
+  parentId?: string | null;
+  enableTaskNavigation?: boolean;
 }
 
 const KanbanBoard = ({
@@ -30,6 +32,8 @@ const KanbanBoard = ({
   profiles,
   tasks: initialTasks,
   currentProfileId,
+  parentId = null,
+  enableTaskNavigation = true,
 }: KanbanBoardProps) => {
   const [tasks, setTasks] = useState(initialTasks);
   const [filter, setFilter] = useState<KanbanFilterState>(INITIAL_FILTER);
@@ -37,7 +41,10 @@ const KanbanBoard = ({
 
   const profileMap = useMemo(() => buildProfileColorMap(profiles), [profiles]);
 
-  const topLevelTasks = useMemo(() => tasks.filter((task) => !task.parent_id), [tasks]);
+  const scopedTasks = useMemo(
+    () => tasks.filter((task) => task.parent_id === parentId),
+    [tasks, parentId]
+  );
 
   const subtaskCountByParent = useMemo(() => {
     const counts = new Map<string, number>();
@@ -48,13 +55,13 @@ const KanbanBoard = ({
   }, [tasks]);
 
   const filteredTasks = useMemo(
-    () => filterTasks(topLevelTasks, filter, currentProfileId),
-    [topLevelTasks, filter, currentProfileId]
+    () => filterTasks(scopedTasks, filter, currentProfileId),
+    [scopedTasks, filter, currentProfileId]
   );
 
   const progress = useMemo(
-    () => calculateMemberProgress(topLevelTasks, Array.from(profileMap.values()), statuses),
-    [topLevelTasks, profileMap, statuses]
+    () => calculateMemberProgress(scopedTasks, Array.from(profileMap.values()), statuses),
+    [scopedTasks, profileMap, statuses]
   );
 
   return (
@@ -69,6 +76,7 @@ const KanbanBoard = ({
           {statuses.map((status) => (
             <KanbanColumn
               key={status.id}
+              navigable={enableTaskNavigation}
               profileMap={profileMap}
               status={status}
               statuses={statuses}
@@ -84,6 +92,7 @@ const KanbanBoard = ({
         <TaskCreateModal
           currentProfileId={currentProfileId}
           initialStatusId={creatingStatusId}
+          parentId={parentId}
           profiles={Array.from(profileMap.values())}
           statuses={statuses}
           weekId={weekId}
