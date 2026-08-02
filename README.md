@@ -33,6 +33,7 @@
 | :----------------- | :--------------------------------------- | :-------------------------------------- |
 | **monitor-server** | 찾아줘! API 상태 점검 및 결과 저장       | [README](apps/monitor-server/README.md) |
 | **monitor-web**    | 외부 API 모니터링 데이터 시각화 대시보드 | [README](apps/monitor-web/README.md)    |
+| **schedule**    | 팀 내부 일정관리 | [README](apps/schedule/README.md)    |
 
 ### `packages/`
 
@@ -61,7 +62,8 @@ infra-support/
   - 외부 API 모니터링 서버 및 대시보드 개발
 - **[김준열](https://github.com/junye0l)**
   - 외부 API 모니터링 서버 및 대시보드 개발
-
+- **[이수현](https://github.com/suhyeon0111)**
+  - 팀 내부 일정관리 개발
 ## 시작하기
 
 ```bash
