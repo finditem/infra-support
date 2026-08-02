@@ -2,7 +2,12 @@
 
 import { useMemo, useState } from "react";
 import type { ProfilesRow, TaskStatusesRow, TasksRow } from "@/types/tables";
-import { buildProfileColorMap, calculateMemberProgress, filterTasks } from "../_lib/kanbanUtils";
+import {
+  buildProfileColorMap,
+  calculateMemberProgress,
+  filterTasks,
+  sortByPriorityDesc,
+} from "../_lib/kanbanUtils";
 import type { KanbanFilterState } from "../_types/kanban";
 import KanbanColumn from "./KanbanColumn";
 import KanbanFilters from "./KanbanFilters";
@@ -83,7 +88,9 @@ const KanbanBoard = ({
               status={status}
               statuses={statuses}
               subtaskCountByParent={subtaskCountByParent}
-              tasks={filteredTasks.filter((task) => task.status_id === status.id)}
+              tasks={sortByPriorityDesc(
+                filteredTasks.filter((task) => task.status_id === status.id)
+              )}
               onAddTask={setCreatingStatusId}
             />
           ))}

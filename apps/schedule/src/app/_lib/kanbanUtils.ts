@@ -88,6 +88,11 @@ export const isTaskOverdue = (task: TasksRow, statuses: TaskStatusesRow[]) => {
   );
 };
 
+export const sortByPriorityDesc = (tasks: TasksRow[]) =>
+  [...tasks].sort(
+    (a, b) => PRIORITY_ORDER.indexOf(b.priority) - PRIORITY_ORDER.indexOf(a.priority)
+  );
+
 export const filterTasks = (
   tasks: TasksRow[],
   filter: KanbanFilterState,
