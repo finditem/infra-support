@@ -25,8 +25,10 @@ const KanbanCard = ({
   const priority = PRIORITY_META[task.priority];
   const overdue = isTaskOverdue(task, statuses);
 
-  const cardClassName =
-    "flex flex-col gap-2 rounded-[10px] border border-border bg-surface-elevated p-3 transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]";
+  const cardClassName = cn(
+    "flex flex-col gap-2 rounded-[10px] border bg-surface-elevated p-3 transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
+    priority.cardBorderClassName
+  );
 
   const cardBody = (
     <>

@@ -43,22 +43,25 @@ export const PRIORITY_ORDER: TasksRow["priority"][] = ["low", "medium", "high"];
 
 export const PRIORITY_META: Record<
   TasksRow["priority"],
-  { label: string; color: string; badgeClassName: string }
+  { label: string; color: string; badgeClassName: string; cardBorderClassName: string }
 > = {
   high: {
     label: "높음",
     color: "#EF4444",
     badgeClassName: "border-red-200 bg-red-50 text-red-700",
+    cardBorderClassName: "border-red-300",
   },
   medium: {
     label: "중간",
     color: "#F59E0B",
     badgeClassName: "border-amber-200 bg-amber-50 text-amber-700",
+    cardBorderClassName: "border-amber-300",
   },
   low: {
     label: "낮음",
     color: "#10B981",
     badgeClassName: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    cardBorderClassName: "border-emerald-300",
   },
 };
 
