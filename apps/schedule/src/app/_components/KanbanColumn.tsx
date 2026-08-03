@@ -8,8 +8,8 @@ interface KanbanColumnProps {
   tasks: TasksRow[];
   profileMap: Map<string, ProfileWithColor>;
   subtaskCountByParent: Map<string, number>;
-  navigable: boolean;
   onAddTask: (statusId: string) => void;
+  onSelectTask: (task: TasksRow) => void;
 }
 
 const KanbanColumn = ({
@@ -18,8 +18,8 @@ const KanbanColumn = ({
   tasks,
   profileMap,
   subtaskCountByParent,
-  navigable,
   onAddTask,
+  onSelectTask,
 }: KanbanColumnProps) => {
   return (
     <div className="w-[260px] shrink-0">
@@ -42,11 +42,11 @@ const KanbanColumn = ({
           <KanbanCard
             key={task.id}
             assignee={task.assignee_id ? (profileMap.get(task.assignee_id) ?? null) : null}
-            navigable={navigable}
             reporter={task.reporter_id ? (profileMap.get(task.reporter_id) ?? null) : null}
             statuses={statuses}
             subtaskCount={subtaskCountByParent.get(task.id) ?? 0}
             task={task}
+            onSelect={() => onSelectTask(task)}
           />
         ))}
 

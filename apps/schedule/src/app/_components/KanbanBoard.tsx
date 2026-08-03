@@ -29,7 +29,6 @@ interface KanbanBoardProps {
   currentProfileId: string | null;
   parentId?: string | null;
   parentTitle?: string | null;
-  enableTaskNavigation?: boolean;
 }
 
 const KanbanBoard = ({
@@ -40,11 +39,11 @@ const KanbanBoard = ({
   currentProfileId,
   parentId = null,
   parentTitle = null,
-  enableTaskNavigation = true,
 }: KanbanBoardProps) => {
   const [tasks, setTasks] = useState(initialTasks);
   const [filter, setFilter] = useState<KanbanFilterState>(INITIAL_FILTER);
   const [creatingStatusId, setCreatingStatusId] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<TasksRow | null>(null);
 
   const profileMap = useMemo(() => buildProfileColorMap(profiles), [profiles]);
 
@@ -83,7 +82,6 @@ const KanbanBoard = ({
           {statuses.map((status) => (
             <KanbanColumn
               key={status.id}
-              navigable={enableTaskNavigation}
               profileMap={profileMap}
               status={status}
               statuses={statuses}
@@ -92,24 +90,34 @@ const KanbanBoard = ({
                 filteredTasks.filter((task) => task.status_id === status.id)
               )}
               onAddTask={setCreatingStatusId}
+              onSelectTask={setEditingTask}
             />
           ))}
         </div>
       </div>
 
-      {creatingStatusId && (
+      {(creatingStatusId || editingTask) && (
         <TaskCreateModal
           currentProfileId={currentProfileId}
-          initialStatusId={creatingStatusId}
+          initialStatusId={creatingStatusId ?? ""}
           parentId={parentId}
           parentTitle={parentTitle}
           profiles={Array.from(profileMap.values())}
           statuses={statuses}
+          task={editingTask}
           weekId={weekId}
-          onClose={() => setCreatingStatusId(null)}
-          onCreated={(created) => {
-            setTasks((prev) => [...prev, created]);
+          onClose={() => {
             setCreatingStatusId(null);
+            setEditingTask(null);
+          }}
+          onSaved={(saved) => {
+            setTasks((prev) =>
+              prev.some((existing) => existing.id === saved.id)
+                ? prev.map((existing) => (existing.id === saved.id ? saved : existing))
+                : [...prev, saved]
+            );
+            setCreatingStatusId(null);
+            setEditingTask(null);
           }}
         />
       )}

@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
-import { createTask } from "../../_lib/actions";
+import Link from "next/link";
+import { createTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
@@ -20,8 +21,9 @@ interface TaskCreateModalProps {
   initialStatusId: string;
   parentId?: string | null;
   parentTitle?: string | null;
+  task?: TasksRow | null;
   onClose: () => void;
-  onCreated: (task: TasksRow) => void;
+  onSaved: (task: TasksRow) => void;
 }
 
 const TaskCreateModal = ({
@@ -32,21 +34,30 @@ const TaskCreateModal = ({
   initialStatusId,
   parentId = null,
   parentTitle = null,
+  task = null,
   onClose,
-  onCreated,
+  onSaved,
 }: TaskCreateModalProps) => {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [assigneeId, setAssigneeId] = useState<string | null>(currentProfileId);
-  const [reporterId, setReporterId] = useState<string | null>(currentProfileId);
-  const [priority, setPriority] = useState<TasksRow["priority"]>("medium");
-  const [dueDate, setDueDate] = useState(() => format(getDefaultDueDate(), "yyyy-MM-dd"));
-  const [statusId, setStatusId] = useState(initialStatusId);
+  const [title, setTitle] = useState(task?.title ?? "");
+  const [body, setBody] = useState(task?.body ?? "");
+  const [assigneeId, setAssigneeId] = useState<string | null>(
+    task?.assignee_id ?? currentProfileId
+  );
+  const [reporterId, setReporterId] = useState<string | null>(
+    task?.reporter_id ?? currentProfileId
+  );
+  const [priority, setPriority] = useState<TasksRow["priority"]>(task?.priority ?? "medium");
+  const [dueDate, setDueDate] = useState(() =>
+    format(task?.due_date ? new Date(task.due_date) : getDefaultDueDate(), "yyyy-MM-dd")
+  );
+  const [statusId, setStatusId] = useState(task?.status_id ?? initialStatusId);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const weekLabel = getWeekLabel(getMonday(new Date(dueDate)));
+  const isEditing = !!task;
+  const showShortcut = isEditing && !task.parent_id;
 
   const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -60,22 +71,34 @@ const TaskCreateModal = ({
 
     setIsSubmitting(true);
 
-    const created = await createTask({
-      title: title.trim(),
-      body: body.trim() || null,
-      weekId,
-      statusId,
-      assigneeId,
-      reporterId,
-      priority,
-      dueDate,
-      createdBy: currentProfileId,
-      parentId,
-    });
+    const saved = task
+      ? await updateTask({
+          id: task.id,
+          title: title.trim(),
+          body: body.trim() || null,
+          weekId,
+          statusId,
+          assigneeId,
+          reporterId,
+          priority,
+          dueDate,
+        })
+      : await createTask({
+          title: title.trim(),
+          body: body.trim() || null,
+          weekId,
+          statusId,
+          assigneeId,
+          reporterId,
+          priority,
+          dueDate,
+          createdBy: currentProfileId,
+          parentId,
+        });
 
     setIsSubmitting(false);
 
-    if (created) onCreated(created);
+    if (saved) onSaved(saved);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -97,17 +120,27 @@ const TaskCreateModal = ({
           <span className="text-xs text-text-muted">
             {parentTitle ?? "팀 일정"} <span className="mx-[3px] text-border">/</span>
             <strong className="font-medium text-text-default">
-              {parentTitle ? " 새 하위 일정" : " 새 작업"}
+              {isEditing ? " 일정 수정" : parentTitle ? " 새 하위 일정" : " 새 작업"}
             </strong>
           </span>
-          <button
-            aria-label="닫기"
-            className="flex size-6 items-center justify-center rounded-md bg-fill-neutural-subtle-default text-text-muted hover:bg-fill-neutural-subtle-hover"
-            type="button"
-            onClick={onClose}
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-1.5">
+            {showShortcut && (
+              <Link
+                className="rounded-md border border-border px-2 py-1 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+                href={`/task/${task.id}`}
+              >
+                바로가기
+              </Link>
+            )}
+            <button
+              aria-label="닫기"
+              className="flex size-6 items-center justify-center rounded-md bg-fill-neutural-subtle-default text-text-muted hover:bg-fill-neutural-subtle-hover"
+              type="button"
+              onClick={onClose}
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="px-5 pt-[18px]">
@@ -171,7 +204,7 @@ const TaskCreateModal = ({
             <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
               ⏎
             </kbd>
-            으로 등록
+            {isEditing ? "으로 수정" : "으로 등록"}
           </span>
 
           <div className="flex gap-1.5">
@@ -188,7 +221,7 @@ const TaskCreateModal = ({
               type="button"
               onClick={() => void handleSubmit()}
             >
-              등록하기
+              {isEditing ? "수정하기" : "등록하기"}
             </button>
           </div>
         </div>

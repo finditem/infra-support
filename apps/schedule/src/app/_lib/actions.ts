@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { TasksInsert, TasksRow } from "@/types/tables";
+import type { TasksInsert, TasksRow, TasksUpdate } from "@/types/tables";
 
 interface CreateTaskInput {
   title: string;
@@ -44,6 +44,57 @@ export const createTask = async ({
   };
 
   const { data, error } = await supabase.from("tasks").insert(insertPayload).select("*").single();
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data;
+};
+
+interface UpdateTaskInput {
+  id: string;
+  title: string;
+  body: string | null;
+  weekId: string | null;
+  statusId: string;
+  assigneeId: string | null;
+  reporterId: string | null;
+  priority: TasksRow["priority"];
+  dueDate: string;
+}
+
+export const updateTask = async ({
+  id,
+  title,
+  body,
+  weekId,
+  statusId,
+  assigneeId,
+  reporterId,
+  priority,
+  dueDate,
+}: UpdateTaskInput): Promise<TasksRow | null> => {
+  const supabase = await createClient();
+
+  const updatePayload: TasksUpdate = {
+    title,
+    body,
+    status_id: statusId,
+    week_id: weekId,
+    assignee_id: assigneeId,
+    reporter_id: reporterId,
+    priority,
+    due_date: dueDate,
+  };
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .update(updatePayload)
+    .eq("id", id)
+    .select("*")
+    .single();
 
   if (error) {
     console.error(error);

@@ -66,3 +66,14 @@
 - [x] `src/app/task/[id]/page.tsx` 신규 작성 (부모 일정 + 하위 일정 + statuses/profiles fetch, notFound 가드, KanbanBoard 조립)
 - [x] `src/app/task/[id]/_components/TaskDetailHeader.tsx` 신규 작성 (제목 읽기 전용 표시 + 목록으로 링크)
 - [x] pnpm build / pnpm lint 검증
+
+## 일정 카드 클릭 시 수정 모달 오픈 (페이지 직행 대신)
+
+카드를 클릭하면 `/task/[id]`로 바로 이동하는 대신, "일정 추가"와 동일한 모달이 기존 일정 데이터로 채워져 뜨고 그 자리에서 수정 가능해야 한다. 상위 일정(parent_id가 없는 일정) 카드의 모달에서만 오른쪽 상단에 "바로가기" 버튼을 노출해 `/task/[id]`로 이동할 수 있게 한다.
+
+- [x] `_lib/actions.ts`: `updateTask` 서버 액션 추가 (`TasksUpdate`로 id 기준 update)
+- [x] `TaskCreateModal.tsx`: `task?: TasksRow | null` prop으로 생성/수정 겸용화 (필드 프리필, 제출 시 `updateTask`/`createTask` 분기, 버튼/브레드크럼 텍스트 분기), `parent_id`가 없는 일정 수정 시에만 상단 "바로가기" 버튼(`/task/[id]`) 노출
+- [x] `KanbanBoard.tsx`: `editingTask` 상태 추가, 카드 클릭 시 수정 모달 오픈, 저장 시 목록에 upsert. `enableTaskNavigation` prop/로직 제거 (모든 카드가 클릭 시 모달을 열도록 통일했고, 바로가기 버튼 노출 여부는 board가 아니라 task.parent_id로 판단)
+- [x] `KanbanColumn.tsx`/`KanbanCard.tsx`: `navigable`/`next/link` 방식 제거, `onSelect` 클릭 핸들러로 교체 (키보드 접근성 포함)
+- [x] `src/app/task/[id]/page.tsx`: `enableTaskNavigation` prop 제거 (더 이상 필요 없음)
+- [x] pnpm build / pnpm lint 검증

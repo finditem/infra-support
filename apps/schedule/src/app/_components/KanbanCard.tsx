@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import Link from "next/link";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
 import { getInitial, isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
@@ -11,7 +10,7 @@ interface KanbanCardProps {
   reporter: ProfileWithColor | null;
   subtaskCount: number;
   statuses: TaskStatusesRow[];
-  navigable: boolean;
+  onSelect: () => void;
 }
 
 const KanbanCard = ({
@@ -20,18 +19,27 @@ const KanbanCard = ({
   reporter,
   subtaskCount,
   statuses,
-  navigable,
+  onSelect,
 }: KanbanCardProps) => {
   const priority = PRIORITY_META[task.priority];
   const overdue = isTaskOverdue(task, statuses);
 
-  const cardClassName = cn(
-    "flex flex-col gap-2 rounded-[10px] border bg-surface-elevated p-3 transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
-    priority.cardBorderClassName
-  );
-
-  const cardBody = (
-    <>
+  return (
+    <article
+      role="button"
+      tabIndex={0}
+      className={cn(
+        "flex cursor-pointer flex-col gap-2 rounded-[10px] border bg-surface-elevated p-3 text-left transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
+        priority.cardBorderClassName
+      )}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+    >
       <span
         className={cn(
           "w-fit rounded-full border px-2 py-[2px] text-[11px] font-semibold",
@@ -85,18 +93,8 @@ const KanbanCard = ({
           하위 일정 {subtaskCount}개
         </p>
       )}
-    </>
+    </article>
   );
-
-  if (navigable) {
-    return (
-      <Link className={cardClassName} href={`/task/${task.id}`}>
-        {cardBody}
-      </Link>
-    );
-  }
-
-  return <article className={cardClassName}>{cardBody}</article>;
 };
 
 export default KanbanCard;

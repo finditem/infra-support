@@ -40,7 +40,6 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
       <div className="flex-1 px-8 py-6">
         <KanbanBoard
           currentProfileId={currentProfile?.id ?? null}
-          enableTaskNavigation={false}
           parentId={parentTask.id}
           parentTitle={parentTask.title}
           profiles={profiles ?? []}
