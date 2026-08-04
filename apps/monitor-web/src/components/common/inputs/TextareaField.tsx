@@ -14,6 +14,8 @@ import { cn } from "@/utils";
 interface TextareaFieldProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   /** 텍스트 영역 상단에 표시할 레이블 */
   label?: string;
+  /** label 요소에 적용할 추가 클래스. 기본 타이포그래피를 덮어씁니다. */
+  labelClassName?: string;
   /** 에러 상태일 때 표시할 에러 메시지 */
   errorMessage?: string;
   /** 도움말 메시지. `errorMessage`가 없을 때만 하단에 표시됩니다. */
@@ -37,6 +39,7 @@ interface TextareaFieldProps extends TextareaHTMLAttributes<HTMLTextAreaElement>
 const TextareaField = ({
   className,
   label,
+  labelClassName,
   errorMessage,
   caption,
   id,
@@ -55,7 +58,10 @@ const TextareaField = ({
   return (
     <div className="flex w-full flex-col gap-4">
       {label && (
-        <label className="typo-header4-regular text-layout-header" htmlFor={textareaId}>
+        <label
+          className={cn("typo-header4-regular text-layout-header", labelClassName)}
+          htmlFor={textareaId}
+        >
           {label}
         </label>
       )}
