@@ -22,6 +22,7 @@ import Activity from "@/assets/icons/activity.svg?react";
 import ClockBackward from "@/assets/icons/clock-backward.svg?react";
 import LightningFilled from "@/assets/icons/lightning-filled.svg?react";
 import TrendUp from "@/assets/icons/trend-up.svg?react";
+import Save from "@/assets/icons/save.svg?react";
 
 export const ICON_MAP = {
   alert: AlertIcon,
@@ -48,4 +49,5 @@ export const ICON_MAP = {
   clockBackward: ClockBackward,
   lightningFilled: LightningFilled,
   trendUp: TrendUp,
+  save: Save,
 } as const;
