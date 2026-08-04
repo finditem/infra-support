@@ -26,6 +26,7 @@ import Save from "@/assets/icons/save.svg?react";
 import LinkAngled from "@/assets/icons/link-angled.svg?react";
 import ChevronDown from "@/assets/icons/chevron-down.svg?react";
 import InfoMark from "@/assets/icons/info-mark.svg?react";
+import Settings from "@/assets/icons/settings.svg?react";
 
 export const ICON_MAP = {
   alert: AlertIcon,
@@ -56,4 +57,5 @@ export const ICON_MAP = {
   linkAngled: LinkAngled,
   chevronDown: ChevronDown,
   infoMark: InfoMark,
+  settings: Settings,
 } as const;
