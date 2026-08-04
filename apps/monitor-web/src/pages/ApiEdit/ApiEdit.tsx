@@ -1,4 +1,9 @@
-import { ApiDefaultInformation, ApiEditHeader, ApiEditTitle } from "./_components";
+import {
+  ApiDefaultInformation,
+  ApiEditHeader,
+  ApiEditTitle,
+  ApiOperationInformation,
+} from "./_components";
 
 const ApiEdit = () => {
   return (
@@ -7,6 +12,7 @@ const ApiEdit = () => {
         <ApiEditHeader />
         <ApiEditTitle />
         <ApiDefaultInformation />
+        <ApiOperationInformation />
       </div>
     </div>
   );
