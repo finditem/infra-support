@@ -77,3 +77,21 @@
 - [x] `KanbanColumn.tsx`/`KanbanCard.tsx`: `navigable`/`next/link` 방식 제거, `onSelect` 클릭 핸들러로 교체 (키보드 접근성 포함)
 - [x] `src/app/task/[id]/page.tsx`: `enableTaskNavigation` prop 제거 (더 이상 필요 없음)
 - [x] pnpm build / pnpm lint 검증
+
+## 바로가기 버튼 위치를 모달 헤더 대신 카드 상단으로 이동
+
+"바로가기" 버튼은 모달을 열어야만 보이는 것보다, 카드 상단(우선순위 배지와 같은 줄)에 오른쪽 정렬로 바로 노출되는 편이 낫다는 피드백 반영.
+
+- [x] `KanbanCard.tsx`: 우선순위 배지 줄에 `justify-between`으로 `parent_id`가 없는 일정에만 "바로가기" 링크(`/task/[id]`) 추가, 클릭 시 카드의 수정 모달 오픈(`onSelect`)이 함께 트리거되지 않도록 `stopPropagation` 처리
+- [x] `TaskCreateModal.tsx`: 모달 헤더의 "바로가기" 버튼/`showShortcut` 로직 제거 (카드로 일원화)
+- [x] pnpm build / pnpm lint 검증
+- [x] 바로가기 링크에 lucide-react `ExternalLink` 아이콘 추가 (`apps/schedule`에 `lucide-react` 의존성 신규 설치), 텍스트-아이콘 간격 `gap-0.5`로 조정
+- [x] `KanbanFilters.tsx`: 담당자/보고자/우선순위 select의 선택지 텍스트에도 "담당자: "/"보고자: "/"우선순위: " 접두어 추가 (선택 후 표시되는 값도 라벨이 붙도록)
+
+## 하위 일정이 있는 상위 일정의 메인 보드 상태를 하위 일정 상태로부터 계산
+
+상위 일정이 하위 일정을 가지면, 메인 칸반보드에서 상위 일정이 표시되는 컬럼을 상위 일정 자신의 status_id가 아니라 하위 일정들의 상태로부터 계산한다. 우선순위: 하나라도 지연됨/미완료 > 전부 완료 > 전부 검토 중 > 하나라도 시작(할 일이 아님) > (해당 없으면) 상위 일정 자신의 상태.
+
+- [x] `kanbanUtils.ts`: `resolveEffectiveStatusId(subtasks, statuses)` 추가
+- [x] `KanbanBoard.tsx`: `childrenByParent` 맵 추가, 컬럼별 필터링 시 `task.status_id` 대신 `effectiveStatusId(task)` 사용
+- [x] pnpm build / pnpm lint 검증

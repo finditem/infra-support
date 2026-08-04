@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
-import Link from "next/link";
 import { createTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
@@ -57,7 +56,6 @@ const TaskCreateModal = ({
 
   const weekLabel = getWeekLabel(getMonday(new Date(dueDate)));
   const isEditing = !!task;
-  const showShortcut = isEditing && !task.parent_id;
 
   const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -123,24 +121,14 @@ const TaskCreateModal = ({
               {isEditing ? " 일정 수정" : parentTitle ? " 새 하위 일정" : " 새 작업"}
             </strong>
           </span>
-          <div className="flex items-center gap-1.5">
-            {showShortcut && (
-              <Link
-                className="rounded-md border border-border px-2 py-1 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
-                href={`/task/${task.id}`}
-              >
-                바로가기
-              </Link>
-            )}
-            <button
-              aria-label="닫기"
-              className="flex size-6 items-center justify-center rounded-md bg-fill-neutural-subtle-default text-text-muted hover:bg-fill-neutural-subtle-hover"
-              type="button"
-              onClick={onClose}
-            >
-              ✕
-            </button>
-          </div>
+          <button
+            aria-label="닫기"
+            className="flex size-6 items-center justify-center rounded-md bg-fill-neutural-subtle-default text-text-muted hover:bg-fill-neutural-subtle-hover"
+            type="button"
+            onClick={onClose}
+          >
+            ✕
+          </button>
         </div>
 
         <div className="px-5 pt-[18px]">

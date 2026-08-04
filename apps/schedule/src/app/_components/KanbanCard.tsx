@@ -1,4 +1,6 @@
 import { format } from "date-fns";
+import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
 import { getInitial, isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
@@ -40,14 +42,27 @@ const KanbanCard = ({
         }
       }}
     >
-      <span
-        className={cn(
-          "w-fit rounded-full border px-2 py-[2px] text-[11px] font-semibold",
-          priority.badgeClassName
+      <div className="flex items-center justify-between">
+        <span
+          className={cn(
+            "w-fit rounded-full border px-2 py-[2px] text-[11px] font-semibold",
+            priority.badgeClassName
+          )}
+        >
+          {priority.label}
+        </span>
+
+        {!task.parent_id && (
+          <Link
+            className="flex items-center gap-0.5 rounded-md border border-border px-2 py-[2px] text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+            href={`/task/${task.id}`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            바로가기
+            <ExternalLink aria-hidden className="size-3" />
+          </Link>
         )}
-      >
-        {priority.label}
-      </span>
+      </div>
 
       <h3 className="text-sm font-semibold text-text-default">{task.title}</h3>
 

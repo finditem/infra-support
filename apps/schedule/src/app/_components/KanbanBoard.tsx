@@ -6,6 +6,7 @@ import {
   buildProfileColorMap,
   calculateMemberProgress,
   filterTasks,
+  resolveEffectiveStatusId,
   sortByPriorityDesc,
 } from "../_lib/kanbanUtils";
 import type { KanbanFilterState } from "../_types/kanban";
@@ -60,6 +61,18 @@ const KanbanBoard = ({
     return counts;
   }, [tasks]);
 
+  const childrenByParent = useMemo(() => {
+    const map = new Map<string, TasksRow[]>();
+    tasks.forEach((task) => {
+      if (!task.parent_id) return;
+      map.set(task.parent_id, [...(map.get(task.parent_id) ?? []), task]);
+    });
+    return map;
+  }, [tasks]);
+
+  const effectiveStatusId = (task: TasksRow) =>
+    resolveEffectiveStatusId(childrenByParent.get(task.id) ?? [], statuses) ?? task.status_id;
+
   const filteredTasks = useMemo(
     () => filterTasks(scopedTasks, filter, currentProfileId),
     [scopedTasks, filter, currentProfileId]
@@ -87,7 +100,7 @@ const KanbanBoard = ({
               statuses={statuses}
               subtaskCountByParent={subtaskCountByParent}
               tasks={sortByPriorityDesc(
-                filteredTasks.filter((task) => task.status_id === status.id)
+                filteredTasks.filter((task) => effectiveStatusId(task) === status.id)
               )}
               onAddTask={setCreatingStatusId}
               onSelectTask={setEditingTask}

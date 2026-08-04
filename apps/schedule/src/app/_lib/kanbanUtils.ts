@@ -91,6 +91,36 @@ export const isTaskOverdue = (task: TasksRow, statuses: TaskStatusesRow[]) => {
   );
 };
 
+/**
+ * 하위 일정이 있는 상위 일정이 메인 칸반보드에서 어느 상태 컬럼에 표시될지 계산한다.
+ * 우선순위: 하나라도 지연됨 > 하나라도 미완료 > 전부 완료 > 전부 검토 중 > 하나라도 시작(할 일이 아님) > 상위 일정 자신의 상태.
+ */
+export const resolveEffectiveStatusId = (
+  subtasks: TasksRow[],
+  statuses: TaskStatusesRow[]
+): string | null => {
+  if (subtasks.length === 0) return null;
+
+  const idByName = (name: string) => statuses.find((status) => status.name === name)?.id;
+  const todoId = idByName("할 일");
+  const inProgressId = idByName("진행 중");
+  const reviewId = idByName("검토 중");
+  const doneId = idByName("완료");
+  const delayedId = idByName("지연됨");
+  const incompleteId = idByName("미완료");
+
+  const some = (id: string | undefined) => !!id && subtasks.some((task) => task.status_id === id);
+  const every = (id: string | undefined) => !!id && subtasks.every((task) => task.status_id === id);
+
+  if (some(delayedId)) return delayedId!;
+  if (some(incompleteId)) return incompleteId!;
+  if (every(doneId)) return doneId!;
+  if (every(reviewId)) return reviewId!;
+  if (subtasks.some((task) => task.status_id !== todoId)) return inProgressId ?? null;
+
+  return null;
+};
+
 export const sortByPriorityDesc = (tasks: TasksRow[]) =>
   [...tasks].sort(
     (a, b) => PRIORITY_ORDER.indexOf(b.priority) - PRIORITY_ORDER.indexOf(a.priority)
