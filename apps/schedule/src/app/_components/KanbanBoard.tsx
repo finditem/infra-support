@@ -125,9 +125,13 @@ const KanbanBoard = ({
           }}
           onSaved={(saved) => {
             setTasks((prev) =>
-              prev.some((existing) => existing.id === saved.id)
-                ? prev.map((existing) => (existing.id === saved.id ? saved : existing))
-                : [...prev, saved]
+              saved.reduce(
+                (acc, row) =>
+                  acc.some((existing) => existing.id === row.id)
+                    ? acc.map((existing) => (existing.id === row.id ? row : existing))
+                    : [...acc, row],
+                prev
+              )
             );
             setCreatingStatusId(null);
             setEditingTask(null);

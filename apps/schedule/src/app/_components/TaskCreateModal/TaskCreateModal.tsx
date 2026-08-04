@@ -12,6 +12,12 @@ import PriorityPickerPopover from "./PriorityPickerPopover";
 import ProfilePickerPopover from "./ProfilePickerPopover";
 import StatusPickerPopover from "./StatusPickerPopover";
 
+interface SubtaskDraft {
+  id: string;
+  title: string;
+  body: string;
+}
+
 interface TaskCreateModalProps {
   weekId: string | null;
   statuses: TaskStatusesRow[];
@@ -22,7 +28,7 @@ interface TaskCreateModalProps {
   parentTitle?: string | null;
   task?: TasksRow | null;
   onClose: () => void;
-  onSaved: (task: TasksRow) => void;
+  onSaved: (tasks: TasksRow[]) => void;
 }
 
 const TaskCreateModal = ({
@@ -51,11 +57,24 @@ const TaskCreateModal = ({
   );
   const [statusId, setStatusId] = useState(task?.status_id ?? initialStatusId);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subtaskDrafts, setSubtaskDrafts] = useState<SubtaskDraft[]>([]);
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const weekLabel = getWeekLabel(getMonday(new Date(dueDate)));
   const isEditing = !!task;
+  const canAddSubtasks = !isEditing && !parentId;
+
+  const addSubtaskDraft = () =>
+    setSubtaskDrafts((prev) => [...prev, { id: crypto.randomUUID(), title: "", body: "" }]);
+
+  const updateSubtaskDraft = (id: string, patch: Partial<Omit<SubtaskDraft, "id">>) =>
+    setSubtaskDrafts((prev) =>
+      prev.map((draft) => (draft.id === id ? { ...draft, ...patch } : draft))
+    );
+
+  const removeSubtaskDraft = (id: string) =>
+    setSubtaskDrafts((prev) => prev.filter((draft) => draft.id !== id));
 
   const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -94,9 +113,36 @@ const TaskCreateModal = ({
           parentId,
         });
 
-    setIsSubmitting(false);
+    if (!saved) {
+      setIsSubmitting(false);
+      return;
+    }
 
-    if (saved) onSaved(saved);
+    const savedRows: TasksRow[] = [saved];
+
+    if (canAddSubtasks) {
+      for (const draft of subtaskDrafts) {
+        if (!draft.title.trim()) continue;
+
+        const savedSubtask = await createTask({
+          title: draft.title.trim(),
+          body: draft.body.trim() || null,
+          weekId,
+          statusId,
+          assigneeId: null,
+          reporterId: null,
+          priority: "medium",
+          dueDate,
+          createdBy: currentProfileId,
+          parentId: saved.id,
+        });
+
+        if (savedSubtask) savedRows.push(savedSubtask);
+      }
+    }
+
+    setIsSubmitting(false);
+    onSaved(savedRows);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -183,6 +229,53 @@ const TaskCreateModal = ({
             onChange={(event) => setBody(event.target.value)}
           />
         </div>
+
+        {canAddSubtasks && (
+          <div className="flex flex-col gap-2 border-t border-border px-5 py-3">
+            <span className="text-[11px] font-medium text-text-muted">하위 일정</span>
+
+            {subtaskDrafts.map((draft) => (
+              <div
+                key={draft.id}
+                className="flex flex-col gap-1 rounded-[10px] border border-border p-2.5"
+              >
+                <div className="flex items-center gap-1.5">
+                  <input
+                    className="w-full border-none text-[13px] font-medium text-text-default outline-none placeholder:text-text-muted/50"
+                    placeholder="하위 일정 제목"
+                    type="text"
+                    value={draft.title}
+                    onChange={(event) =>
+                      updateSubtaskDraft(draft.id, { title: event.target.value })
+                    }
+                  />
+                  <button
+                    aria-label="하위 일정 삭제"
+                    className="flex size-5 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
+                    type="button"
+                    onClick={() => removeSubtaskDraft(draft.id)}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <textarea
+                  className="min-h-10 w-full resize-none border-none text-xs leading-[1.6] text-text-muted outline-none placeholder:text-text-muted/50"
+                  placeholder="설명을 추가하세요..."
+                  value={draft.body}
+                  onChange={(event) => updateSubtaskDraft(draft.id, { body: event.target.value })}
+                />
+              </div>
+            ))}
+
+            <button
+              className="rounded-[10px] border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary"
+              type="button"
+              onClick={addSubtaskDraft}
+            >
+              + 하위 일정 추가
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center justify-between border-t border-border px-[18px] py-3.5">
           <span className="flex items-center gap-1 text-[11px] text-text-muted/60">

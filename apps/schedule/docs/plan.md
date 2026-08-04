@@ -95,3 +95,13 @@
 - [x] `kanbanUtils.ts`: `resolveEffectiveStatusId(subtasks, statuses)` 추가
 - [x] `KanbanBoard.tsx`: `childrenByParent` 맵 추가, 컬럼별 필터링 시 `task.status_id` 대신 `effectiveStatusId(task)` 사용
 - [x] pnpm build / pnpm lint 검증
+
+## 메인 칸반보드의 "새 작업" 모달에서 하위 일정 함께 추가
+
+메인 칸반보드에서 새 상위 일정을 만들 때, 같은 모달 안에서 하위 일정(제목 + 설명)을 여러 개 추가할 수 있어야 한다. 단 이 UI는 메인 보드의 신규 작업 생성(`!isEditing && !parentId`)에서만 노출되고, `/task/[id]`(하위 일정 생성)나 기존 일정 수정 모달에서는 지금처럼 동일하게 유지한다.
+
+- [x] `TaskCreateModal.tsx`: `subtaskDrafts` 상태(제목/설명 배열) 추가, `canAddSubtasks = !isEditing && !parentId`일 때만 "+ 하위 일정 추가" UI 노출
+- [x] `handleSubmit`: 상위 일정 생성 후 `canAddSubtasks`면 draft마다 `createTask(parentId: 상위 id)` 순차 호출, 제목 비어있는 draft는 건너뜀
+- [x] `onSaved` 콜백 시그니처를 단일 `TasksRow` → `TasksRow[]`로 변경 (상위 일정 + 생성된 하위 일정들을 한 번에 전달)
+- [x] `KanbanBoard.tsx`: `onSaved` 핸들러가 배열을 순회하며 `tasks` 상태에 upsert하도록 수정
+- [x] pnpm build / pnpm lint 검증
