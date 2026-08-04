@@ -1,4 +1,4 @@
-import { ApiEditHeader, ApiEditTitle } from "./_components";
+import { ApiDefaultInformation, ApiEditHeader, ApiEditTitle } from "./_components";
 
 const ApiEdit = () => {
   return (
@@ -6,6 +6,7 @@ const ApiEdit = () => {
       <div className="flex flex-col gap-6">
         <ApiEditHeader />
         <ApiEditTitle />
+        <ApiDefaultInformation />
       </div>
     </div>
   );
