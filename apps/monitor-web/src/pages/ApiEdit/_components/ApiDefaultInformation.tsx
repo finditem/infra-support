@@ -35,7 +35,7 @@ const ApiDefaultInformation = () => {
           caption="Caption"
           defaultValue=""
           label="API 설명"
-          labelClassName="typo-header4-bold"
+          labelClassName="!typo-header4-bold"
           maxLength={500}
           placeholder="예 : 카카오 지도 표시"
         />
