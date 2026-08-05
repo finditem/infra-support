@@ -1,4 +1,4 @@
-import { BasicButton, Icon } from "@/components";
+import ApiEditSaveButton from "./ApiEditSaveButton";
 
 const ApiEditTitle = () => {
   return (
@@ -9,12 +9,7 @@ const ApiEditTitle = () => {
           모니터링 목록과 상세 페이지에 노출되는 정보를 수정합니다.
         </p>
       </div>
-      <BasicButton className="min-h-[56px] min-w-[247px] border border-border-neutural-normal-default bg-white py-4 text-[#ACACAC]">
-        <span className="flex items-center gap-2">
-          <Icon name="save" size={20} />
-          <span className="typo-header4-semibold">저장</span>
-        </span>
-      </BasicButton>
+      <ApiEditSaveButton />
     </div>
   );
 };

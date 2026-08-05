@@ -1,5 +1,6 @@
 import {
   ApiDefaultInformation,
+  ApiEditActionBar,
   ApiEditHeader,
   ApiEditTitle,
   ApiOperationInformation,
@@ -7,13 +8,14 @@ import {
 
 const ApiEdit = () => {
   return (
-    <div className="mx-auto min-w-[1154px]">
-      <div className="flex flex-col gap-6">
+    <div className="-mx-8">
+      <div className="mx-auto flex max-w-[1154px] flex-col gap-6 px-8">
         <ApiEditHeader />
         <ApiEditTitle />
         <ApiDefaultInformation />
         <ApiOperationInformation />
       </div>
+      <ApiEditActionBar />
     </div>
   );
 };
