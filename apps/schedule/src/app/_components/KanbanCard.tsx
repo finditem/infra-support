@@ -57,6 +57,7 @@ const KanbanCard = ({
             className="flex items-center gap-0.5 rounded-md border border-border px-2 py-[2px] text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
             href={`/task/${task.id}`}
             onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
           >
             바로가기
             <ExternalLink aria-hidden className="size-3" />

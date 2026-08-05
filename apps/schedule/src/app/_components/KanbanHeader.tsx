@@ -16,7 +16,7 @@ const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
         <Link
           aria-label="이전 주"
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
-          href={`/?week=${prevWeekParam}`}
+          href={`?week=${prevWeekParam}`}
         >
           ‹
         </Link>
@@ -26,7 +26,7 @@ const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
         <Link
           aria-label="다음 주"
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
-          href={`/?week=${nextWeekParam}`}
+          href={`?week=${nextWeekParam}`}
         >
           ›
         </Link>

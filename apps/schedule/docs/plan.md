@@ -105,3 +105,10 @@
 - [x] `onSaved` 콜백 시그니처를 단일 `TasksRow` → `TasksRow[]`로 변경 (상위 일정 + 생성된 하위 일정들을 한 번에 전달)
 - [x] `KanbanBoard.tsx`: `onSaved` 핸들러가 배열을 순회하며 `tasks` 상태에 upsert하도록 수정
 - [x] pnpm build / pnpm lint 검증
+
+## PR 전 코드리뷰 반영
+
+- [x] `KanbanCard.tsx`: "바로가기" `Link`의 `onKeyDown`에 `stopPropagation` 추가 — 키보드로 링크에 포커스 후 Enter를 누르면 부모 카드(`role="button"`)의 keydown 핸들러로 이벤트가 버블링되어 `preventDefault()`가 링크의 기본 이동 동작을 막고 대신 편집 모달이 열리던 버그 수정
+- [x] `TaskCreateModal.tsx`: 하위 일정 draft 중 일부 생성이 실패해도 조용히 무시되던 것을, 실패한 draft 제목을 모아 `window.alert`로 안내하도록 수정 (성공한 항목은 그대로 저장됨)
+- [x] `KanbanHeader.tsx`: 주차 이동 링크를 `/?week=...` → `?week=...`로 변경 (상대 경로, 불필요한 `/` 제거)
+- [ ] (다음 작업으로 분리) 하위 일정 draft에 담당자/보고자/우선순위를 지정할 수 있게 하는 것 — 현재는 항상 담당자/보고자 없음, 우선순위 "중간"으로 고정 생성됨

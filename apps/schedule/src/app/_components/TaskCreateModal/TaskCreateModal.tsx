@@ -119,6 +119,7 @@ const TaskCreateModal = ({
     }
 
     const savedRows: TasksRow[] = [saved];
+    const failedTitles: string[] = [];
 
     if (canAddSubtasks) {
       for (const draft of subtaskDrafts) {
@@ -137,12 +138,20 @@ const TaskCreateModal = ({
           parentId: saved.id,
         });
 
-        if (savedSubtask) savedRows.push(savedSubtask);
+        if (savedSubtask) {
+          savedRows.push(savedSubtask);
+        } else {
+          failedTitles.push(draft.title.trim());
+        }
       }
     }
 
     setIsSubmitting(false);
     onSaved(savedRows);
+
+    if (failedTitles.length > 0) {
+      window.alert(`다음 하위 일정 생성에 실패했습니다: ${failedTitles.join(", ")}`);
+    }
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
