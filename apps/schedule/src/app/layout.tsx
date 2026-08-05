@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 import "./globals.css";
 
@@ -14,6 +15,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
+          <ThemeToggle />
         </ThemeProvider>
       </body>
     </html>

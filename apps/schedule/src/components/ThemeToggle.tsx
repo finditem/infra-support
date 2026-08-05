@@ -13,7 +13,7 @@ export const ThemeToggle = () => {
   }, []);
 
   if (!mounted) {
-    return <div className="size-8" />;
+    return null;
   }
 
   const isDark = resolvedTheme === "dark";
@@ -21,11 +21,11 @@ export const ThemeToggle = () => {
   return (
     <button
       aria-label={isDark ? "라이트 모드로 전환" : "다크 모드로 전환"}
-      className="flex size-8 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover hover:text-text-default"
+      className="fixed bottom-6 right-6 z-[300] flex size-12 items-center justify-center rounded-full border border-border bg-surface-elevated text-text-default shadow-[0_8px_24px_rgba(0,0,0,0.16)] hover:bg-fill-neutural-subtle-hover dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
-      {isDark ? <Sun size={16} /> : <Moon size={16} />}
+      {isDark ? <Sun size={20} /> : <Moon size={20} />}
     </button>
   );
 };
