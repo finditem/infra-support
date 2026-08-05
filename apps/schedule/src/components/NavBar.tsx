@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "./SignOutButton";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/", label: "일정" },
@@ -34,7 +35,10 @@ export const NavBar = () => {
         </div>
       </div>
 
-      <SignOutButton />
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <SignOutButton />
+      </div>
     </nav>
   );
 };

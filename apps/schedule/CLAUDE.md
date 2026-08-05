@@ -50,7 +50,7 @@ monitor-web과 동일하게 `packages/design-tokens`를 그대로 사용한다 (
 
 주요 색상 토큰: `primary`/`primary-hover`(블루), `secondary`(퍼플), `surface`/`surface-elevated`(배경), `text-default`/`text-muted`/`text-inverse`(텍스트), `border`(보더), `success`/`warning`/`error`, `fg-state-error` 등. 전체 목록은 `packages/design-tokens/dist/tailwind/preset.cjs` 참고. 폰트는 `font-family-base: Pretendard, sans-serif` 토큰을 쓰지만 monitor-web과 마찬가지로 별도 폰트 파일 로드는 하지 않는다(시스템 폴백).
 
-앱 전용 다크 테마(DESIGN.md 기반)는 채택하지 않기로 했다 — 모노레포 전체 색상 일관성을 우선했다.
+라이트/다크 모드를 지원한다. `packages/design-tokens`는 라이트 전용 단일 모드라 건드리지 않고, `apps/schedule` 앱 레벨에서만 처리한다: `tailwind.config.ts`에 `darkMode: "class"`를 지정하고, 실제 쓰이는 토큰(`primary`, `surface`, `text-default`, `border` 등)을 `theme.extend.colors`에서 `var(--color-*)` 참조로 오버라이드한 뒤 `globals.css`의 `:root`/`.dark`에 라이트·다크 값을 각각 정의한다. 전환은 `next-themes`(`ThemeProvider`, `layout.tsx`)로 처리하고 토글 버튼은 `src/components/ThemeToggle.tsx`, `NavBar.tsx`에 있다. 상태(`task_statuses`) 배지처럼 DB 값을 인라인 style로 쓰는 색상은 `color`(라이트)/`color_dark`(다크) 두 컬럼을 두고 `kanbanUtils.ts`의 `getStatusColor` 헬퍼로 선택한다. Tailwind 기본 팔레트를 직접 참조하는 우선순위 배지(`PRIORITY_META`)는 `dark:` variant 클래스를 추가하는 방식으로 대응한다.
 
 ## 범위 (뼈대 세팅 기준)
 
