@@ -68,5 +68,5 @@
 - [x] `KanbanColumn.tsx`, `StatusPickerPopover.tsx`의 상태색 인라인 style을 헬퍼 기반으로 교체
 - [x] `kanbanUtils.ts`의 `PRIORITY_META.badgeClassName`에 dark: variant 클래스 추가 (이 브랜치에는 cardBorderClassName 없음)
 - [x] `apps/schedule/CLAUDE.md`의 "앱 전용 다크 테마 미채택" 문구를 다크모드 구현 방식으로 갱신
-- [ ] Supabase 마이그레이션 적용 (사용자 확인 후)
-- [ ] pnpm build / pnpm lint 검증 (사용자 확인 후)
+- [x] Supabase 마이그레이션 적용 (사용자가 대시보드 SQL Editor에서 직접 실행)
+- [x] pnpm build / pnpm lint 검증 (통과 확인)
