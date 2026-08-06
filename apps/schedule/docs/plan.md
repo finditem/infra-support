@@ -53,3 +53,14 @@
 - [x] createTask 서버 액션 추가 (title/body/assignee/reporter/priority/due_date/status_id/week_id 전부 insert, created_by는 현재 로그인 프로필) — `_lib/actions.ts` (기존 addQuickTask는 대체되어 제거)
 - [x] KanbanColumn "+ 일정 추가" 클릭 시 addQuickTask 즉시 생성 대신 TaskCreateModal 오픈으로 변경, statusId를 모달 기본 상태값으로 전달 — `KanbanBoard.tsx`, `KanbanColumn.tsx`
 - [x] pnpm build / pnpm lint 검증
+
+## 캘린더 날짜 셀 레이아웃 시프트 수정 + 공휴일 빨간색 표시 (팀원 피드백)
+
+`CalendarGrid.tsx`의 날짜 숫자가 문서 흐름(static position)에 있어 셀 내용에 따라 위치가 밀릴 수 있는 문제를 좌상단 고정으로 수정하고, 공휴일 날짜를 빨간색으로 표시한다.
+
+- [x] `date-holidays` 패키지 추가 (정적 하드코딩 대신 연도별 한국 공휴일을 계산 — 대체공휴일/음력 명절 포함)
+- [x] `_lib/holidays.ts` 신규 작성: `getHolidayDates(years: number[]): string[]` — 서버 컴포넌트(`calendar/page.tsx`)에서만 호출해 클라이언트 번들에 포함되지 않도록 함
+- [x] `calendar/page.tsx`: 조회 월 기준 연도-1~연도+1의 공휴일을 계산해 `CalendarView` → `CalendarGrid`로 `holidayDates` prop 전달 (그리드가 인접 연도로 넘어가는 경우 대비)
+- [x] `CalendarGrid.tsx`: 날짜 셀 버튼을 `relative`로 만들고 날짜 숫자 `span`을 `absolute left-2 top-2`로 좌상단 고정, 가능 시간 블록 목록에 `mt-[30px]` 추가해 겹치지 않도록 조정
+- [x] `CalendarGrid.tsx`: 날짜 숫자 색상 조건에 공휴일(`isHoliday`) 분기 추가 (`text-fg-state-error`, 요일 헤더 일요일과 동일 토큰), 오늘 강조(`isToday`)가 최우선
+- [x] pnpm build / pnpm lint 검증
