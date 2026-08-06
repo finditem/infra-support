@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, useId } from "react";
+import { InputHTMLAttributes, ReactNode, useId } from "react";
 import { cn } from "@/utils";
 import ClearButton from "../buttons/ClearButton";
 
@@ -17,6 +17,8 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   id?: string;
   /** input 위에 표시되는 레이블 텍스트 */
   label?: string;
+  /** label 요소에 적용할 추가 클래스. 기본 타이포그래피를 덮어씁니다. */
+  labelClassName?: string;
   /** 에러 메시지. 전달 시 에러 스타일이 적용되고 하단에 표시됩니다. */
   errorMessage?: string;
   /** 도움말 메시지. `errorMessage`가 없을 때만 하단에 표시됩니다. */
@@ -25,6 +27,8 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   className?: string;
   /** 입력값을 초기화하는 핸들러. 이 함수가 전달되고 값이 존재하면 ClearButton이 노출됩니다. */
   onClear?: () => void;
+  /** input 우측에 표시할 아이콘. ClearButton이 노출되는 동안에는 표시되지 않습니다. */
+  endIcon?: ReactNode;
 }
 
 /**
@@ -50,12 +54,14 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
 const TextField = ({
   id,
   label,
+  labelClassName,
   errorMessage,
   caption,
   className,
   value,
   disabled,
   onClear,
+  endIcon,
   ...props
 }: TextFieldProps) => {
   const generatedId = useId();
@@ -63,12 +69,17 @@ const TextField = ({
   const errorId = errorMessage ? `${inputId}-error` : undefined;
   const captionId = caption && !errorMessage ? `${inputId}-caption` : undefined;
   const showClearButton = !disabled && !!value && !!onClear;
+  const showEndIcon = !showClearButton && !!endIcon;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex w-full flex-col gap-3">
       {label && (
-        <label className="typo-body2-regular text-layout-header" htmlFor={inputId}>
+        <label
+          className={cn("typo-body2-regular text-layout-header", labelClassName)}
+          htmlFor={inputId}
+        >
           {label}
+          {props.required && <span className="text-error"> *</span>}
         </label>
       )}
 
@@ -85,7 +96,7 @@ const TextField = ({
             "focus:text-fg-neutural-focused",
             "disabled:cursor-not-allowed disabled:bg-fill-neutural-iversed-disabled disabled:text-fg-neutural-disabled",
             errorMessage && "border-error",
-            showClearButton && "pr-12",
+            (showClearButton || showEndIcon) && "pr-12",
             className
           )}
           disabled={disabled}
@@ -95,6 +106,7 @@ const TextField = ({
         {showClearButton && (
           <ClearButton className="absolute right-4" onClick={() => onClear?.()} />
         )}
+        {showEndIcon && <span className="absolute right-4 flex-center">{endIcon}</span>}
       </div>
 
       {errorMessage && (

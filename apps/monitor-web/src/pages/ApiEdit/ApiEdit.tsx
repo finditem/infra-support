@@ -1,11 +1,21 @@
-import { useParams } from "react-router-dom";
+import {
+  ApiDefaultInformation,
+  ApiEditActionBar,
+  ApiEditHeader,
+  ApiEditTitle,
+  ApiOperationInformation,
+} from "./_components";
 
 const ApiEdit = () => {
-  const { apiId } = useParams<{ apiId: string }>();
-
   return (
-    <div>
-      <h1>API 수정 - {apiId}</h1>
+    <div className="-mx-8">
+      <div className="mx-auto flex max-w-[1154px] flex-col gap-6 px-8">
+        <ApiEditHeader />
+        <ApiEditTitle />
+        <ApiDefaultInformation />
+        <ApiOperationInformation />
+      </div>
+      <ApiEditActionBar />
     </div>
   );
 };
