@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
+import { CornerDownLeft } from "lucide-react";
 import { createTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
@@ -292,7 +293,7 @@ const TaskCreateModal = ({
               ⌘
             </kbd>
             <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
-              ⏎
+              <CornerDownLeft aria-hidden className="size-2.5" />
             </kbd>
             {isEditing ? "으로 수정" : "으로 등록"}
           </span>

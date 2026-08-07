@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 interface TaskDetailHeaderProps {
@@ -11,7 +12,8 @@ const TaskDetailHeader = ({ title }: TaskDetailHeaderProps) => {
         className="flex items-center gap-1 text-sm font-medium text-text-muted hover:text-text-default"
         href="/"
       >
-        ← 목록으로
+        <ArrowLeft aria-hidden className="size-4" />
+        목록으로
       </Link>
       <h1 className="text-lg font-semibold text-text-default">{title}</h1>
     </header>

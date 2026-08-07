@@ -27,7 +27,7 @@ const KanbanCard = ({
   const overdue = isTaskOverdue(task, statuses);
 
   return (
-    <article
+    <div
       role="button"
       tabIndex={0}
       className={cn(
@@ -45,7 +45,7 @@ const KanbanCard = ({
       <div className="flex items-center justify-between">
         <span
           className={cn(
-            "w-fit rounded-full border px-2 py-[2px] text-[11px] font-semibold",
+            "w-fit rounded-full border px-2 py-0.5 text-[11px] font-semibold",
             priority.badgeClassName
           )}
         >
@@ -54,7 +54,7 @@ const KanbanCard = ({
 
         {!task.parent_id && (
           <Link
-            className="flex items-center gap-0.5 rounded-md border border-border px-2 py-[2px] text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+            className="flex items-center gap-0.5 rounded-md border border-border px-2 py-0.5 text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
             href={`/task/${task.id}`}
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
@@ -109,7 +109,7 @@ const KanbanCard = ({
           하위 일정 {subtaskCount}개
         </p>
       )}
-    </article>
+    </div>
   );
 };
 
