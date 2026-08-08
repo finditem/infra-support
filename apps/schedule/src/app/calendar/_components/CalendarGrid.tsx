@@ -101,6 +101,7 @@ const CalendarGrid = ({
                       className="truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-white"
                       style={{ backgroundColor: profile?.color ?? "#9CA3AF" }}
                     >
+                      {profile && `${profile.name.slice(1)} `}
                       {block.startTime}~{block.endTime}
                     </span>
                   );

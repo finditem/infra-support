@@ -182,3 +182,10 @@
 
 - [x] `CalendarHeader.tsx`: `h1` "캘린더" 텍스트 제거, `KanbanHeader.tsx`에서 "메인 칸반보드" 텍스트를 지웠을 때와 동일하게 `justify-between` → `justify-end`로 변경해 네비게이션 그룹이 오른쪽 정렬되도록 유지
 - [x] pnpm build / pnpm lint 검증
+
+## 가능 시간 블록에 팀원 이름(성 제외) 표시
+
+`CalendarGrid.tsx`의 시간 블록이 색상만으로 팀원을 구분하고 있어서, 시간 앞에 이름에서 성을 뗀 부분("이수현" → "수현")을 붙여 누구의 가능 시간인지 바로 알 수 있게 한다.
+
+- [x] `CalendarGrid.tsx`: 시간 블록에 `profile.name.slice(1)` (성 제외 이름) + 공백을 시간 앞에 표시
+- [x] pnpm build / pnpm lint 검증
