@@ -1,6 +1,7 @@
 type TaskStatusesWritable = {
   name: string;
   color: string;
+  color_dark: string;
   order_index: number;
   created_at: string | null;
 };

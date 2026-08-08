@@ -1,4 +1,8 @@
+"use client";
+
+import { useTheme } from "next-themes";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
+import { getStatusColor } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
 import KanbanCard from "./KanbanCard";
 
@@ -8,8 +12,8 @@ interface KanbanColumnProps {
   tasks: TasksRow[];
   profileMap: Map<string, ProfileWithColor>;
   subtaskCountByParent: Map<string, number>;
-  disabled: boolean;
   onAddTask: (statusId: string) => void;
+  onSelectTask: (task: TasksRow) => void;
 }
 
 const KanbanColumn = ({
@@ -18,9 +22,11 @@ const KanbanColumn = ({
   tasks,
   profileMap,
   subtaskCountByParent,
-  disabled,
   onAddTask,
+  onSelectTask,
 }: KanbanColumnProps) => {
+  const { resolvedTheme } = useTheme();
+
   return (
     <div className="w-[260px] shrink-0">
       <div className="mb-3 flex items-center justify-between px-1">
@@ -28,7 +34,7 @@ const KanbanColumn = ({
           <span
             aria-hidden
             className="size-2 rounded-full"
-            style={{ backgroundColor: status.color }}
+            style={{ backgroundColor: getStatusColor(status, resolvedTheme === "dark") }}
           />
           <span className="text-sm font-semibold text-text-default">{status.name}</span>
         </div>
@@ -46,12 +52,12 @@ const KanbanColumn = ({
             statuses={statuses}
             subtaskCount={subtaskCountByParent.get(task.id) ?? 0}
             task={task}
+            onSelect={() => onSelectTask(task)}
           />
         ))}
 
         <button
-          className="mt-1 rounded-[10px] border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary disabled:opacity-50"
-          disabled={disabled}
+          className="mt-1 rounded-[10px] border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary"
           type="button"
           onClick={() => onAddTask(status.id)}
         >

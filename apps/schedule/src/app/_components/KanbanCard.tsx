@@ -1,14 +1,10 @@
 import { format } from "date-fns";
+import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
-import { getInitial, isTaskOverdue } from "../_lib/kanbanUtils";
+import { getInitial, isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
-
-const PRIORITY_BADGE: Record<TasksRow["priority"], { label: string; className: string }> = {
-  high: { label: "높음", className: "border-red-200 bg-red-50 text-red-700" },
-  medium: { label: "중간", className: "border-amber-200 bg-amber-50 text-amber-700" },
-  low: { label: "낮음", className: "border-emerald-200 bg-emerald-50 text-emerald-700" },
-};
 
 interface KanbanCardProps {
   task: TasksRow;
@@ -16,22 +12,58 @@ interface KanbanCardProps {
   reporter: ProfileWithColor | null;
   subtaskCount: number;
   statuses: TaskStatusesRow[];
+  onSelect: () => void;
 }
 
-const KanbanCard = ({ task, assignee, reporter, subtaskCount, statuses }: KanbanCardProps) => {
-  const priority = PRIORITY_BADGE[task.priority];
+const KanbanCard = ({
+  task,
+  assignee,
+  reporter,
+  subtaskCount,
+  statuses,
+  onSelect,
+}: KanbanCardProps) => {
+  const priority = PRIORITY_META[task.priority];
   const overdue = isTaskOverdue(task, statuses);
 
   return (
-    <article className="flex flex-col gap-2 rounded-[10px] border border-border bg-surface-elevated p-3 transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
-      <span
-        className={cn(
-          "w-fit rounded-full border px-2 py-[2px] text-[11px] font-semibold",
-          priority.className
+    <div
+      role="button"
+      tabIndex={0}
+      className={cn(
+        "flex cursor-pointer flex-col gap-2 rounded-[10px] border bg-surface-elevated p-3 text-left transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
+        priority.cardBorderClassName
+      )}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <span
+          className={cn(
+            "w-fit rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+            priority.badgeClassName
+          )}
+        >
+          {priority.label}
+        </span>
+
+        {!task.parent_id && (
+          <Link
+            className="flex items-center gap-0.5 rounded-md border border-border px-2 py-0.5 text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+            href={`/task/${task.id}`}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            바로가기
+            <ExternalLink aria-hidden className="size-3" />
+          </Link>
         )}
-      >
-        {priority.label}
-      </span>
+      </div>
 
       <h3 className="text-sm font-semibold text-text-default">{task.title}</h3>
 
@@ -77,7 +109,7 @@ const KanbanCard = ({ task, assignee, reporter, subtaskCount, statuses }: Kanban
           하위 일정 {subtaskCount}개
         </p>
       )}
-    </article>
+    </div>
   );
 };
 
