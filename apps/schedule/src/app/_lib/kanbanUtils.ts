@@ -39,6 +39,11 @@ export const getWeekLabel = (weekStart: Date) => {
 
 export const getInitial = (name: string) => name.slice(-1);
 
+export const getStatusColor = (
+  status: Pick<TaskStatusesRow, "color" | "color_dark">,
+  isDark: boolean
+) => (isDark ? status.color_dark : status.color);
+
 export const PRIORITY_ORDER: TasksRow["priority"][] = ["low", "medium", "high"];
 
 export const PRIORITY_META: Record<
@@ -48,19 +53,22 @@ export const PRIORITY_META: Record<
   high: {
     label: "높음",
     color: "#EF4444",
-    badgeClassName: "border-red-200 bg-red-50 text-red-700",
+    badgeClassName:
+      "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300",
     cardBorderClassName: "border-red-300",
   },
   medium: {
     label: "중간",
     color: "#F59E0B",
-    badgeClassName: "border-amber-200 bg-amber-50 text-amber-700",
+    badgeClassName:
+      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
     cardBorderClassName: "border-amber-300",
   },
   low: {
     label: "낮음",
     color: "#10B981",
-    badgeClassName: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    badgeClassName:
+      "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
     cardBorderClassName: "border-emerald-300",
   },
 };

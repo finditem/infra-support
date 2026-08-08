@@ -54,6 +54,23 @@
 - [x] KanbanColumn "+ 일정 추가" 클릭 시 addQuickTask 즉시 생성 대신 TaskCreateModal 오픈으로 변경, statusId를 모달 기본 상태값으로 전달 — `KanbanBoard.tsx`, `KanbanColumn.tsx`
 - [x] pnpm build / pnpm lint 검증
 
+## 라이트/다크 모드 도입
+
+- [x] next-themes, lucide-react 의존성 추가, `tailwind.config.ts`에 `darkMode: "class"` 추가
+- [x] `layout.tsx`에 `suppressHydrationWarning` + `ThemeProvider`(attribute="class", defaultTheme="system", enableSystem) 적용
+- [x] `src/components/ThemeToggle.tsx` 신설 (lucide-react Sun/Moon, useTheme), `NavBar.tsx`에 배치
+- [x] `globals.css`에 `:root`/`.dark` CSS 변수 세트 추가 (primary, primary-hover, surface, surface-elevated, text-default, text-muted, text-inverse, border, fg-state-error, fill-neutural-subtle-default, fill-neutural-subtle-hover)
+- [x] `tailwind.config.ts`의 `theme.extend.colors`에서 위 토큰들을 `var(--color-*)` 참조로 오버라이드
+- [x] `TaskCreateModal.tsx`, `AvailabilityTimePicker.tsx`의 임의값 shadow에 dark: variant 추가
+- [x] `supabase/migrations/0002_add_task_status_dark_color.sql` 작성 (task_statuses.color_dark 컬럼 추가, 6개 상태 color/color_dark 갱신)
+- [x] `src/types/tables/task_statuses.ts`에 `color_dark` 필드 추가
+- [x] `kanbanUtils.ts`에 라이트/다크 상태색 선택 헬퍼(`getStatusColor`) 추가
+- [x] `KanbanColumn.tsx`, `StatusPickerPopover.tsx`의 상태색 인라인 style을 헬퍼 기반으로 교체
+- [x] `kanbanUtils.ts`의 `PRIORITY_META.badgeClassName`에 dark: variant 클래스 추가
+- [x] `apps/schedule/CLAUDE.md`의 "앱 전용 다크 테마 미채택" 문구를 다크모드 구현 방식으로 갱신
+- [x] Supabase 마이그레이션 적용 (사용자가 대시보드 SQL Editor에서 직접 실행)
+- [x] pnpm build / pnpm lint 검증 (통과 확인)
+
 ## 하위 일정 전용 페이지 (일정 중첩, 2단계까지)
 
 일정(a)을 클릭하면 `/task/[id]`로 이동해 a의 하위 일정(1,2,3...)을 기존 칸반보드와 동일한 UI로 보여준다. a 자체의 상세 편집(제목/본문/속성/삭제)과 3단계 이상 중첩은 이번 범위 밖.
