@@ -64,3 +64,12 @@
 - [x] `CalendarGrid.tsx`: 날짜 셀 버튼을 `relative`로 만들고 날짜 숫자 `span`을 `absolute left-2 top-2`로 좌상단 고정, 가능 시간 블록 목록에 `mt-[30px]` 추가해 겹치지 않도록 조정
 - [x] `CalendarGrid.tsx`: 날짜 숫자 색상 조건에 공휴일(`isHoliday`) 분기 추가 (`text-fg-state-error`, 요일 헤더 일요일과 동일 토큰), 오늘 강조(`isToday`)가 최우선
 - [x] pnpm build / pnpm lint 검증
+
+## 캘린더 헤더에 연/월 직접 선택 팝오버 추가
+
+이전/다음 달 화살표만 있던 월 이동 UI에, 월 라벨을 클릭하면 연도 네비게이션 + 12개월 그리드로 원하는 연/월을 바로 선택할 수 있는 팝오버를 추가한다.
+
+- [x] `PropertyPopover.tsx`: `label` prop을 옵셔널로 변경 (없으면 라벨 span 미노출) — 헤더처럼 label 없이 트리거만 필요한 곳에서도 재사용
+- [x] `calendar/_components/MonthPickerPopover.tsx` 신규 작성: `PropertyPopover` 재사용, 연도 네비게이션(‹ yyyy년 ›) + 1~12월 3x4 그리드, 현재 조회 중인 연/월 강조, 선택 시 `router.push(/calendar?month=yyyy-MM-01)`
+- [x] `CalendarHeader.tsx`: 월 라벨 `span`을 `MonthPickerPopover`로 교체
+- [x] pnpm build / pnpm lint 검증

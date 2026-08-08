@@ -1,5 +1,6 @@
 import { addMonths, format } from "date-fns";
 import Link from "next/link";
+import MonthPickerPopover from "./MonthPickerPopover";
 
 interface CalendarHeaderProps {
   monthLabel: string;
@@ -22,9 +23,7 @@ const CalendarHeader = ({ monthLabel, monthStart }: CalendarHeaderProps) => {
         >
           ‹
         </Link>
-        <span className="min-w-[110px] text-center text-sm font-medium text-text-default">
-          {monthLabel}
-        </span>
+        <MonthPickerPopover monthLabel={monthLabel} monthStart={monthStart} />
         <Link
           aria-label="다음 달"
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"

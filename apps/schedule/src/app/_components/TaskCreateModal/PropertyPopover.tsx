@@ -7,13 +7,22 @@ import { cn } from "@/utils";
 const GAP = 4;
 
 interface PropertyPopoverProps {
-  label: string;
+  label?: string;
   trigger: React.ReactNode;
+  triggerClassName?: string;
   panelClassName?: string;
+  align?: "left" | "center";
   children: (close: () => void) => React.ReactNode;
 }
 
-const PropertyPopover = ({ label, trigger, panelClassName, children }: PropertyPopoverProps) => {
+const PropertyPopover = ({
+  label,
+  trigger,
+  triggerClassName,
+  panelClassName,
+  align = "left",
+  children,
+}: PropertyPopoverProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -26,14 +35,18 @@ const PropertyPopover = ({ label, trigger, panelClassName, children }: PropertyP
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const panelHeight = panelRef.current?.offsetHeight ?? 0;
+    const panelWidth = panelRef.current?.offsetWidth ?? 0;
     const spaceBelow = window.innerHeight - triggerRect.bottom;
     const showAbove = panelHeight > 0 && spaceBelow < panelHeight + GAP;
 
     setPosition({
       top: showAbove ? triggerRect.top - panelHeight - GAP : triggerRect.bottom + GAP,
-      left: triggerRect.left,
+      left:
+        align === "center"
+          ? triggerRect.left + triggerRect.width / 2 - panelWidth / 2
+          : triggerRect.left,
     });
-  }, [isOpen]);
+  }, [isOpen, align]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -53,11 +66,16 @@ const PropertyPopover = ({ label, trigger, panelClassName, children }: PropertyP
     <>
       <button
         ref={triggerRef}
-        className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left transition hover:bg-fill-neutural-subtle-hover"
+        className={cn(
+          "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left transition hover:bg-fill-neutural-subtle-hover",
+          triggerClassName
+        )}
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
       >
-        <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">{label}</span>
+        {label && (
+          <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">{label}</span>
+        )}
         {trigger}
       </button>
 
