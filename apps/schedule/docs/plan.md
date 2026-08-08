@@ -177,3 +177,8 @@
 - [x] `CalendarHeader.tsx`, `KanbanHeader.tsx`: `size-8` 이전/다음 버튼의 `‹`/`›` 텍스트를 `<ChevronLeft size={16} />`/`<ChevronRight size={16} />`로 교체
 - [x] `MonthPickerPopover.tsx`, `DatePickerPopover.tsx`: 연/월 네비게이션 버튼의 `‹`/`›` 텍스트를 `<ChevronLeft size={14} />`/`<ChevronRight size={14} />`로 교체
 - [x] pnpm build / pnpm lint 검증
+
+## 캘린더 헤더 "캘린더" 텍스트 제거
+
+- [x] `CalendarHeader.tsx`: `h1` "캘린더" 텍스트 제거, `KanbanHeader.tsx`에서 "메인 칸반보드" 텍스트를 지웠을 때와 동일하게 `justify-between` → `justify-end`로 변경해 네비게이션 그룹이 오른쪽 정렬되도록 유지
+- [x] pnpm build / pnpm lint 검증
