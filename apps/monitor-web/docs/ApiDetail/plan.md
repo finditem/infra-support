@@ -32,11 +32,11 @@
 
 ### 미구현 기능
 
-- [ ] DetailResponseChart 구현 — 현재 회색 placeholder div만 존재하므로 `src/components/charts`의 Recharts 기반 차트로 응답 시간 추이 렌더링
+- [x] DetailResponseChart 구현 — 현재 회색 placeholder div만 존재하므로 `src/components/charts`의 Recharts 기반 차트로 응답 시간 추이 렌더링
 - [ ] DetailHeader "수동요청" 버튼에 수동 체크 실행 mutation 연결 (현재 onClick 없음)
-- [ ] DetailHeader "수정" 버튼에 `/api/:apiId/edit` 이동 연결 (현재 onClick 없음)
-- [ ] DetailSettings "설정수정" 버튼에 `/api/:apiId/edit` 이동 연결 (현재 onClick 없음)
-- [ ] DetailIncidentHistory 확인 처리 버튼을 로컬 state 변경 대신 실제 mutation으로 연결
+- [x] DetailHeader "수정" 버튼에 `/api/:apiId/edit` 이동 연결 (현재 onClick 없음)
+- [x] DetailSettings "설정수정" 버튼에 `/api/:apiId/edit` 이동 연결 (현재 onClick 없음)
+- [x] DetailIncidentHistory 확인 처리 버튼을 로컬 state 변경 대신 실제 mutation으로 연결
 
 ### 버그 수정
 
@@ -48,5 +48,5 @@
 - [ ] 각 섹션의 로딩 상태 처리 (스켈레톤 또는 로딩 UI)
 - [ ] 데이터 조회 실패 시 에러 상태 처리 및 토스트 연결
 - [ ] DetailIncidentHistory의 `TODO(지권)` 해소 — BasicButton `as` prop 패턴 적용
-- [ ] DetailSettings의 `TODO(지권)` 해소 — 버튼 outline 스타일 변경
+- [x] DetailSettings의 `TODO(지권)` 해소 — 버튼 outline 스타일 변경
 - [ ] 데이터 가공 로직이 생기면 비어 있는 `_hooks`, `_utils`로 분리

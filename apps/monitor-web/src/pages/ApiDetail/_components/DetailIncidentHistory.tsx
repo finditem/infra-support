@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BasicButton, Icon } from "@/components";
 import { useNavigate, useParams } from "react-router-dom";
 import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
+import { useUpdateErrorLogCheckedMutation } from "@/queries";
 import { cn } from "@/utils";
 import type { ApiStatus } from "@/types";
 import type { LogListItemData } from "@/pages/ErrorLog/_types";
@@ -28,9 +29,20 @@ const DetailIncidentHistory = () => {
   const navigate = useNavigate();
   const { apiId } = useParams<{ apiId: string }>();
   const [incidents, setIncidents] = useState(MOCK_ERROR_LOG_ITEMS);
+  const { mutate: updateErrorLogChecked } = useUpdateErrorLogCheckedMutation();
 
+  // 실패 시 목록이 확인 처리된 것처럼 보이지 않도록, 서버 갱신에 성공한 뒤에만 로컬 상태를 반영한다.
   const handleResolve = (id: string) => {
-    setIncidents((prev) => prev.map((item) => (item.id === id ? { ...item, status: true } : item)));
+    updateErrorLogChecked(
+      { id, checked: true },
+      {
+        onSuccess: () => {
+          setIncidents((prev) =>
+            prev.map((item) => (item.id === id ? { ...item, status: true } : item))
+          );
+        },
+      }
+    );
   };
 
   return (
@@ -125,6 +137,7 @@ const DetailIncidentHistoryItem = ({
       <td className="px-4 py-3">
         <BasicButton
           className="typo-body2-semibold rounded-full bg-[#D6F8E1]"
+          disabled={item.status}
           size="small"
           onClick={() => onResolve(item.id)}
         >

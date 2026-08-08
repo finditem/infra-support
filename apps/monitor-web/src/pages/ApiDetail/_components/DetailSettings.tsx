@@ -1,9 +1,12 @@
 import { ReactNode } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { BasicButton, Icon } from "@/components";
 import { MOCK_SETTINGS } from "@/mock";
 import { cn } from "@/utils";
 
 const DetailSettings = () => {
+  const { apiId } = useParams<{ apiId: string }>();
+  const navigate = useNavigate();
   const { requestUrl, checkInterval, isActive, isNotificationEnabled } = MOCK_SETTINGS;
 
   return (
@@ -15,8 +18,11 @@ const DetailSettings = () => {
         <h2 id="settings-title" className="typo-header4-bold">
           API 설정 정보
         </h2>
-        {/* TODO(지권): 버튼 outline 스타일 변경 필요 */}
-        <BasicButton className="min-h-[56px] w-[155px] border border-border-neutural-normal-default bg-white py-4">
+        <BasicButton
+          className="min-h-[56px] w-[155px] py-4"
+          variant="outline"
+          onClick={() => navigate(`/api/${apiId}/edit`)}
+        >
           <span className="flex items-center gap-2 text-fill-neutural-normal-default">
             <Icon name="editPencil" size={24} />
             <span className="typo-header4-semibold">설정수정</span>
