@@ -10,7 +10,7 @@ import type { ApiStatus } from "@/types";
 /**
  * API 상세 페이지에서 사용하는 React Query 함수들을 모아둔 파일입니다.
  *
- * @author junyeol
+ * @author jikwon
  */
 
 const RECENT_CHECK_LOG_HOURS = 24;
