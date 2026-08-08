@@ -101,3 +101,11 @@
 - [x] `CalendarGrid.tsx`: `day.getDay() === 0`(일요일) 조건을 색상 분기에 추가해 공휴일 여부와 무관하게 항상 `text-fg-state-error` 적용 (오늘 강조가 최우선인 것은 유지)
 - [x] `CalendarGrid.tsx`: 공휴일이면서 해당 월에 속한 날짜에 한해 날짜 숫자 옆에 공휴일 이름을 작은 빨간 텍스트로 표시 (`truncate`로 셀 폭 안에 맞춤)
 - [x] pnpm build / pnpm lint 검증
+
+## 캘린더 페이지의 팀원 색상이 칸반보드와 다르게 보이던 문제 수정
+
+팀원 색상은 `buildProfileColorMap`(`_lib/kanbanUtils.ts`)이 `profile.id`를 해시해 결정하는데, 캘린더 페이지가 실제 Supabase `profiles`가 아니라 `calendarMockData.ts`의 하드코딩된 가짜 프로필(`profile-1`, `profile-6`)을 쓰고 있어서 같은 사람이라도 칸반보드와 다른 id로 해시되어 다른 색이 나왔다. 캘린더도 칸반보드(`src/app/page.tsx`)와 동일하게 실제 `profiles` 테이블을 조회하도록 바꾼다. `availability`(가능 시간) 테이블 연동은 아직 하지 않으므로, 목업 시간 블록은 실제로 조회한 팀원 중 처음 두 명의 id를 그대로 사용하도록만 맞춘다.
+
+- [x] `calendar/page.tsx`: `mockProfiles`/`mockProfileColorMap` 대신 `createClient()`로 Supabase `profiles` 테이블을 조회(`src/app/page.tsx`와 동일한 패턴)하고 `buildProfileColorMap`으로 직접 색상 맵 생성
+- [x] `calendarMockData.ts`: `mockAvailability`가 하드코딩된 `"profile-1"`/`"profile-6"` 대신 인자로 받은 프로필 id 2개를 사용하도록 시그니처 변경, `MOCK_PROFILES`/`mockProfileColorMap`/`mockProfiles` 제거
+- [x] pnpm build / pnpm lint 검증
