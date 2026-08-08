@@ -1,11 +1,14 @@
-import { Badge } from "@/components";
+import { Badge, LoadingSpinner } from "@/components";
 import type { ImpactedFeature } from "../_types";
 
 interface DetailImpactedFeaturesProps {
   features: ImpactedFeature[];
+  isPending: boolean;
 }
 
-const DetailImpactedFeatures = ({ features }: DetailImpactedFeaturesProps) => {
+const DetailImpactedFeatures = ({ features, isPending }: DetailImpactedFeaturesProps) => {
+  const hasFeatures = features.length > 0;
+
   return (
     <section
       aria-describedby="features-description"
@@ -21,11 +24,15 @@ const DetailImpactedFeatures = ({ features }: DetailImpactedFeaturesProps) => {
         </span>
       </div>
 
-      {features.length === 0 ? (
+      {isPending && <LoadingSpinner className="min-h-[40px]" size={24} />}
+
+      {!isPending && !hasFeatures && (
         <p className="typo-body2-medium min-h-[40px] text-layout-body">
           영향 받는 기능으로 등록된 항목이 없습니다.
         </p>
-      ) : (
+      )}
+
+      {!isPending && hasFeatures && (
         <div
           aria-label="영향 받는 기능 목록"
           role="region"

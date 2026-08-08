@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { ApiResponseTimeChart, LoadingSpinner } from "@/components";
+import { ApiResponseTimeChart, ErrorState, LoadingSpinner } from "@/components";
 import { useApiResponseTimeQuery } from "@/queries";
 import type { ApiResponseTimePeriod } from "@/types";
 
@@ -8,7 +8,8 @@ const CHART_PERIOD: ApiResponseTimePeriod = "7d";
 
 const DetailResponseChart = () => {
   const { apiId } = useParams<{ apiId: string }>();
-  const { data: responseTimeData, isLoading } = useApiResponseTimeQuery();
+  // 이 쿼리만 throwOnError: false라 에러가 ErrorBoundary로 가지 않으므로, 여기서 isError를 직접 처리한다.
+  const { data: responseTimeData, isLoading, isError } = useApiResponseTimeQuery();
 
   const chartData = useMemo(
     () => (responseTimeData ?? []).filter((item) => item.apiId === apiId),
@@ -39,13 +40,17 @@ const DetailResponseChart = () => {
           </div>
         )}
 
-        {!isLoading && !hasData && (
+        {!isLoading && isError && (
+          <ErrorState icon="clear" message="응답 속도 데이터를 불러오지 못했습니다." />
+        )}
+
+        {!isLoading && !isError && !hasData && (
           <p className="typo-body2-medium h-full text-layout-body flex-center">
             표시할 응답 속도 데이터가 없습니다.
           </p>
         )}
 
-        {!isLoading && hasData && (
+        {!isLoading && !isError && hasData && (
           <ApiResponseTimeChart data={chartData} period={CHART_PERIOD} showLegend={false} />
         )}
       </div>
