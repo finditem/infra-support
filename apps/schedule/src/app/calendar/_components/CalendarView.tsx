@@ -12,7 +12,7 @@ interface CalendarViewProps {
   profiles: ProfileWithColor[];
   profileColorMap: Map<string, ProfileWithColor>;
   availability: MockAvailabilityBlock[];
-  holidayDates: string[];
+  holidayNames: Record<string, string>;
 }
 
 const CalendarView = ({
@@ -20,7 +20,7 @@ const CalendarView = ({
   profiles,
   profileColorMap,
   availability,
-  holidayDates,
+  holidayNames,
 }: CalendarViewProps) => {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -36,7 +36,7 @@ const CalendarView = ({
       <div className="flex-1 overflow-y-auto p-7">
         <CalendarGrid
           availability={availability}
-          holidayDates={holidayDates}
+          holidayNames={holidayNames}
           monthStart={monthStart}
           profileColorMap={profileColorMap}
           selectedProfileId={selectedProfileId}

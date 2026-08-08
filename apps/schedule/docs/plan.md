@@ -91,3 +91,13 @@
 - [x] `calendar/_components/TimeWheelPicker.tsx` 신규 작성: `overflow-y-scroll` + `snap-mandatory`인 재사용 가능한 휠 컬럼(오전/오후, 시, 분)과 가운데 선택 밴드(상하 보더) 렌더링, 스크롤 종료 시 가장 가까운 항목을 선택값으로 커밋
 - [x] `AvailabilityTimePicker.tsx`: 시작/종료 각각의 상태를 24시간 `hour`/`minute`에서 `period`("오전"/"오후") + `hour12`(01~12) + `minute`로 변경, `TimeWheelPicker`로 select 대체
 - [x] pnpm build / pnpm lint 검증
+
+## 일요일 날짜 빨간색 표시 + 공휴일 이름 표기
+
+날짜 셀에서 일요일은 공휴일 여부와 무관하게 항상 빨간색으로 표시하고, 공휴일인 날짜는 숫자 옆에 공휴일 이름을 함께 보여준다. 겸사겸사 `holidays.ts`가 `date-holidays`가 반환하는 `date` 필드(대표일 1개)만 보고 있어서 설날/추석처럼 여러 날에 걸친 연휴의 앞뒤 날짜가 누락되던 것도 `start`~`end` 구간 전체를 펼치는 방식으로 함께 고친다.
+
+- [x] `holidays.ts`: `getHolidayDates(): string[]` → `getHolidayNameMap(): Record<string, string>`로 변경, `date` 단일 필드 대신 `start`~`end` 구간을 `eachDayOfInterval`로 펼쳐서 연휴 전체 날짜에 이름을 매핑
+- [x] `calendar/page.tsx`, `CalendarView.tsx`: `holidayDates: string[]` prop을 `holidayNames: Record<string, string>`로 교체
+- [ ] `CalendarGrid.tsx`: `day.getDay() === 0`(일요일) 조건을 색상 분기에 추가해 공휴일 여부와 무관하게 항상 `text-fg-state-error` 적용 (오늘 강조가 최우선인 것은 유지)
+- [ ] `CalendarGrid.tsx`: 공휴일이면서 해당 월에 속한 날짜에 한해 날짜 숫자 옆에 공휴일 이름을 작은 빨간 텍스트로 표시 (`truncate`로 셀 폭 안에 맞춤)
+- [x] pnpm build / pnpm lint 검증 (holidayNames 리팩터 단계)
