@@ -17,7 +17,7 @@ const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps)
 
   return (
     <div className="fixed right-7 top-[200px] z-[100] w-[220px] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)]">
-      <p className="mb-1 text-sm font-semibold text-text-default">가능한 시간 추가</p>
+      <p className="mb-1 text-sm font-semibold text-text-default">가능 시간 등록</p>
       <p className="mb-4 text-xs text-text-muted">
         {format(new Date(date), "M월 d일 (EEEEEE)", { locale: ko })}
       </p>

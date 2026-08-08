@@ -73,3 +73,13 @@
 - [x] `calendar/_components/MonthPickerPopover.tsx` 신규 작성: `PropertyPopover` 재사용, 연도 네비게이션(‹ yyyy년 ›) + 1~12월 3x4 그리드, 현재 조회 중인 연/월 강조, 선택 시 `router.push(/calendar?month=yyyy-MM-01)`
 - [x] `CalendarHeader.tsx`: 월 라벨 `span`을 `MonthPickerPopover`로 교체
 - [x] pnpm build / pnpm lint 검증
+
+## 가능 시간 등록 모달 개선 (기존 "가능한 시간 추가" 위젯)
+
+날짜 클릭 시 뜨는 `AvailabilityTimePicker`가 화면 오른쪽에 고정된 사이드 패널 형태였던 것을, 캘린더 중앙에 뜨는 모달로 바꾸고 시간 선택을 시/분 단위로 세분화한다. 이름도 "가능한 시간 추가"에서 "가능 시간 등록"으로 바꾼다 (plan.md의 기존 "등록/삭제" 용어와 통일).
+
+- [x] `AvailabilityTimePicker.tsx`: 제목 텍스트 "가능한 시간 추가" → "가능 시간 등록"
+- [ ] `AvailabilityTimePicker.tsx`: `fixed right-7 top-[200px]` 사이드 패널 대신, `TaskCreateModal.tsx`처럼 `fixed inset-0 flex items-center justify-center` 오버레이로 변경해 캘린더 중앙에 뜨도록 수정
+- [ ] `AvailabilityTimePicker.tsx`: 시작/종료 시간 선택을 시(00~23) + 분(00/10/20/30/40/50) 두 개의 select로 분리
+- [ ] `AvailabilityTimePicker.tsx`: 배경 오버레이 클릭 시 `onCancel` 호출로 모달 닫힘 (모달 패널 클릭은 `stopPropagation`으로 전파 차단)
+- [ ] pnpm build / pnpm lint 검증
