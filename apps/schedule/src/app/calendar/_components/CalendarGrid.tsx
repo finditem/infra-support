@@ -60,7 +60,9 @@ const CalendarGrid = ({
           const dateKey = format(day, "yyyy-MM-dd");
           const dayBlocks = visibleAvailability.filter((block) => block.date === dateKey);
           const inMonth = isSameMonth(day, monthStart);
-          const isHoliday = Boolean(holidayNames[dateKey]);
+          const holidayName = holidayNames[dateKey];
+          const isHoliday = Boolean(holidayName);
+          const isSunday = day.getDay() === 0;
 
           return (
             <button
@@ -75,13 +77,19 @@ const CalendarGrid = ({
                     ? "bg-primary font-bold text-text-inverse"
                     : !inMonth
                       ? "text-text-muted/50"
-                      : isHoliday
+                      : isSunday || isHoliday
                         ? "font-semibold text-fg-state-error"
                         : "text-text-default"
                 }`}
               >
                 {format(day, "d")}
               </span>
+
+              {inMonth && isHoliday && (
+                <span className="absolute left-9 top-2 max-w-[64px] truncate text-[10px] font-medium leading-6 text-fg-state-error">
+                  {holidayName}
+                </span>
+              )}
 
               <div className="mt-[30px] flex flex-col gap-[3px]">
                 {dayBlocks.map((block) => {

@@ -98,6 +98,6 @@
 
 - [x] `holidays.ts`: `getHolidayDates(): string[]` → `getHolidayNameMap(): Record<string, string>`로 변경, `date` 단일 필드 대신 `start`~`end` 구간을 `eachDayOfInterval`로 펼쳐서 연휴 전체 날짜에 이름을 매핑
 - [x] `calendar/page.tsx`, `CalendarView.tsx`: `holidayDates: string[]` prop을 `holidayNames: Record<string, string>`로 교체
-- [ ] `CalendarGrid.tsx`: `day.getDay() === 0`(일요일) 조건을 색상 분기에 추가해 공휴일 여부와 무관하게 항상 `text-fg-state-error` 적용 (오늘 강조가 최우선인 것은 유지)
-- [ ] `CalendarGrid.tsx`: 공휴일이면서 해당 월에 속한 날짜에 한해 날짜 숫자 옆에 공휴일 이름을 작은 빨간 텍스트로 표시 (`truncate`로 셀 폭 안에 맞춤)
-- [x] pnpm build / pnpm lint 검증 (holidayNames 리팩터 단계)
+- [x] `CalendarGrid.tsx`: `day.getDay() === 0`(일요일) 조건을 색상 분기에 추가해 공휴일 여부와 무관하게 항상 `text-fg-state-error` 적용 (오늘 강조가 최우선인 것은 유지)
+- [x] `CalendarGrid.tsx`: 공휴일이면서 해당 월에 속한 날짜에 한해 날짜 숫자 옆에 공휴일 이름을 작은 빨간 텍스트로 표시 (`truncate`로 셀 폭 안에 맞춤)
+- [x] pnpm build / pnpm lint 검증
