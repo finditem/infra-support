@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
-import { createTask } from "../../_lib/actions";
+import { CornerDownLeft } from "lucide-react";
+import { createTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
@@ -12,14 +13,23 @@ import PriorityPickerPopover from "./PriorityPickerPopover";
 import ProfilePickerPopover from "./ProfilePickerPopover";
 import StatusPickerPopover from "./StatusPickerPopover";
 
+interface SubtaskDraft {
+  id: string;
+  title: string;
+  body: string;
+}
+
 interface TaskCreateModalProps {
-  weekId: string;
+  weekId: string | null;
   statuses: TaskStatusesRow[];
   profiles: ProfileWithColor[];
   currentProfileId: string | null;
   initialStatusId: string;
+  parentId?: string | null;
+  parentTitle?: string | null;
+  task?: TasksRow | null;
   onClose: () => void;
-  onCreated: (task: TasksRow) => void;
+  onSaved: (tasks: TasksRow[]) => void;
 }
 
 const TaskCreateModal = ({
@@ -28,21 +38,44 @@ const TaskCreateModal = ({
   profiles,
   currentProfileId,
   initialStatusId,
+  parentId = null,
+  parentTitle = null,
+  task = null,
   onClose,
-  onCreated,
+  onSaved,
 }: TaskCreateModalProps) => {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [assigneeId, setAssigneeId] = useState<string | null>(currentProfileId);
-  const [reporterId, setReporterId] = useState<string | null>(currentProfileId);
-  const [priority, setPriority] = useState<TasksRow["priority"]>("medium");
-  const [dueDate, setDueDate] = useState(() => format(getDefaultDueDate(), "yyyy-MM-dd"));
-  const [statusId, setStatusId] = useState(initialStatusId);
+  const [title, setTitle] = useState(task?.title ?? "");
+  const [body, setBody] = useState(task?.body ?? "");
+  const [assigneeId, setAssigneeId] = useState<string | null>(
+    task?.assignee_id ?? currentProfileId
+  );
+  const [reporterId, setReporterId] = useState<string | null>(
+    task?.reporter_id ?? currentProfileId
+  );
+  const [priority, setPriority] = useState<TasksRow["priority"]>(task?.priority ?? "medium");
+  const [dueDate, setDueDate] = useState(() =>
+    format(task?.due_date ? new Date(task.due_date) : getDefaultDueDate(), "yyyy-MM-dd")
+  );
+  const [statusId, setStatusId] = useState(task?.status_id ?? initialStatusId);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subtaskDrafts, setSubtaskDrafts] = useState<SubtaskDraft[]>([]);
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const weekLabel = getWeekLabel(getMonday(new Date(dueDate)));
+  const isEditing = !!task;
+  const canAddSubtasks = !isEditing && !parentId;
+
+  const addSubtaskDraft = () =>
+    setSubtaskDrafts((prev) => [...prev, { id: crypto.randomUUID(), title: "", body: "" }]);
+
+  const updateSubtaskDraft = (id: string, patch: Partial<Omit<SubtaskDraft, "id">>) =>
+    setSubtaskDrafts((prev) =>
+      prev.map((draft) => (draft.id === id ? { ...draft, ...patch } : draft))
+    );
+
+  const removeSubtaskDraft = (id: string) =>
+    setSubtaskDrafts((prev) => prev.filter((draft) => draft.id !== id));
 
   const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -56,21 +89,70 @@ const TaskCreateModal = ({
 
     setIsSubmitting(true);
 
-    const created = await createTask({
-      title: title.trim(),
-      body: body.trim() || null,
-      weekId,
-      statusId,
-      assigneeId,
-      reporterId,
-      priority,
-      dueDate,
-      createdBy: currentProfileId,
-    });
+    const saved = task
+      ? await updateTask({
+          id: task.id,
+          title: title.trim(),
+          body: body.trim() || null,
+          weekId,
+          statusId,
+          assigneeId,
+          reporterId,
+          priority,
+          dueDate,
+        })
+      : await createTask({
+          title: title.trim(),
+          body: body.trim() || null,
+          weekId,
+          statusId,
+          assigneeId,
+          reporterId,
+          priority,
+          dueDate,
+          createdBy: currentProfileId,
+          parentId,
+        });
+
+    if (!saved) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    const savedRows: TasksRow[] = [saved];
+    const failedTitles: string[] = [];
+
+    if (canAddSubtasks) {
+      for (const draft of subtaskDrafts) {
+        if (!draft.title.trim()) continue;
+
+        const savedSubtask = await createTask({
+          title: draft.title.trim(),
+          body: draft.body.trim() || null,
+          weekId,
+          statusId,
+          assigneeId: null,
+          reporterId: null,
+          priority: "medium",
+          dueDate,
+          createdBy: currentProfileId,
+          parentId: saved.id,
+        });
+
+        if (savedSubtask) {
+          savedRows.push(savedSubtask);
+        } else {
+          failedTitles.push(draft.title.trim());
+        }
+      }
+    }
 
     setIsSubmitting(false);
+    onSaved(savedRows);
 
-    if (created) onCreated(created);
+    if (failedTitles.length > 0) {
+      window.alert(`다음 하위 일정 생성에 실패했습니다: ${failedTitles.join(", ")}`);
+    }
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -90,8 +172,10 @@ const TaskCreateModal = ({
       <div className="w-[480px] overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]">
         <div className="flex items-center justify-between border-b border-border px-[18px] py-3">
           <span className="text-xs text-text-muted">
-            팀 일정 <span className="mx-[3px] text-border">/</span>
-            <strong className="font-medium text-text-default"> 새 작업</strong>
+            {parentTitle ?? "팀 일정"} <span className="mx-[3px] text-border">/</span>
+            <strong className="font-medium text-text-default">
+              {isEditing ? " 일정 수정" : parentTitle ? " 새 하위 일정" : " 새 작업"}
+            </strong>
           </span>
           <button
             aria-label="닫기"
@@ -156,15 +240,62 @@ const TaskCreateModal = ({
           />
         </div>
 
+        {canAddSubtasks && (
+          <div className="flex flex-col gap-2 border-t border-border px-5 py-3">
+            <span className="text-[11px] font-medium text-text-muted">하위 일정</span>
+
+            {subtaskDrafts.map((draft) => (
+              <div
+                key={draft.id}
+                className="flex flex-col gap-1 rounded-[10px] border border-border p-2.5"
+              >
+                <div className="flex items-center gap-1.5">
+                  <input
+                    className="placeholder:text-text-muted/50 w-full border-none text-[13px] font-medium text-text-default outline-none"
+                    placeholder="하위 일정 제목"
+                    type="text"
+                    value={draft.title}
+                    onChange={(event) =>
+                      updateSubtaskDraft(draft.id, { title: event.target.value })
+                    }
+                  />
+                  <button
+                    aria-label="하위 일정 삭제"
+                    className="flex size-5 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
+                    type="button"
+                    onClick={() => removeSubtaskDraft(draft.id)}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <textarea
+                  className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none text-xs leading-[1.6] text-text-muted outline-none"
+                  placeholder="설명을 추가하세요..."
+                  value={draft.body}
+                  onChange={(event) => updateSubtaskDraft(draft.id, { body: event.target.value })}
+                />
+              </div>
+            ))}
+
+            <button
+              className="rounded-[10px] border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary"
+              type="button"
+              onClick={addSubtaskDraft}
+            >
+              + 하위 일정 추가
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center justify-between border-t border-border px-[18px] py-3.5">
           <span className="text-text-muted/60 flex items-center gap-1 text-[11px]">
             <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
               ⌘
             </kbd>
             <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
-              ⏎
+              <CornerDownLeft aria-hidden className="size-2.5" />
             </kbd>
-            으로 등록
+            {isEditing ? "으로 수정" : "으로 등록"}
           </span>
 
           <div className="flex gap-1.5">
@@ -181,7 +312,7 @@ const TaskCreateModal = ({
               type="button"
               onClick={() => void handleSubmit()}
             >
-              등록하기
+              {isEditing ? "수정하기" : "등록하기"}
             </button>
           </div>
         </div>

@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   profileMap: Map<string, ProfileWithColor>;
   subtaskCountByParent: Map<string, number>;
   onAddTask: (statusId: string) => void;
+  onSelectTask: (task: TasksRow) => void;
 }
 
 const KanbanColumn = ({
@@ -22,6 +23,7 @@ const KanbanColumn = ({
   profileMap,
   subtaskCountByParent,
   onAddTask,
+  onSelectTask,
 }: KanbanColumnProps) => {
   const { resolvedTheme } = useTheme();
 
@@ -50,6 +52,7 @@ const KanbanColumn = ({
             statuses={statuses}
             subtaskCount={subtaskCountByParent.get(task.id) ?? 0}
             task={task}
+            onSelect={() => onSelectTask(task)}
           />
         ))}
 

@@ -66,7 +66,66 @@
 - [x] `src/types/tables/task_statuses.ts`에 `color_dark` 필드 추가
 - [x] `kanbanUtils.ts`에 라이트/다크 상태색 선택 헬퍼(`getStatusColor`) 추가
 - [x] `KanbanColumn.tsx`, `StatusPickerPopover.tsx`의 상태색 인라인 style을 헬퍼 기반으로 교체
-- [x] `kanbanUtils.ts`의 `PRIORITY_META.badgeClassName`에 dark: variant 클래스 추가 (이 브랜치에는 cardBorderClassName 없음)
+- [x] `kanbanUtils.ts`의 `PRIORITY_META.badgeClassName`에 dark: variant 클래스 추가
 - [x] `apps/schedule/CLAUDE.md`의 "앱 전용 다크 테마 미채택" 문구를 다크모드 구현 방식으로 갱신
 - [x] Supabase 마이그레이션 적용 (사용자가 대시보드 SQL Editor에서 직접 실행)
 - [x] pnpm build / pnpm lint 검증 (통과 확인)
+
+## 하위 일정 전용 페이지 (일정 중첩, 2단계까지)
+
+일정(a)을 클릭하면 `/task/[id]`로 이동해 a의 하위 일정(1,2,3...)을 기존 칸반보드와 동일한 UI로 보여준다. a 자체의 상세 편집(제목/본문/속성/삭제)과 3단계 이상 중첩은 이번 범위 밖.
+
+- [x] `KanbanBoard.tsx`: `parentId`/`enableTaskNavigation` prop 추가, `topLevelTasks` 필터를 `parent_id === parentId` 기준으로 일반화, `weekId` 타입 `string | null`로 완화, `TaskCreateModal`에 `parentId` 전달
+- [x] `KanbanColumn.tsx`: `navigable` prop 추가 및 `KanbanCard`로 전달
+- [x] `KanbanCard.tsx`: `navigable` prop 추가, true일 때 `next/link`로 `/task/[id]` 이동 래핑
+- [x] `TaskCreateModal.tsx`: `parentId` prop 추가 및 `createTask` 호출에 전달, `weekId` 타입 완화
+- [x] `_lib/actions.ts`: `CreateTaskInput`/`TasksInsert`에 `parent_id` 추가, `weekId` 타입 완화
+- [x] `src/app/task/[id]/page.tsx` 신규 작성 (부모 일정 + 하위 일정 + statuses/profiles fetch, notFound 가드, KanbanBoard 조립)
+- [x] `src/app/task/[id]/_components/TaskDetailHeader.tsx` 신규 작성 (제목 읽기 전용 표시 + 목록으로 링크)
+- [x] pnpm build / pnpm lint 검증
+
+## 일정 카드 클릭 시 수정 모달 오픈 (페이지 직행 대신)
+
+카드를 클릭하면 `/task/[id]`로 바로 이동하는 대신, "일정 추가"와 동일한 모달이 기존 일정 데이터로 채워져 뜨고 그 자리에서 수정 가능해야 한다. 상위 일정(parent_id가 없는 일정) 카드의 모달에서만 오른쪽 상단에 "바로가기" 버튼을 노출해 `/task/[id]`로 이동할 수 있게 한다.
+
+- [x] `_lib/actions.ts`: `updateTask` 서버 액션 추가 (`TasksUpdate`로 id 기준 update)
+- [x] `TaskCreateModal.tsx`: `task?: TasksRow | null` prop으로 생성/수정 겸용화 (필드 프리필, 제출 시 `updateTask`/`createTask` 분기, 버튼/브레드크럼 텍스트 분기), `parent_id`가 없는 일정 수정 시에만 상단 "바로가기" 버튼(`/task/[id]`) 노출
+- [x] `KanbanBoard.tsx`: `editingTask` 상태 추가, 카드 클릭 시 수정 모달 오픈, 저장 시 목록에 upsert. `enableTaskNavigation` prop/로직 제거 (모든 카드가 클릭 시 모달을 열도록 통일했고, 바로가기 버튼 노출 여부는 board가 아니라 task.parent_id로 판단)
+- [x] `KanbanColumn.tsx`/`KanbanCard.tsx`: `navigable`/`next/link` 방식 제거, `onSelect` 클릭 핸들러로 교체 (키보드 접근성 포함)
+- [x] `src/app/task/[id]/page.tsx`: `enableTaskNavigation` prop 제거 (더 이상 필요 없음)
+- [x] pnpm build / pnpm lint 검증
+
+## 바로가기 버튼 위치를 모달 헤더 대신 카드 상단으로 이동
+
+"바로가기" 버튼은 모달을 열어야만 보이는 것보다, 카드 상단(우선순위 배지와 같은 줄)에 오른쪽 정렬로 바로 노출되는 편이 낫다는 피드백 반영.
+
+- [x] `KanbanCard.tsx`: 우선순위 배지 줄에 `justify-between`으로 `parent_id`가 없는 일정에만 "바로가기" 링크(`/task/[id]`) 추가, 클릭 시 카드의 수정 모달 오픈(`onSelect`)이 함께 트리거되지 않도록 `stopPropagation` 처리
+- [x] `TaskCreateModal.tsx`: 모달 헤더의 "바로가기" 버튼/`showShortcut` 로직 제거 (카드로 일원화)
+- [x] pnpm build / pnpm lint 검증
+- [x] 바로가기 링크에 lucide-react `ExternalLink` 아이콘 추가 (`apps/schedule`에 `lucide-react` 의존성 신규 설치), 텍스트-아이콘 간격 `gap-0.5`로 조정
+- [x] `KanbanFilters.tsx`: 담당자/보고자/우선순위 select의 선택지 텍스트에도 "담당자: "/"보고자: "/"우선순위: " 접두어 추가 (선택 후 표시되는 값도 라벨이 붙도록)
+
+## 하위 일정이 있는 상위 일정의 메인 보드 상태를 하위 일정 상태로부터 계산
+
+상위 일정이 하위 일정을 가지면, 메인 칸반보드에서 상위 일정이 표시되는 컬럼을 상위 일정 자신의 status_id가 아니라 하위 일정들의 상태로부터 계산한다. 우선순위: 하나라도 지연됨/미완료 > 전부 완료 > 전부 검토 중 > 하나라도 시작(할 일이 아님) > (해당 없으면) 상위 일정 자신의 상태.
+
+- [x] `kanbanUtils.ts`: `resolveEffectiveStatusId(subtasks, statuses)` 추가
+- [x] `KanbanBoard.tsx`: `childrenByParent` 맵 추가, 컬럼별 필터링 시 `task.status_id` 대신 `effectiveStatusId(task)` 사용
+- [x] pnpm build / pnpm lint 검증
+
+## 메인 칸반보드의 "새 작업" 모달에서 하위 일정 함께 추가
+
+메인 칸반보드에서 새 상위 일정을 만들 때, 같은 모달 안에서 하위 일정(제목 + 설명)을 여러 개 추가할 수 있어야 한다. 단 이 UI는 메인 보드의 신규 작업 생성(`!isEditing && !parentId`)에서만 노출되고, `/task/[id]`(하위 일정 생성)나 기존 일정 수정 모달에서는 지금처럼 동일하게 유지한다.
+
+- [x] `TaskCreateModal.tsx`: `subtaskDrafts` 상태(제목/설명 배열) 추가, `canAddSubtasks = !isEditing && !parentId`일 때만 "+ 하위 일정 추가" UI 노출
+- [x] `handleSubmit`: 상위 일정 생성 후 `canAddSubtasks`면 draft마다 `createTask(parentId: 상위 id)` 순차 호출, 제목 비어있는 draft는 건너뜀
+- [x] `onSaved` 콜백 시그니처를 단일 `TasksRow` → `TasksRow[]`로 변경 (상위 일정 + 생성된 하위 일정들을 한 번에 전달)
+- [x] `KanbanBoard.tsx`: `onSaved` 핸들러가 배열을 순회하며 `tasks` 상태에 upsert하도록 수정
+- [x] pnpm build / pnpm lint 검증
+
+## PR 전 코드리뷰 반영
+
+- [x] `KanbanCard.tsx`: "바로가기" `Link`의 `onKeyDown`에 `stopPropagation` 추가 — 키보드로 링크에 포커스 후 Enter를 누르면 부모 카드(`role="button"`)의 keydown 핸들러로 이벤트가 버블링되어 `preventDefault()`가 링크의 기본 이동 동작을 막고 대신 편집 모달이 열리던 버그 수정
+- [x] `TaskCreateModal.tsx`: 하위 일정 draft 중 일부 생성이 실패해도 조용히 무시되던 것을, 실패한 draft 제목을 모아 `window.alert`로 안내하도록 수정 (성공한 항목은 그대로 저장됨)
+- [x] `KanbanHeader.tsx`: 주차 이동 링크를 `/?week=...` → `?week=...`로 변경 (상대 경로, 불필요한 `/` 제거)
+- [ ] (다음 작업으로 분리) 하위 일정 draft에 담당자/보고자/우선순위를 지정할 수 있게 하는 것 — 현재는 항상 담당자/보고자 없음, 우선순위 "중간"으로 고정 생성됨
