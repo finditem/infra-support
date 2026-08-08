@@ -51,7 +51,7 @@ monitor-web은 지금까지 Supabase에만 직접 접근했고 monitor-server를
 - [x] monitor-web: `.env.example`에 `VITE_MONITOR_SERVER_URL` 추가
 - [x] monitor-web: `apiDetail.queries.ts`에 `useApiManualCheckMutation` 추가 — 성공 시 detail/checkLogs/errorLogs 무효화 및 결과 토스트
 - [x] monitor-web: DetailHeader "수동요청" 버튼에 mutation 연결 및 실행 중 로딩 상태 표시
-- [ ] 배포 환경변수 반영 — monitor-server에 `MONITOR_WEB_ORIGINS`, monitor-web에 `VITE_MONITOR_SERVER_URL` 설정 (로컬 `.env`와 Vercel 양쪽 모두)
+- [x] 배포 환경변수 반영 — monitor-server에 `MONITOR_WEB_ORIGINS`, monitor-web에 `VITE_MONITOR_SERVER_URL` 설정 (로컬 `.env`와 Vercel 양쪽 모두)
 
 ### 버그 수정
 
