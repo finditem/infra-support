@@ -50,7 +50,7 @@ monitor-web과 동일하게 `packages/design-tokens`를 그대로 사용한다 (
 
 주요 색상 토큰: `primary`/`primary-hover`(블루), `secondary`(퍼플), `surface`/`surface-elevated`(배경), `text-default`/`text-muted`/`text-inverse`(텍스트), `border`(보더), `success`/`warning`/`error`, `fg-state-error` 등. 전체 목록은 `packages/design-tokens/dist/tailwind/preset.cjs` 참고. 폰트는 `font-family-base: Pretendard, sans-serif` 토큰을 쓰지만 monitor-web과 마찬가지로 별도 폰트 파일 로드는 하지 않는다(시스템 폴백).
 
-앱 전용 다크 테마(DESIGN.md 기반)는 채택하지 않기로 했다 — 모노레포 전체 색상 일관성을 우선했다.
+라이트/다크 모드를 지원한다. `packages/design-tokens`는 라이트 전용 단일 모드라 건드리지 않고, `apps/schedule` 앱 레벨에서 `tailwind.config.ts`(darkMode: "class")와 `globals.css`의 CSS 변수 오버라이드로 처리한다. DB에 저장된 상태(`task_statuses`) 색상처럼 인라인 style로 쓰는 값은 라이트/다크용 컬럼을 별도로 두고 헬퍼로 선택한다.
 
 ## 범위 (뼈대 세팅 기준)
 
