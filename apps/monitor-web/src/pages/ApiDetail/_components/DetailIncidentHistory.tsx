@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BasicButton, Icon } from "@/components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
 import { cn } from "@/utils";
 import type { ApiStatus } from "@/types";
@@ -26,6 +26,7 @@ const STATUS_CONFIG: Record<
 
 const DetailIncidentHistory = () => {
   const navigate = useNavigate();
+  const { apiId } = useParams<{ apiId: string }>();
   const [incidents, setIncidents] = useState(MOCK_ERROR_LOG_ITEMS);
 
   const handleResolve = (id: string) => {
@@ -62,7 +63,7 @@ const DetailIncidentHistory = () => {
                 <DetailIncidentHistoryItem
                   key={item.id}
                   item={item}
-                  onNavigate={() => navigate("/error-log")}
+                  onNavigate={(errorId) => navigate(`/api/${apiId}/errors/${errorId}`)}
                   onResolve={handleResolve}
                 />
               ))}
@@ -73,7 +74,7 @@ const DetailIncidentHistory = () => {
 
       <div className="flex justify-center">
         {/* TODO(지권): as prop 패턴 적용 후 변경 예정 */}
-        <BasicButton className="min-h-[56px] w-[148px]" onClick={() => navigate("/api-detail")}>
+        <BasicButton className="min-h-[56px] w-[148px]" onClick={() => navigate("/errors")}>
           <span className="flex items-center gap-2 text-white">
             <span className="typo-header4-bold">전체보기</span>
             <Icon name="arrowRight" size={23} />
@@ -89,7 +90,7 @@ export default DetailIncidentHistory;
 interface DetailIncidentHistoryItemProps {
   item: LogListItemData;
   onResolve: (id: string) => void;
-  onNavigate: () => void;
+  onNavigate: (errorId: string) => void;
 }
 
 const DetailIncidentHistoryItem = ({
@@ -136,7 +137,7 @@ const DetailIncidentHistoryItem = ({
       <td className="px-4 py-3 text-center">
         <button
           className="typo-body2-semibold inline-flex h-[43px] w-[103px] items-center justify-center gap-1 rounded-lg border border-border-neutural-normal-default bg-white text-fg-neutural-default transition-colors hover:bg-fill-neutural-subtle-hover"
-          onClick={onNavigate}
+          onClick={() => onNavigate(item.id)}
         >
           <span>더보기</span>
           <Icon name="arrowRight" size={16} />
