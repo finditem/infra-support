@@ -1,8 +1,8 @@
+import type { ApiStatus } from "@/types";
+
 export interface ApiSummaryData {
-  avgResponseTime: number;
-  maxResponseTime: number;
-  minResponseTime: number;
-  successRate: number;
-  errorCount: number;
-  lastErrorAt: string;
+  status: ApiStatus | null;
+  lastCheckedAt: string;
+  lastResponseTime: string;
+  successRate: string;
 }

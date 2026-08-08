@@ -145,13 +145,14 @@ const buildHeaders = (rawUrl: string): HeadersInit => {
  * @remarks
  * - HTTP 비정상 응답은 `ok: false`와 `http_error`로 반환합니다.
  * - 네트워크/타임아웃 예외는 throw하지 않고 결과 객체로 변환합니다.
+ * - 호출 method는 `apis.http_method` 값을 그대로 사용합니다.
  *
  * @returns API 호출 결과(성공 여부, HTTP 상태, 응답 시간, 에러 정보)
  *
  * @author junyeol
  */
 
-const callApi = async (url: string, timeoutMs = 5000): Promise<CallResult> => {
+const callApi = async (url: string, method: string, timeoutMs = 5000): Promise<CallResult> => {
   const startedAt = Date.now();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -162,7 +163,7 @@ const callApi = async (url: string, timeoutMs = 5000): Promise<CallResult> => {
 
   try {
     const res = await fetch(requestUrl, {
-      method: "GET",
+      method,
       signal: controller.signal,
       headers,
     });
@@ -217,9 +218,9 @@ export const processApi = async (api: ActiveApiRow): Promise<boolean> => {
   try {
     const checkedAt = new Date().toISOString();
 
-    if (!api.source_url) return true;
+    if (!api.request_url) return true;
 
-    const result = await callApi(api.source_url);
+    const result = await callApi(api.request_url, api.http_method);
     const status = resolveApiStatus({
       ok: result.ok,
       httpStatus: result.httpStatus,
