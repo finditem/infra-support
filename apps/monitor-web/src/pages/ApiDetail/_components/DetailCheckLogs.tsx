@@ -1,3 +1,4 @@
+import { EmptyState, LoadingState } from "@/components";
 import { cn } from "@/utils";
 import type { ApiStatus } from "@/types";
 import type { ApiCheckLog } from "../_types";
@@ -20,11 +21,13 @@ const RANGE_LABEL = "최근 24시간";
 interface DetailCheckLogsProps {
   logs: ApiCheckLog[];
   checkIntervalMinutes: number;
+  isPending: boolean;
 }
 
-const DetailCheckLogs = ({ logs, checkIntervalMinutes }: DetailCheckLogsProps) => {
+const DetailCheckLogs = ({ logs, checkIntervalMinutes, isPending }: DetailCheckLogsProps) => {
   const statusCounts = getCheckLogStatusCounts(logs);
   const timeRange = getCheckLogTimeRange(logs);
+  const hasLogs = logs.length > 0;
 
   return (
     <section
@@ -68,11 +71,19 @@ const DetailCheckLogs = ({ logs, checkIntervalMinutes }: DetailCheckLogsProps) =
         tabIndex={0}
         className="mb-[15px] flex-1 overflow-y-auto px-12"
       >
-        <ul className="flex flex-col gap-4">
-          {logs.map((log) => (
-            <DetailCheckLogsItem key={log.id} log={log} />
-          ))}
-        </ul>
+        {isPending && <LoadingState message="체크 로그를 불러오는 중입니다." />}
+
+        {!isPending && !hasLogs && (
+          <EmptyState message={`${RANGE_LABEL} 동안 기록된 체크 로그가 없습니다.`} />
+        )}
+
+        {!isPending && hasLogs && (
+          <ul className="flex flex-col gap-4">
+            {logs.map((log) => (
+              <DetailCheckLogsItem key={log.id} log={log} />
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

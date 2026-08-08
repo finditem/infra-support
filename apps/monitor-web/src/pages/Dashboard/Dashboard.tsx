@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ErrorBoundary, ErrorState } from "@/components";
+import { useQueryErrorResetBoundary } from "@tanstack/react-query";
+import { BasicButton, ErrorBoundary, ErrorState } from "@/components";
 import {
   DashboardHeader,
   DashboardResponseTimeChart,
@@ -11,9 +12,23 @@ import type { DashboardTimeRange } from "./_types";
 
 const Dashboard = () => {
   const [range, setRange] = useState<DashboardTimeRange>("24h");
+  const { reset: resetQueryErrors } = useQueryErrorResetBoundary();
 
   return (
-    <ErrorBoundary fallback={<ErrorState message="대시보드를 불러오는 중 문제가 발생했습니다." />}>
+    <ErrorBoundary
+      fallback={(_error, resetBoundary) => (
+        <ErrorState icon="clear" message="대시보드를 불러오는 중 문제가 발생했습니다.">
+          <BasicButton
+            onClick={() => {
+              resetQueryErrors();
+              resetBoundary();
+            }}
+          >
+            다시 시도
+          </BasicButton>
+        </ErrorState>
+      )}
+    >
       <DashboardHeader range={range} onRangeChange={setRange} />
 
       <div className="mt-[30px] flex flex-col gap-[30px]">

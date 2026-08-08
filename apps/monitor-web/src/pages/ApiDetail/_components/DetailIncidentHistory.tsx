@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BasicButton, EmptyState, Icon } from "@/components";
+import { BasicButton, EmptyState, Icon, LoadingState } from "@/components";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUpdateErrorLogCheckedMutation } from "@/queries";
 import { cn } from "@/utils";
@@ -28,9 +28,10 @@ const INCIDENT_COLUMN_COUNT = 6;
 
 interface DetailIncidentHistoryProps {
   incidents: LogListItemData[];
+  isPending: boolean;
 }
 
-const DetailIncidentHistory = ({ incidents }: DetailIncidentHistoryProps) => {
+const DetailIncidentHistory = ({ incidents, isPending }: DetailIncidentHistoryProps) => {
   const navigate = useNavigate();
   const { apiId } = useParams<{ apiId: string }>();
   const [resolvedIds, setResolvedIds] = useState<string[]>([]);
@@ -63,7 +64,7 @@ const DetailIncidentHistory = ({ incidents }: DetailIncidentHistoryProps) => {
           <h2 id="incident-title" className="typo-header4-bold">
             최근 장애 / 에러 상세 목록
           </h2>
-          <span>최근 7일 · 총 {items.length}건</span>
+          <span>{isPending ? "최근 7일" : `최근 7일 · 총 ${items.length}건`}</span>
         </div>
 
         <div className="min-h-[624px] overflow-x-auto">
@@ -79,7 +80,15 @@ const DetailIncidentHistory = ({ incidents }: DetailIncidentHistoryProps) => {
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
+              {isPending && (
+                <tr>
+                  <td colSpan={INCIDENT_COLUMN_COUNT}>
+                    <LoadingState message="장애/에러 목록을 불러오는 중입니다." />
+                  </td>
+                </tr>
+              )}
+
+              {!isPending && items.length === 0 && (
                 <tr>
                   <td colSpan={INCIDENT_COLUMN_COUNT}>
                     <EmptyState
@@ -89,7 +98,9 @@ const DetailIncidentHistory = ({ incidents }: DetailIncidentHistoryProps) => {
                     />
                   </td>
                 </tr>
-              ) : (
+              )}
+
+              {!isPending &&
                 items.map((item) => (
                   <DetailIncidentHistoryItem
                     key={item.id}
@@ -97,8 +108,7 @@ const DetailIncidentHistory = ({ incidents }: DetailIncidentHistoryProps) => {
                     onNavigate={(errorId) => navigate(`/api/${apiId}/errors/${errorId}`)}
                     onResolve={handleResolve}
                   />
-                ))
-              )}
+                ))}
             </tbody>
           </table>
         </div>
