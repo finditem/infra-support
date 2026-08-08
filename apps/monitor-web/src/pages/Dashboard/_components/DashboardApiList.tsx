@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import type { ReactNode } from "react";
 import { Badge } from "@/components";
-import { useApiResponseTimeQuery, useMockListQuery } from "@/queries";
+import { useApiListQuery, useApiResponseTimeQuery } from "@/queries";
 import type { ApiStatus } from "@/types";
 import { cn } from "@/utils";
 import type { ApiListItem } from "../_types";
@@ -72,7 +72,7 @@ const API_TABLE_COLUMNS: {
 
 const DashboardApiList = () => {
   const navigate = useNavigate();
-  const { data: apis } = useMockListQuery();
+  const { data: apis } = useApiListQuery();
   const { data: responseTimeData } = useApiResponseTimeQuery();
   const apiList = useMemo(
     () => buildDashboardApiList(apis ?? [], responseTimeData ?? []),
