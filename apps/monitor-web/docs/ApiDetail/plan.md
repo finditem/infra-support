@@ -40,8 +40,8 @@
 
 ### 버그 수정
 
-- [ ] DetailIncidentHistory "전체보기" 버튼의 `navigate("/api-detail")`을 실제 라우트 `/errors`로 수정 (현재 존재하지 않는 경로라 NotFound로 이동)
-- [ ] DetailIncidentHistory "더보기" 버튼의 `navigate("/error-log")`를 실제 라우트 `/api/:apiId/errors/:errorId`로 수정 (현재 존재하지 않는 경로라 NotFound로 이동)
+- [x] DetailIncidentHistory "전체보기" 버튼의 `navigate("/api-detail")`을 실제 라우트 `/errors`로 수정 (현재 존재하지 않는 경로라 NotFound로 이동)
+- [x] DetailIncidentHistory "더보기" 버튼의 `navigate("/error-log")`를 실제 라우트 `/api/:apiId/errors/:errorId`로 수정 (현재 존재하지 않는 경로라 NotFound로 이동)
 
 ### 상태 처리 및 정리
 
