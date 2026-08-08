@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { BasicButton, Icon } from "@/components";
 import { useApiListQuery, useLogoutMutation, useUserQuery } from "@/queries";
@@ -33,12 +33,34 @@ const Sidebar = () => {
       isActive && ACTIVE_NAV_ITEM_CLASS
     );
 
+  const toggleSidebar = useCallback(() => {
+    setIsOpen((prev) => {
+      if (prev) setIsApiDetailOpen(false);
+      return !prev;
+    });
+  }, []);
+
   useEffect(() => {
     if (isApiRoute) {
       setIsApiDetailOpen(true);
       setIsOpen(true);
     }
   }, [isApiRoute]);
+
+  // 맥은 cmd + b, 윈도우는 ctrl + b로 사이드바를 접고 펼친다.
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+      if (event.key.toLowerCase() !== "b") return;
+
+      event.preventDefault();
+      toggleSidebar();
+    };
+
+    window.addEventListener("keydown", handleShortcut);
+
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [toggleSidebar]);
 
   return (
     <aside
@@ -69,14 +91,10 @@ const Sidebar = () => {
               )}
             </Link>
             <button
+              aria-keyshortcuts="Meta+B Control+B"
               aria-label={isOpen ? "사이드바 접기" : "사이드바 펼치기"}
               className="absolute -right-14 size-9 rounded-[10px] border border-border-neutural-default bg-white p-2 flex-center"
-              onClick={() => {
-                setIsOpen((prev) => {
-                  if (prev) setIsApiDetailOpen(false);
-                  return !prev;
-                });
-              }}
+              onClick={toggleSidebar}
             >
               <Icon
                 className="text-fg-neutural-default"
