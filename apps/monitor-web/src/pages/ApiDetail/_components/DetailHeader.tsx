@@ -1,3 +1,4 @@
+import { useNavigate, useParams } from "react-router-dom";
 import { Badge, BasicButton, Icon } from "@/components";
 import type { ApiDetailData } from "../_types";
 
@@ -6,6 +7,9 @@ interface DetailHeaderProps {
 }
 
 const DetailHeader = ({ apiData }: DetailHeaderProps) => {
+  const { apiId } = useParams<{ apiId: string }>();
+  const navigate = useNavigate();
+
   return (
     <section
       aria-labelledby="api-detail-title"
@@ -59,7 +63,11 @@ const DetailHeader = ({ apiData }: DetailHeaderProps) => {
             <span className="typo-header4-bold">수동요청</span>
           </span>
         </BasicButton>
-        <BasicButton className="min-h-[56px] min-w-[115px] border border-border-neutural-normal-default bg-white py-4 text-[#5D5D5D]">
+        <BasicButton
+          className="min-h-[56px] min-w-[115px] py-4 text-[#5D5D5D]"
+          variant="outline"
+          onClick={() => navigate(`/api/${apiId}/edit`)}
+        >
           <span className="flex items-center gap-1">
             <Icon name="editPencil" size={24} />
             <span className="typo-header4-semibold">수정</span>
