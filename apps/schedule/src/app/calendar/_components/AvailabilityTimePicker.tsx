@@ -4,7 +4,8 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useState } from "react";
 
-const HOURS = Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, "0")}시`);
+const HOURS = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, "0"));
+const MINUTES = ["00", "10", "20", "30", "40", "50"];
 
 interface AvailabilityTimePickerProps {
   date: string;
@@ -12,8 +13,10 @@ interface AvailabilityTimePickerProps {
 }
 
 const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps) => {
-  const [startTime, setStartTime] = useState("10시");
-  const [endTime, setEndTime] = useState("12시");
+  const [startHour, setStartHour] = useState("10");
+  const [startMinute, setStartMinute] = useState("00");
+  const [endHour, setEndHour] = useState("12");
+  const [endMinute, setEndMinute] = useState("00");
 
   return (
     <div
@@ -32,31 +35,57 @@ const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps)
         <div className="mb-4 flex gap-3">
           <div className="flex-1">
             <p className="mb-1.5 text-[10px] font-semibold uppercase text-text-muted">시작</p>
-            <select
-              className="w-full rounded-[10px] border border-border bg-surface px-2 py-2 text-center text-sm font-medium text-text-default"
-              value={startTime}
-              onChange={(event) => setStartTime(event.target.value)}
-            >
-              {HOURS.map((hour) => (
-                <option key={hour} value={hour}>
-                  {hour}
-                </option>
-              ))}
-            </select>
+            <div className="flex gap-1">
+              <select
+                className="w-full rounded-[10px] border border-border bg-surface px-1 py-2 text-center text-sm font-medium text-text-default"
+                value={startHour}
+                onChange={(event) => setStartHour(event.target.value)}
+              >
+                {HOURS.map((hour) => (
+                  <option key={hour} value={hour}>
+                    {hour}시
+                  </option>
+                ))}
+              </select>
+              <select
+                className="w-full rounded-[10px] border border-border bg-surface px-1 py-2 text-center text-sm font-medium text-text-default"
+                value={startMinute}
+                onChange={(event) => setStartMinute(event.target.value)}
+              >
+                {MINUTES.map((minute) => (
+                  <option key={minute} value={minute}>
+                    {minute}분
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="flex-1">
             <p className="mb-1.5 text-[10px] font-semibold uppercase text-text-muted">종료</p>
-            <select
-              className="w-full rounded-[10px] border border-border bg-surface px-2 py-2 text-center text-sm font-medium text-text-default"
-              value={endTime}
-              onChange={(event) => setEndTime(event.target.value)}
-            >
-              {HOURS.map((hour) => (
-                <option key={hour} value={hour}>
-                  {hour}
-                </option>
-              ))}
-            </select>
+            <div className="flex gap-1">
+              <select
+                className="w-full rounded-[10px] border border-border bg-surface px-1 py-2 text-center text-sm font-medium text-text-default"
+                value={endHour}
+                onChange={(event) => setEndHour(event.target.value)}
+              >
+                {HOURS.map((hour) => (
+                  <option key={hour} value={hour}>
+                    {hour}시
+                  </option>
+                ))}
+              </select>
+              <select
+                className="w-full rounded-[10px] border border-border bg-surface px-1 py-2 text-center text-sm font-medium text-text-default"
+                value={endMinute}
+                onChange={(event) => setEndMinute(event.target.value)}
+              >
+                {MINUTES.map((minute) => (
+                  <option key={minute} value={minute}>
+                    {minute}분
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
