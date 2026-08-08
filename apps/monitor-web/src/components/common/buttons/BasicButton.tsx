@@ -8,6 +8,8 @@ import {
   SIZE_STYLES,
   STATE_STYLES,
   Size,
+  VARIANT_STYLES,
+  Variant,
 } from "./_internal/buttons.constants";
 
 /**
@@ -15,6 +17,7 @@ import {
  *
  * @remarks
  * - `size`로 버튼 스타일 속성을 제어합니다.
+ * - `variant`로 채움(`primary`)/외곽선(`outline`) 스타일을 제어합니다.
  * - `loading`이 `true`이면 스피너를 표시하고 버튼을 비활성화합니다.
  * - 로딩 중에는 `aria-busy`가 자동 적용됩니다.
  *
@@ -28,6 +31,8 @@ interface BasicButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   loading?: boolean;
   /** 버튼 크기 (default: `medium`) */
   size?: Size;
+  /** 버튼 스타일 변형 (default: `primary`) */
+  variant?: Variant;
 }
 
 /**
@@ -54,6 +59,7 @@ const BasicButton = ({
   disabled = false,
   loading = false,
   size = "medium",
+  variant = "primary",
   ...props
 }: BasicButtonProps) => {
   const isDisabled = disabled || loading;
@@ -65,6 +71,7 @@ const BasicButton = ({
       className={cn(
         BASE_STYLES,
         SIZE_STYLES[size],
+        VARIANT_STYLES[variant],
         STATE_STYLES,
         loading && LOADING_STYLES,
         className
