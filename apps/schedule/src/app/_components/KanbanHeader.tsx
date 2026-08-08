@@ -12,14 +12,12 @@ const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
   const nextWeekParam = format(addWeeks(weekStart, 1), "yyyy-MM-dd");
 
   return (
-    <header className="flex items-center justify-between border-b border-border bg-surface-elevated px-8 py-5">
-      <h1 className="text-lg font-semibold text-text-default">메인 칸반보드</h1>
-
+    <header className="flex items-center justify-end border-b border-border bg-surface-elevated px-8 py-5">
       <div className="flex items-center gap-2">
         <Link
           aria-label="이전 주"
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
-          href={`/?week=${prevWeekParam}`}
+          href={`?week=${prevWeekParam}`}
         >
           <ChevronLeft size={16} />
         </Link>
@@ -29,7 +27,7 @@ const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
         <Link
           aria-label="다음 주"
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
-          href={`/?week=${nextWeekParam}`}
+          href={`?week=${nextWeekParam}`}
         >
           <ChevronRight size={16} />
         </Link>
