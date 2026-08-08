@@ -24,7 +24,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         <option value="">담당자: 전체</option>
         {profiles.map((profile) => (
           <option key={profile.id} value={profile.id}>
-            {profile.name}
+            담당자: {profile.name}
           </option>
         ))}
       </select>
@@ -38,7 +38,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         <option value="">보고자: 전체</option>
         {profiles.map((profile) => (
           <option key={profile.id} value={profile.id}>
-            {profile.name}
+            보고자: {profile.name}
           </option>
         ))}
       </select>
@@ -57,7 +57,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         <option value="">우선순위: 전체</option>
         {PRIORITY_ORDER.map((priority) => (
           <option key={priority} value={priority}>
-            {PRIORITY_META[priority].label}
+            우선순위: {PRIORITY_META[priority].label}
           </option>
         ))}
       </select>
