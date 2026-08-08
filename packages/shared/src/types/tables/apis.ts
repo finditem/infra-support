@@ -3,6 +3,10 @@ type ApisWritable = {
   description: string | null;
   source: string;
   source_url: string | null;
+  request_url: string | null;
+  http_method: string;
+  check_interval_minutes: number;
+  is_notification_enabled: boolean;
   category: string;
   icon_url: string | null;
   is_active: boolean | null;
@@ -16,10 +20,27 @@ export interface ApisRow extends ApisWritable {
 }
 
 export type ApisInsert =
-  Omit<ApisWritable, "description" | "source_url" | "icon_url" | "is_active" | "memo" | "created_at" | "updated_at"> & {
+  Omit<
+    ApisWritable,
+    | "description"
+    | "source_url"
+    | "request_url"
+    | "http_method"
+    | "check_interval_minutes"
+    | "is_notification_enabled"
+    | "icon_url"
+    | "is_active"
+    | "memo"
+    | "created_at"
+    | "updated_at"
+  > & {
     id?: string;
     description?: string | null;
     source_url?: string | null;
+    request_url?: string | null;
+    http_method?: string;
+    check_interval_minutes?: number;
+    is_notification_enabled?: boolean;
     icon_url?: string | null;
     is_active?: boolean | null;
     memo?: string | null;
