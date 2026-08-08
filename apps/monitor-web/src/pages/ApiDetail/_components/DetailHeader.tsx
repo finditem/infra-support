@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Badge, BasicButton, Icon } from "@/components";
+import { useApiManualCheckMutation } from "@/queries";
 import type { ApiDetailData } from "../_types";
 
 interface DetailHeaderProps {
@@ -8,9 +9,10 @@ interface DetailHeaderProps {
 }
 
 const DetailHeader = ({ apiData, statusCode }: DetailHeaderProps) => {
-  const { apiId } = useParams<{ apiId: string }>();
+  const { apiId = "" } = useParams<{ apiId: string }>();
   const navigate = useNavigate();
   const { name, description, category, source, sourceUrl, iconUrl } = apiData;
+  const { mutate: runManualCheck, isPending: isManualChecking } = useApiManualCheckMutation(apiId);
 
   return (
     <section
@@ -58,7 +60,11 @@ const DetailHeader = ({ apiData, statusCode }: DetailHeaderProps) => {
       </div>
 
       <div className="flex items-center gap-4">
-        <BasicButton className="min-h-[56px] w-[150px] py-4">
+        <BasicButton
+          className="min-h-[56px] w-[150px] py-4"
+          loading={isManualChecking}
+          onClick={() => runManualCheck()}
+        >
           <span className="flex gap-2">
             <Icon name="arrowRotateRight" size={24} />
             <span className="typo-header4-bold">수동요청</span>
