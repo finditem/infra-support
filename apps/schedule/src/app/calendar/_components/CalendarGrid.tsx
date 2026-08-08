@@ -86,7 +86,7 @@ const CalendarGrid = ({
               </span>
 
               {inMonth && isHoliday && (
-                <span className="absolute left-9 top-2 max-w-[64px] truncate text-[10px] font-medium leading-6 text-fg-state-error">
+                <span className="absolute left-9 right-2 top-2 truncate text-[10px] font-medium leading-6 text-fg-state-error">
                   {holidayName}
                 </span>
               )}
