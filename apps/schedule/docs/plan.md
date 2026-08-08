@@ -194,5 +194,5 @@
 
 - [x] `holidays.ts`: `new Date()`/`format()`이 서버 실행 환경의 로컬 타임존에 의존해 배포 환경(예: Vercel 기본 UTC)에서 공휴일 날짜가 밀리던 문제 수정 — date-fns 대신 epoch에 KST 오프셋(+9h)을 직접 더해 `toISOString()`으로 날짜를 뽑는 `toKstDateKey`로 교체, 타임존 무관하게 동일한 결과 나오는 것 재현 확인(UTC/Asia·Seoul/America·New_York)
 - [x] `holidays.ts`: 연도별 공휴일 계산 결과를 모듈 스코프 `Map`으로 캐싱 (`getHolidayNameMapForYear`) — 매 `/calendar` 요청마다 음력 공휴일을 재계산하던 것을 방지
-- [ ] `TimeWheelPicker.tsx`: `WheelColumn`에 `role="listbox"`/`role="option"`/`aria-label`/`aria-selected`/`tabIndex` 추가, `ArrowUp`/`ArrowDown` 키보드로 값 변경 가능하도록 `onKeyDown` 추가, 항목 클릭으로도 바로 선택 가능하도록 `onClick` 추가 (기존 `<select>` 대비 키보드/스크린리더 접근성 회귀 수정)
-- [x] pnpm build / pnpm lint 검증 (holidays.ts 수정 단계)
+- [x] `TimeWheelPicker.tsx`: `WheelColumn`에 `role="listbox"`/`role="option"`/`aria-label`/`aria-selected`/`tabIndex` 추가, `ArrowUp`/`ArrowDown` 키보드로 값 변경 가능하도록 `onKeyDown` 추가, 항목 클릭으로도 바로 선택 가능하도록 `onClick` 추가 (기존 `<select>` 대비 키보드/스크린리더 접근성 회귀 수정)
+- [x] pnpm build / pnpm lint 검증
