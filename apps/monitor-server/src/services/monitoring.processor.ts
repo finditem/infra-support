@@ -3,7 +3,23 @@ import {
   insertErrorLog,
   insertMonitoringResult,
 } from "@/repositories/monitoring.repository";
-import { resolveApiStatus, shouldWriteErrorLog } from "@/utils/status";
+import { resolveApiStatus, shouldWriteErrorLog, type ApiStatus } from "@/utils/status";
+
+export type CheckResult = {
+  status: ApiStatus;
+  responseTime: number | null;
+  httpStatus: number | null;
+  errorType: string | null;
+  errorMessage: string | null;
+  checkedAt: string;
+};
+
+export type ProcessApiOutcome = {
+  /** 결과 저장까지 성공했는지 여부 */
+  ok: boolean;
+  /** 실제로 점검을 수행한 경우의 결과. `request_url`이 없어 건너뛰었거나 처리에 실패하면 `null` */
+  result: CheckResult | null;
+};
 
 type CallResult = {
   ok: boolean;
@@ -207,18 +223,19 @@ const callApi = async (url: string, method: string, timeoutMs = 5000): Promise<C
  * @remarks
  * - 모니터링 결과는 항상 `monitoring_results`에 저장합니다.
  * - 상태가 `degraded`/`outage`이면 `error_logs`도 추가 저장합니다.
- * - 처리 중 예외는 내부에서 로깅하고 `false`를 반환합니다.
+ * - 처리 중 예외는 내부에서 로깅하고 `ok: false`를 반환합니다.
+ * - `request_url`이 없으면 점검을 건너뛰고 `ok: true`, `result: null`을 반환합니다. 배치 집계에서 실패로 세지 않기 위함입니다.
  *
- * @returns 저장 성공 시 `true`, 실패 시 `false`
+ * @returns 저장 성공 여부와 점검 결과. 수동 체크는 `result`를 응답에 그대로 사용합니다.
  *
  * @author junyeol
  */
 
-export const processApi = async (api: ActiveApiRow): Promise<boolean> => {
+export const processApi = async (api: ActiveApiRow): Promise<ProcessApiOutcome> => {
   try {
     const checkedAt = new Date().toISOString();
 
-    if (!api.request_url) return true;
+    if (!api.request_url) return { ok: true, result: null };
 
     const result = await callApi(api.request_url, api.http_method);
     const status = resolveApiStatus({
@@ -262,9 +279,19 @@ export const processApi = async (api: ActiveApiRow): Promise<boolean> => {
       await insertErrorLog(errorLogPayload);
     }
 
-    return true;
+    return {
+      ok: true,
+      result: {
+        status,
+        responseTime: result.responseTime,
+        httpStatus: result.httpStatus,
+        errorType: normalizedErrorType,
+        errorMessage: normalizedErrorMessage,
+        checkedAt,
+      },
+    };
   } catch (error) {
     console.error("[monitoring] api_id=" + api.id + " (" + api.name + ") 처리 실패", error);
-    return false;
+    return { ok: false, result: null };
   }
 };
