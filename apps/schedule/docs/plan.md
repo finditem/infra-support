@@ -89,5 +89,5 @@
 시(select) + 분(select) 드롭다운 두 개 대신, 오전/오후 + 시(1~12) + 분 세 열을 세로 스크롤로 고르는 휠 피커 UI로 바꾼다. 시작/종료 구분은 유지.
 
 - [x] `calendar/_components/TimeWheelPicker.tsx` 신규 작성: `overflow-y-scroll` + `snap-mandatory`인 재사용 가능한 휠 컬럼(오전/오후, 시, 분)과 가운데 선택 밴드(상하 보더) 렌더링, 스크롤 종료 시 가장 가까운 항목을 선택값으로 커밋
-- [ ] `AvailabilityTimePicker.tsx`: 시작/종료 각각의 상태를 24시간 `hour`/`minute`에서 `period`("오전"/"오후") + `hour12`(01~12) + `minute`로 변경, `TimeWheelPicker`로 select 대체
-- [ ] pnpm build / pnpm lint 검증
+- [x] `AvailabilityTimePicker.tsx`: 시작/종료 각각의 상태를 24시간 `hour`/`minute`에서 `period`("오전"/"오후") + `hour12`(01~12) + `minute`로 변경, `TimeWheelPicker`로 select 대체
+- [x] pnpm build / pnpm lint 검증

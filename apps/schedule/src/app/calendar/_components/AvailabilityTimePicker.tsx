@@ -3,9 +3,7 @@
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useState } from "react";
-
-const HOURS = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, "0"));
-const MINUTES = ["00", "10", "20", "30", "40", "50"];
+import TimeWheelPicker from "./TimeWheelPicker";
 
 interface AvailabilityTimePickerProps {
   date: string;
@@ -13,8 +11,10 @@ interface AvailabilityTimePickerProps {
 }
 
 const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps) => {
+  const [startPeriod, setStartPeriod] = useState("오전");
   const [startHour, setStartHour] = useState("10");
   const [startMinute, setStartMinute] = useState("00");
+  const [endPeriod, setEndPeriod] = useState("오후");
   const [endHour, setEndHour] = useState("12");
   const [endMinute, setEndMinute] = useState("00");
 
@@ -24,7 +24,7 @@ const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps)
       onClick={onCancel}
     >
       <div
-        className="w-[220px] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)]"
+        className="w-[260px] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)]"
         onClick={(event) => event.stopPropagation()}
       >
         <p className="mb-1 text-sm font-semibold text-text-default">가능 시간 등록</p>
@@ -32,60 +32,28 @@ const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps)
           {format(new Date(date), "M월 d일 (EEEEEE)", { locale: ko })}
         </p>
 
-        <div className="mb-4 flex gap-3">
-          <div className="flex-1">
+        <div className="mb-4 flex flex-col gap-3">
+          <div>
             <p className="mb-1.5 text-[10px] font-semibold uppercase text-text-muted">시작</p>
-            <div className="flex gap-1">
-              <select
-                className="w-full rounded-[10px] border border-border bg-surface px-1 py-2 text-center text-sm font-medium text-text-default"
-                value={startHour}
-                onChange={(event) => setStartHour(event.target.value)}
-              >
-                {HOURS.map((hour) => (
-                  <option key={hour} value={hour}>
-                    {hour}시
-                  </option>
-                ))}
-              </select>
-              <select
-                className="w-full rounded-[10px] border border-border bg-surface px-1 py-2 text-center text-sm font-medium text-text-default"
-                value={startMinute}
-                onChange={(event) => setStartMinute(event.target.value)}
-              >
-                {MINUTES.map((minute) => (
-                  <option key={minute} value={minute}>
-                    {minute}분
-                  </option>
-                ))}
-              </select>
-            </div>
+            <TimeWheelPicker
+              hour={startHour}
+              minute={startMinute}
+              period={startPeriod}
+              onChangeHour={setStartHour}
+              onChangeMinute={setStartMinute}
+              onChangePeriod={setStartPeriod}
+            />
           </div>
-          <div className="flex-1">
+          <div>
             <p className="mb-1.5 text-[10px] font-semibold uppercase text-text-muted">종료</p>
-            <div className="flex gap-1">
-              <select
-                className="w-full rounded-[10px] border border-border bg-surface px-1 py-2 text-center text-sm font-medium text-text-default"
-                value={endHour}
-                onChange={(event) => setEndHour(event.target.value)}
-              >
-                {HOURS.map((hour) => (
-                  <option key={hour} value={hour}>
-                    {hour}시
-                  </option>
-                ))}
-              </select>
-              <select
-                className="w-full rounded-[10px] border border-border bg-surface px-1 py-2 text-center text-sm font-medium text-text-default"
-                value={endMinute}
-                onChange={(event) => setEndMinute(event.target.value)}
-              >
-                {MINUTES.map((minute) => (
-                  <option key={minute} value={minute}>
-                    {minute}분
-                  </option>
-                ))}
-              </select>
-            </div>
+            <TimeWheelPicker
+              hour={endHour}
+              minute={endMinute}
+              period={endPeriod}
+              onChangeHour={setEndHour}
+              onChangeMinute={setEndMinute}
+              onChangePeriod={setEndPeriod}
+            />
           </div>
         </div>
 
