@@ -1,4 +1,5 @@
 import { addMonths, format } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import MonthPickerPopover from "./MonthPickerPopover";
 
@@ -21,7 +22,7 @@ const CalendarHeader = ({ monthLabel, monthStart }: CalendarHeaderProps) => {
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
           href={`/calendar?month=${prevMonthParam}`}
         >
-          ‹
+          <ChevronLeft size={16} />
         </Link>
         <MonthPickerPopover monthLabel={monthLabel} monthStart={monthStart} />
         <Link
@@ -29,7 +30,7 @@ const CalendarHeader = ({ monthLabel, monthStart }: CalendarHeaderProps) => {
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
           href={`/calendar?month=${nextMonthParam}`}
         >
-          ›
+          <ChevronRight size={16} />
         </Link>
       </div>
     </header>

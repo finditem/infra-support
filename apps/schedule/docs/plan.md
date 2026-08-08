@@ -109,3 +109,12 @@
 - [x] `calendar/page.tsx`: `mockProfiles`/`mockProfileColorMap` 대신 `createClient()`로 Supabase `profiles` 테이블을 조회(`src/app/page.tsx`와 동일한 패턴)하고 `buildProfileColorMap`으로 직접 색상 맵 생성
 - [x] `calendarMockData.ts`: `mockAvailability`가 하드코딩된 `"profile-1"`/`"profile-6"` 대신 인자로 받은 프로필 id 2개를 사용하도록 시그니처 변경, `MOCK_PROFILES`/`mockProfileColorMap`/`mockProfiles` 제거
 - [x] pnpm build / pnpm lint 검증
+
+## 이전/다음 화살표 버튼의 아이콘이 세로 중앙에서 벗어나 보이던 문제 수정
+
+`‹`/`›` 유니코드 문자를 텍스트로 그대로 쓰다 보니 폰트마다 글리프가 자기 em box 안에서 위쪽으로 치우쳐 있어, `flex items-center`로 감싸도 시각적으로 중앙이 아닌 것처럼 보였다. `lucide-react`의 `ChevronLeft`/`ChevronRight` SVG 아이콘으로 교체해 근본적으로 고친다. 같은 패턴이 캘린더/칸반 양쪽에 반복돼 있어 전부 통일한다.
+
+- [x] `lucide-react` 의존성 추가
+- [x] `CalendarHeader.tsx`, `KanbanHeader.tsx`: `size-8` 이전/다음 버튼의 `‹`/`›` 텍스트를 `<ChevronLeft size={16} />`/`<ChevronRight size={16} />`로 교체
+- [x] `MonthPickerPopover.tsx`, `DatePickerPopover.tsx`: 연/월 네비게이션 버튼의 `‹`/`›` 텍스트를 `<ChevronLeft size={14} />`/`<ChevronRight size={14} />`로 교체
+- [x] pnpm build / pnpm lint 검증

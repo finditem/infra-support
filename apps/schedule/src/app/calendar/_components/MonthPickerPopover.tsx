@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/utils";
 import PropertyPopover from "../../_components/TaskCreateModal/PropertyPopover";
 
@@ -35,7 +36,7 @@ const MonthPickerPopover = ({ monthLabel, monthStart }: MonthPickerPopoverProps)
               type="button"
               onClick={() => setYearCursor((prev) => prev - 1)}
             >
-              ‹
+              <ChevronLeft size={14} />
             </button>
             <span className="text-xs font-semibold text-text-default">{yearCursor}년</span>
             <button
@@ -44,7 +45,7 @@ const MonthPickerPopover = ({ monthLabel, monthStart }: MonthPickerPopoverProps)
               type="button"
               onClick={() => setYearCursor((prev) => prev + 1)}
             >
-              ›
+              <ChevronRight size={14} />
             </button>
           </div>
 
