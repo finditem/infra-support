@@ -52,6 +52,16 @@ monitor-web과 동일하게 `packages/design-tokens`를 그대로 사용한다 (
 
 라이트/다크 모드를 지원한다. `packages/design-tokens`는 라이트 전용 단일 모드라 건드리지 않고, `apps/schedule` 앱 레벨에서 `tailwind.config.ts`(darkMode: "class")와 `globals.css`의 CSS 변수 오버라이드로 처리한다. DB에 저장된 상태(`task_statuses`) 색상처럼 인라인 style로 쓰는 값은 라이트/다크용 컬럼을 별도로 두고 헬퍼로 선택한다.
 
+조건부로 갈리는 className은 템플릿 리터럴 대신 `src/utils`의 `cn()`을 사용한다.
+
+```tsx
+// bad
+className={`text-xs ${isActive ? "text-primary" : "text-text-muted"}`}
+
+// good
+className={cn("text-xs", isActive ? "text-primary" : "text-text-muted")}
+```
+
 ## 범위 (뼈대 세팅 기준)
 
 칸반보드 CRUD, 드래그앤드롭, 캘린더 상호작용, Slack 연동, 실시간 동기화는 아직 구현되어 있지 않다. `/`와 `/calendar`는 인증 가드 확인용 최소 자리표시자다.
