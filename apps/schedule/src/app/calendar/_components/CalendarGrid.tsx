@@ -81,7 +81,7 @@ const CalendarGrid = ({
           return (
             <button
               key={dateKey}
-              className="border-border/60 relative min-h-[110px] border-b border-r p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
+              className="relative min-h-[110px] border-b border-r border-border p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
               type="button"
               onClick={() => onSelectDate(dateKey)}
             >
