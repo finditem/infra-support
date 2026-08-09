@@ -62,6 +62,21 @@ className={`text-xs ${isActive ? "text-primary" : "text-text-muted"}`}
 className={cn("text-xs", isActive ? "text-primary" : "text-text-muted")}
 ```
 
+3단 이상 중첩되는 삼항연산자는 금지한다. 분기가 3개 이상이면 `if`를 순서대로 쌓은 별도 함수로 분리해 반환값을 계산한 뒤 JSX에서는 그 결과만 쓴다.
+
+```tsx
+// bad
+const className = a ? "a" : b ? "b" : c ? "c" : "d";
+
+// good
+const getClassName = (a: boolean, b: boolean, c: boolean) => {
+  if (a) return "a";
+  if (b) return "b";
+  if (c) return "c";
+  return "d";
+};
+```
+
 ## 범위 (뼈대 세팅 기준)
 
 칸반보드 CRUD, 드래그앤드롭, 캘린더 상호작용, Slack 연동, 실시간 동기화는 아직 구현되어 있지 않다. `/`와 `/calendar`는 인증 가드 확인용 최소 자리표시자다.
