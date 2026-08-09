@@ -18,17 +18,17 @@
 
 ### 데이터 연동 (Supabase 실데이터 전환)
 
-- [ ] `src/queries/apiDetail/apiDetail.queries.ts` 신설 — `useAppQuery` 래퍼와 `apisQueryKeys.detail(apiId)` 사용
-- [ ] ApiDetail.tsx에서 `useParams`의 `apiId`를 쿼리 파라미터로 사용하고 임시 `console.warn(apiId)` 제거
-- [ ] DetailHeader의 `MOCK_HEADER_DATA` 실데이터 전환 (이름, 상태 코드, 로고 이미지)
-- [ ] DetailHeader의 하드코딩된 설명 문구, 카테고리(`map`), 출처 링크(Kakao developers)를 API 데이터 기반으로 변경
-- [ ] DetailHeader 로고 이미지 경로를 `/src/assets/mocks/api-detail-mock.png` 대신 실제 에셋 또는 API 응답 값으로 교체 (현재 경로는 프로덕션 빌드에서 깨짐)
-- [ ] DetailSummaryCards의 하드코딩된 `SUMMARY_CARD_DATA`(상태, 마지막 체크 시간, 응답 속도, 성공률) 실데이터 전환
-- [ ] DetailCheckLogs의 `MOCK_LOGS` 실데이터 전환
-- [ ] DetailCheckLogs의 하드코딩된 범례 카운트(`LEGEND_ITEMS`), 체크 주기 배지("3시간 주기"), 조회 구간("오늘 00:00 - 24:00") 실데이터 전환
-- [ ] DetailImpactedFeatures의 `MOCK_FEATURES` 실데이터 전환
-- [ ] DetailSettings의 `MOCK_SETTINGS` 실데이터 전환 및 HTTP Method 하드코딩("GET") 제거
-- [ ] DetailIncidentHistory의 `MOCK_ERROR_LOG_ITEMS` 실데이터 전환 및 "최근 7일" 기준 필터 적용
+- [x] `src/queries/apiDetail/apiDetail.queries.ts` 신설 — `useAppQuery` 래퍼와 `apisQueryKeys.detail(apiId)` 사용
+- [x] ApiDetail.tsx에서 `useParams`의 `apiId`를 쿼리 파라미터로 사용하고 임시 `console.warn(apiId)` 제거
+- [x] DetailHeader의 `MOCK_HEADER_DATA` 실데이터 전환 (이름, 상태 코드, 로고 이미지)
+- [x] DetailHeader의 하드코딩된 설명 문구, 카테고리(`map`), 출처 링크(Kakao developers)를 API 데이터 기반으로 변경
+- [x] DetailHeader 로고 이미지 경로를 `/src/assets/mocks/api-detail-mock.png` 대신 실제 에셋 또는 API 응답 값으로 교체 (현재 경로는 프로덕션 빌드에서 깨짐)
+- [x] DetailSummaryCards의 하드코딩된 `SUMMARY_CARD_DATA`(상태, 마지막 체크 시간, 응답 속도, 성공률) 실데이터 전환
+- [x] DetailCheckLogs의 `MOCK_LOGS` 실데이터 전환
+- [x] DetailCheckLogs의 하드코딩된 범례 카운트(`LEGEND_ITEMS`), 체크 주기 배지("3시간 주기"), 조회 구간("오늘 00:00 - 24:00") 실데이터 전환
+- [x] DetailImpactedFeatures의 `MOCK_FEATURES` 실데이터 전환
+- [x] DetailSettings의 `MOCK_SETTINGS` 실데이터 전환 및 HTTP Method 하드코딩("GET") 제거
+- [x] DetailIncidentHistory의 `MOCK_ERROR_LOG_ITEMS` 실데이터 전환 및 "최근 7일" 기준 필터 적용
 
 ### 미구현 기능
 
