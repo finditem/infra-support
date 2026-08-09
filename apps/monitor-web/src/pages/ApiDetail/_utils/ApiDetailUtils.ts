@@ -13,7 +13,7 @@ const EMPTY_VALUE = "-";
  *
  * @returns 상태, 마지막 체크 시각, 마지막 응답 속도, 성공률을 담은 요약 데이터
  *
- * @author junyeol
+ * @author jikwon
  */
 
 export const getApiSummaryData = (logs: ApiCheckLog[]): ApiSummaryData => {
@@ -43,7 +43,7 @@ export const getApiSummaryData = (logs: ApiCheckLog[]): ApiSummaryData => {
  *
  * @returns 상태별 로그 개수
  *
- * @author junyeol
+ * @author jikwon
  */
 
 export const getCheckLogStatusCounts = (logs: ApiCheckLog[]): Record<ApiStatus, number> => {
@@ -65,7 +65,7 @@ export const getCheckLogStatusCounts = (logs: ApiCheckLog[]): Record<ApiStatus, 
  *
  * @returns `HH:mm - HH:mm` 형식의 조회 구간 문자열
  *
- * @author junyeol
+ * @author jikwon
  */
 
 export const getCheckLogTimeRange = (logs: ApiCheckLog[]): string => {
@@ -90,7 +90,7 @@ const MINUTES_PER_HOUR = 60;
  *
  * @returns `N시간`, `N분`, `N시간 N분` 형식의 체크 주기 문자열
  *
- * @author junyeol
+ * @author jikwon
  */
 
 export const formatCheckInterval = (minutes: number): string => {
