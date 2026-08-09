@@ -1,5 +1,13 @@
+import { useMemo } from "react";
+import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { MOCK_HEADER_DATA } from "@/mock";
+import { BasicButton, ErrorBoundary, ErrorState, LoadingState } from "@/components";
+import {
+  useApiAffectedFeaturesQuery,
+  useApiCheckLogsQuery,
+  useApiDetailQuery,
+  useApiErrorLogsQuery,
+} from "@/queries";
 import {
   DetailCheckLogs,
   DetailHeader,
@@ -9,30 +17,79 @@ import {
   DetailSettings,
   DetailSummaryCards,
 } from "./_components";
+import { getApiSummaryData } from "./_utils";
 
+const EMPTY_VALUE = "-";
+
+// 쿼리를 호출하는 컴포넌트는 ErrorBoundary의 자식이어야 에러가 포착되므로, 페이지를 껍데기와 내용으로 나눈다.
 const ApiDetail = () => {
-  const { apiId } = useParams<{ apiId: string }>();
-  console.warn(apiId);
+  const { reset: resetQueryErrors } = useQueryErrorResetBoundary();
+
+  return (
+    <ErrorBoundary
+      fallback={(_error, resetBoundary) => (
+        <ErrorState icon="clear" message="API 상세 정보를 불러오지 못했습니다.">
+          <BasicButton
+            onClick={() => {
+              resetQueryErrors();
+              resetBoundary();
+            }}
+          >
+            다시 시도
+          </BasicButton>
+        </ErrorState>
+      )}
+    >
+      <ApiDetailContent />
+    </ErrorBoundary>
+  );
+};
+
+export default ApiDetail;
+
+const ApiDetailContent = () => {
+  const { apiId = "" } = useParams<{ apiId: string }>();
+
+  const { data: apiData } = useApiDetailQuery(apiId);
+  const { data: checkLogsData, isPending: isCheckLogsPending } = useApiCheckLogsQuery(apiId);
+  const { data: affectedFeaturesData, isPending: isAffectedFeaturesPending } =
+    useApiAffectedFeaturesQuery(apiId);
+  const { data: errorLogsData, isPending: isErrorLogsPending } = useApiErrorLogsQuery(apiId);
+
+  const checkLogs = useMemo(() => checkLogsData ?? [], [checkLogsData]);
+  const summaryData = useMemo(() => getApiSummaryData(checkLogs), [checkLogs]);
+
+  // 조회 실패는 ErrorBoundary로 던져지므로, 기본 정보가 없다는 것은 아직 로딩 중이라는 뜻이다.
+  // 헤더와 설정 정보는 이 데이터 없이 골격조차 그릴 수 없어서 이 쿼리만 페이지 전체를 막고,
+  // 나머지 세 쿼리는 각 섹션 안에서 따로 기다려 레이아웃이 흔들리지 않게 한다.
+  if (!apiData) {
+    return <LoadingState message="API 상세 정보를 불러오는 중입니다." />;
+  }
 
   return (
     <>
-      <DetailHeader apiData={MOCK_HEADER_DATA} />
-      <DetailSummaryCards />
+      <DetailHeader apiData={apiData} statusCode={checkLogs[0]?.statusCode ?? EMPTY_VALUE} />
+      <DetailSummaryCards isPending={isCheckLogsPending} summaryData={summaryData} />
 
       <div className="grid h-[620px] min-h-0 grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)]">
         <DetailResponseChart />
 
         <div className="grid min-h-0 min-w-0 grid-rows-[minmax(0,2fr)_minmax(0,1fr)] gap-3">
-          <DetailCheckLogs />
-          <DetailImpactedFeatures />
+          <DetailCheckLogs
+            checkIntervalMinutes={apiData.checkIntervalMinutes}
+            isPending={isCheckLogsPending}
+            logs={checkLogs}
+          />
+          <DetailImpactedFeatures
+            features={affectedFeaturesData ?? []}
+            isPending={isAffectedFeaturesPending}
+          />
         </div>
       </div>
 
-      <DetailSettings />
+      <DetailSettings apiData={apiData} />
 
-      <DetailIncidentHistory />
+      <DetailIncidentHistory incidents={errorLogsData ?? []} isPending={isErrorLogsPending} />
     </>
   );
 };
-
-export default ApiDetail;
