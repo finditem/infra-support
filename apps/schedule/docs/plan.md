@@ -220,9 +220,10 @@
 
 - [x] `calendar/_lib/time.ts` 신규 작성: `to24HourTime(period, hour12, minute)` (오전/오후+12시간제 → DB `time` 포맷 변환, 오전 12시=00시/오후 12시=12시 처리), `formatTimeRange(start, end)` (HH:MM~HH:MM 표시), `rangesOverlap(aStart, aEnd, bStart, bEnd)` (문자열 비교로 중복 시간대 판정)
 - [x] `calendar/_lib/actions.ts` 신규 작성: `createAvailability`/`deleteAvailability` 서버 액션 (`_lib/actions.ts`의 `createTask`/`updateTask` 패턴 재사용)
-- [ ] `calendar/page.tsx`: 목업 `mockAvailability` 호출 제거, 그리드 표시 범위(6주) 기준으로 `availability` 테이블 실 조회, 로그인 사용자의 `currentProfileId` 함께 조회해 전달
-- [ ] `calendarMockData.ts` 삭제, `CalendarGrid.tsx`/`CalendarView.tsx`의 `MockAvailabilityBlock` 참조를 `@/types/tables`의 `AvailabilityRow`로 교체 (`date`/`profileId`/`startTime`/`endTime` → `available_date`/`user_id`/`start_time`/`end_time`)
-- [ ] `CalendarView.tsx`: `availability`를 client state로 끌어올려(`useState`) 생성/삭제 시 로컬에서 upsert/제거 (KanbanBoard의 `onSaved` 패턴과 동일), `currentProfileId`를 `AvailabilityTimePicker`/`CalendarGrid`에 전달
-- [ ] `AvailabilityTimePicker.tsx`: "확인" 버튼을 `createAvailability` 호출로 연결, 제출 전 같은 사용자의 해당 날짜 기존 블록과 `rangesOverlap`으로 중복 검사해 겹치면 인라인 경고 표시 후 제출 막음, 성공 시 `onCreated` 콜백으로 부모 상태 갱신
+- [x] `calendar/page.tsx`: 목업 `mockAvailability` 호출 제거, 그리드 표시 범위(6주) 기준으로 `availability` 테이블 실 조회, 로그인 사용자의 `currentProfileId` 함께 조회해 전달
+- [x] `calendarMockData.ts` 삭제, `CalendarGrid.tsx`/`CalendarView.tsx`의 `MockAvailabilityBlock` 참조를 `@/types/tables`의 `AvailabilityRow`로 교체 (`date`/`profileId`/`startTime`/`endTime` → `available_date`/`user_id`/`start_time`/`end_time`)
+- [x] `CalendarView.tsx`: `availability`를 client state로 끌어올려(`useState`) 생성/삭제 시 로컬에서 upsert/제거 (KanbanBoard의 `onSaved` 패턴과 동일), `currentProfileId`를 `AvailabilityTimePicker`에 전달
+- [x] `AvailabilityTimePicker.tsx`: "확인" 버튼을 `createAvailability` 호출로 연결, 제출 전 같은 사용자의 해당 날짜 기존 블록과 `rangesOverlap`으로 중복 검사해 겹치면 인라인 경고 표시 후 제출 막음, 성공 시 `onCreated` 콜백으로 부모 상태 갱신
+- [x] pnpm build / pnpm lint 검증 (삭제 기능 제외한 등록/조회 단계)
 - [ ] `CalendarGrid.tsx`: 날짜 셀을 `<button>`에서 `role="button"` `div`(`KanbanCard.tsx` 패턴)로 변경해 블록 내부에 실제 `<button>` 삭제 버튼을 중첩 가능하게 함, 본인이 등록한 블록 클릭 시 삭제 확인 버튼 노출 → `deleteAvailability` 호출 후 `onDeleted` 콜백
 - [ ] pnpm build / pnpm lint 검증

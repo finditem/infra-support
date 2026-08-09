@@ -10,14 +10,15 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
+import type { AvailabilityRow } from "@/types/tables";
 import type { ProfileWithColor } from "../../_types/kanban";
-import type { MockAvailabilityBlock } from "../_lib/calendarMockData";
+import { formatTimeRange } from "../_lib/time";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 interface CalendarGridProps {
   monthStart: Date;
-  availability: MockAvailabilityBlock[];
+  availability: AvailabilityRow[];
   holidayNames: Record<string, string>;
   profileColorMap: Map<string, ProfileWithColor>;
   selectedProfileId: string | null;
@@ -37,7 +38,7 @@ const CalendarGrid = ({
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
   const visibleAvailability = selectedProfileId
-    ? availability.filter((block) => block.profileId === selectedProfileId)
+    ? availability.filter((block) => block.user_id === selectedProfileId)
     : availability;
 
   return (
@@ -58,7 +59,7 @@ const CalendarGrid = ({
       <div className="grid grid-cols-7">
         {days.map((day) => {
           const dateKey = format(day, "yyyy-MM-dd");
-          const dayBlocks = visibleAvailability.filter((block) => block.date === dateKey);
+          const dayBlocks = visibleAvailability.filter((block) => block.available_date === dateKey);
           const inMonth = isSameMonth(day, monthStart);
           const holidayName = holidayNames[dateKey];
           const isHoliday = Boolean(holidayName);
@@ -67,7 +68,7 @@ const CalendarGrid = ({
           return (
             <button
               key={dateKey}
-              className="relative min-h-[110px] border-b border-r border-border/60 p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
+              className="border-border/60 relative min-h-[110px] border-b border-r p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
               type="button"
               onClick={() => onSelectDate(dateKey)}
             >
@@ -93,7 +94,7 @@ const CalendarGrid = ({
 
               <div className="mt-[30px] flex flex-col gap-[3px]">
                 {dayBlocks.map((block) => {
-                  const profile = profileColorMap.get(block.profileId);
+                  const profile = profileColorMap.get(block.user_id);
 
                   return (
                     <span
@@ -102,7 +103,7 @@ const CalendarGrid = ({
                       style={{ backgroundColor: profile?.color ?? "#9CA3AF" }}
                     >
                       {profile && `${profile.name.slice(1)} `}
-                      {block.startTime}~{block.endTime}
+                      {formatTimeRange(block.start_time, block.end_time)}
                     </span>
                   );
                 })}
