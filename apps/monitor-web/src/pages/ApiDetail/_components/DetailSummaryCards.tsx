@@ -1,4 +1,4 @@
-import { Icon, IconName } from "@/components";
+import { Icon, IconName, Skeleton } from "@/components";
 import { cn } from "@/utils";
 import type { ApiStatus } from "@/types";
 import type { ApiSummaryData } from "../_types";
@@ -17,13 +17,14 @@ const STATUS_CONFIG: Record<ApiStatus, { label: string; dotColor: string; textCo
 
 interface DetailSummaryCardsProps {
   summaryData: ApiSummaryData;
+  isPending: boolean;
 }
 
-const DetailSummaryCards = ({ summaryData }: DetailSummaryCardsProps) => {
+const DetailSummaryCards = ({ summaryData, isPending }: DetailSummaryCardsProps) => {
   const { status, lastCheckedAt, lastResponseTime, successRate } = summaryData;
   const statusInfo = status ? STATUS_CONFIG[status] : null;
 
-  const summaryCards: SummaryCardProps[] = [
+  const summaryCards: Omit<SummaryCardProps, "isPending">[] = [
     {
       label: "상태",
       value: statusInfo?.label ?? EMPTY_VALUE,
@@ -43,7 +44,7 @@ const DetailSummaryCards = ({ summaryData }: DetailSummaryCardsProps) => {
   return (
     <section className="mb-3 mt-6 grid w-full grid-cols-4 gap-3">
       {summaryCards.map((item) => (
-        <SummaryCard key={item.label} {...item} />
+        <SummaryCard key={item.label} {...item} isPending={isPending} />
       ))}
     </section>
   );
@@ -57,20 +58,34 @@ interface SummaryCardProps {
   iconClassName?: string;
   value: string;
   statusInfo?: { dotColor: string; textColor: string } | null;
+  isPending: boolean;
 }
 
-const SummaryCard = ({ label, icon, iconClassName, value, statusInfo }: SummaryCardProps) => (
+const SummaryCard = ({
+  label,
+  icon,
+  iconClassName,
+  value,
+  statusInfo,
+  isPending,
+}: SummaryCardProps) => (
   <div className="flex items-center gap-4 rounded-xl border border-border-neutural-normal-default bg-white p-8">
     <div className="size-16 rounded-full bg-fill-primary-normal-disabled flex-center">
       <Icon className={iconClassName} name={icon} size={32} />
     </div>
     <div className="flex flex-col gap-2">
       <span className="typo-body2-medium text-layout-body">{label}</span>
-      <div className="flex items-center gap-[11px]">
-        {statusInfo && (
-          <div aria-hidden className={cn("size-3 rounded-full", statusInfo.dotColor)} />
+      <div className="flex min-h-[28px] items-center gap-[11px]">
+        {isPending ? (
+          <Skeleton className="h-6 w-28" />
+        ) : (
+          <>
+            {statusInfo && (
+              <div aria-hidden className={cn("size-3 rounded-full", statusInfo.dotColor)} />
+            )}
+            <span className={cn("typo-header4-bold", statusInfo?.textColor)}>{value}</span>
+          </>
         )}
-        <span className={cn("typo-header4-bold", statusInfo?.textColor)}>{value}</span>
       </div>
     </div>
   </div>
