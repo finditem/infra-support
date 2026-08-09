@@ -28,7 +28,7 @@ const MonthPickerPopover = ({ monthLabel, monthStart }: MonthPickerPopoverProps)
       triggerClassName="w-auto min-w-[110px] justify-center text-center"
     >
       {(close) => (
-        <div>
+        <>
           <div className="mb-2 flex items-center justify-between px-1">
             <button
               aria-label="이전 연도"
@@ -75,7 +75,7 @@ const MonthPickerPopover = ({ monthLabel, monthStart }: MonthPickerPopoverProps)
               );
             })}
           </div>
-        </div>
+        </>
       )}
     </PropertyPopover>
   );

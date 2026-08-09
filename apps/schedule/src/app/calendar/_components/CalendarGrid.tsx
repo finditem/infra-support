@@ -10,6 +10,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
+import { cn } from "@/utils";
 import type { ProfileWithColor } from "../../_types/kanban";
 import type { MockAvailabilityBlock } from "../_lib/calendarMockData";
 
@@ -46,9 +47,10 @@ const CalendarGrid = ({
         {WEEKDAYS.map((weekday, index) => (
           <div
             key={weekday}
-            className={`p-[10px] text-center text-xs font-semibold ${
+            className={cn(
+              "p-[10px] text-center text-xs font-semibold",
               index === 0 ? "text-fg-state-error" : index === 6 ? "text-primary" : "text-text-muted"
-            }`}
+            )}
           >
             {weekday}
           </div>
@@ -67,12 +69,13 @@ const CalendarGrid = ({
           return (
             <button
               key={dateKey}
-              className="relative min-h-[110px] border-b border-r border-border/60 p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
+              className="border-border/60 relative min-h-[110px] border-b border-r p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
               type="button"
               onClick={() => onSelectDate(dateKey)}
             >
               <span
-                className={`absolute left-2 top-2 flex size-6 items-center justify-center rounded-full text-[13px] font-medium ${
+                className={cn(
+                  "absolute left-2 top-2 flex size-6 items-center justify-center rounded-full text-[13px] font-medium",
                   isToday(day)
                     ? "bg-primary font-bold text-text-inverse"
                     : !inMonth
@@ -80,7 +83,7 @@ const CalendarGrid = ({
                       : isSunday || isHoliday
                         ? "font-semibold text-fg-state-error"
                         : "text-text-default"
-                }`}
+                )}
               >
                 {format(day, "d")}
               </span>

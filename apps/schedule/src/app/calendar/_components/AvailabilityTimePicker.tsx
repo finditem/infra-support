@@ -11,12 +11,8 @@ interface AvailabilityTimePickerProps {
 }
 
 const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps) => {
-  const [startPeriod, setStartPeriod] = useState("오전");
-  const [startHour, setStartHour] = useState("10");
-  const [startMinute, setStartMinute] = useState("00");
-  const [endPeriod, setEndPeriod] = useState("오후");
-  const [endHour, setEndHour] = useState("12");
-  const [endMinute, setEndMinute] = useState("00");
+  const [start, setStart] = useState({ period: "오전", hour: "10", minute: "00" });
+  const [end, setEnd] = useState({ period: "오후", hour: "12", minute: "00" });
 
   return (
     <div
@@ -36,23 +32,23 @@ const AvailabilityTimePicker = ({ date, onCancel }: AvailabilityTimePickerProps)
           <div>
             <p className="mb-1.5 text-[10px] font-semibold uppercase text-text-muted">시작</p>
             <TimeWheelPicker
-              hour={startHour}
-              minute={startMinute}
-              period={startPeriod}
-              onChangeHour={setStartHour}
-              onChangeMinute={setStartMinute}
-              onChangePeriod={setStartPeriod}
+              hour={start.hour}
+              minute={start.minute}
+              period={start.period}
+              onChangeHour={(hour) => setStart((prev) => ({ ...prev, hour }))}
+              onChangeMinute={(minute) => setStart((prev) => ({ ...prev, minute }))}
+              onChangePeriod={(period) => setStart((prev) => ({ ...prev, period }))}
             />
           </div>
           <div>
             <p className="mb-1.5 text-[10px] font-semibold uppercase text-text-muted">종료</p>
             <TimeWheelPicker
-              hour={endHour}
-              minute={endMinute}
-              period={endPeriod}
-              onChangeHour={setEndHour}
-              onChangeMinute={setEndMinute}
-              onChangePeriod={setEndPeriod}
+              hour={end.hour}
+              minute={end.minute}
+              period={end.period}
+              onChangeHour={(hour) => setEnd((prev) => ({ ...prev, hour }))}
+              onChangeMinute={(minute) => setEnd((prev) => ({ ...prev, minute }))}
+              onChangePeriod={(period) => setEnd((prev) => ({ ...prev, period }))}
             />
           </div>
         </div>
