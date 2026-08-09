@@ -1,5 +1,7 @@
 "use client";
 
+import { useTheme } from "next-themes";
+import { getStatusColor } from "@/app/_lib/kanbanUtils";
 import type { TaskStatusesRow } from "@/types/tables";
 import PropertyPopover from "./PropertyPopover";
 
@@ -17,6 +19,8 @@ const StatusPickerPopover = ({
   onSelect,
 }: StatusPickerPopoverProps) => {
   const selected = statuses.find((status) => status.id === selectedId) ?? null;
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   return (
     <PropertyPopover
@@ -26,7 +30,13 @@ const StatusPickerPopover = ({
           <span
             aria-hidden
             className="size-[7px] rounded-full"
-            style={{ backgroundColor: selected?.color ?? "#9CA3AF" }}
+            style={{
+              backgroundColor: selected
+                ? getStatusColor(selected, isDark)
+                : isDark
+                  ? "#6B7280"
+                  : "#9CA3AF",
+            }}
           />
           {selected?.name ?? "상태 선택"}
         </span>
@@ -47,7 +57,7 @@ const StatusPickerPopover = ({
               <span
                 aria-hidden
                 className="size-[7px] rounded-full"
-                style={{ backgroundColor: status.color }}
+                style={{ backgroundColor: getStatusColor(status, isDark) }}
               />
               {status.name}
               {status.id === selectedId && <span className="ml-auto text-primary">✓</span>}

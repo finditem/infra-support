@@ -67,7 +67,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         className={cn(
           "rounded-full border px-3 py-[6px] text-xs font-semibold transition",
           filter.onlyMine
-            ? "border-primary bg-primary/10 text-primary"
+            ? "bg-primary/10 border-primary text-primary"
             : "border-border text-text-muted"
         )}
         type="button"

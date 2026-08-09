@@ -1,21 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { BasicButton, Icon } from "@/components";
-import { useLogoutMutation, useUserQuery } from "@/queries";
+import { useApiListQuery, useLogoutMutation, useUserQuery } from "@/queries";
 import { cn } from "@/utils";
-
-const API_NAV_ITEMS = [
-  { id: "kakao-local", label: "Kakao 로컬" },
-  { id: "kakao-map", label: "Kakao 지도" },
-  { id: "kakao-login", label: "Kakao 로그인" },
-  { id: "kakao-share", label: "Kakao 공유" },
-  { id: "vworld-address-search", label: "VWORLD 주소 검색 서비스" },
-  { id: "public-data-found-items", label: "공공데이터포털 습득물 정보 조회" },
-  { id: "public-data-lost-items", label: "공공데이터포털 분실물 정보 조회" },
-];
 
 const ACTIVE_NAV_ITEM_CLASS =
   "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default";
+
+const API_NAV_ITEM_CLASS = "block px-[50px] py-[14px] text-fg-neutural-default";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +18,13 @@ const Sidebar = () => {
 
   const { data: user } = useUserQuery();
   const { isPending, mutate: logout } = useLogoutMutation();
+  // Sidebar는 ErrorBoundary 바깥에 마운트되므로, 목록 조회 실패로 화면 전체가 깨지지 않도록
+  // 에러를 던지지 않고 isError로 직접 처리한다.
+  const {
+    data: apis,
+    isError: isApiListError,
+    isPending: isApiListPending,
+  } = useApiListQuery({ throwOnError: false });
 
   const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -34,12 +33,34 @@ const Sidebar = () => {
       isActive && ACTIVE_NAV_ITEM_CLASS
     );
 
+  const toggleSidebar = useCallback(() => {
+    setIsOpen((prev) => {
+      if (prev) setIsApiDetailOpen(false);
+      return !prev;
+    });
+  }, []);
+
   useEffect(() => {
     if (isApiRoute) {
       setIsApiDetailOpen(true);
       setIsOpen(true);
     }
   }, [isApiRoute]);
+
+  // 맥은 cmd + b, 윈도우는 ctrl + b로 사이드바를 접고 펼친다.
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+      if (event.key.toLowerCase() !== "b") return;
+
+      event.preventDefault();
+      toggleSidebar();
+    };
+
+    window.addEventListener("keydown", handleShortcut);
+
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [toggleSidebar]);
 
   return (
     <aside
@@ -70,14 +91,10 @@ const Sidebar = () => {
               )}
             </Link>
             <button
+              aria-keyshortcuts="Meta+B Control+B"
               aria-label={isOpen ? "사이드바 접기" : "사이드바 펼치기"}
               className="absolute -right-14 size-9 rounded-[10px] border border-border-neutural-default bg-white p-2 flex-center"
-              onClick={() => {
-                setIsOpen((prev) => {
-                  if (prev) setIsApiDetailOpen(false);
-                  return !prev;
-                });
-              }}
+              onClick={toggleSidebar}
             >
               <Icon
                 className="text-fg-neutural-default"
@@ -125,18 +142,30 @@ const Sidebar = () => {
                 </button>
                 {isApiDetailOpen && (
                   <ul id="api-nav-items" className="max-h-48 overflow-y-auto">
-                    {API_NAV_ITEMS.map(({ id, label }) => (
+                    {isApiListPending && (
+                      <li role="status" className={API_NAV_ITEM_CLASS}>
+                        불러오는 중입니다.
+                      </li>
+                    )}
+                    {isApiListError && (
+                      <li role="alert" className={API_NAV_ITEM_CLASS}>
+                        API 목록을 불러오지 못했습니다.
+                      </li>
+                    )}
+                    {apis?.length === 0 && (
+                      <li role="status" className={API_NAV_ITEM_CLASS}>
+                        등록된 API가 없습니다.
+                      </li>
+                    )}
+                    {apis?.map(({ id, name }) => (
                       <li key={id}>
                         <NavLink
                           className={({ isActive }) =>
-                            cn(
-                              "block px-[50px] py-[14px] text-fg-neutural-default",
-                              isActive && "text-fg-primary-normal-default"
-                            )
+                            cn(API_NAV_ITEM_CLASS, isActive && "text-fg-primary-normal-default")
                           }
                           to={`/api/${id}`}
                         >
-                          {label}
+                          {name}
                         </NavLink>
                       </li>
                     ))}

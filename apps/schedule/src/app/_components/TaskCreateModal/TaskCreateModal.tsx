@@ -169,7 +169,7 @@ const TaskCreateModal = ({
       className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-5"
       onKeyDown={handleKeyDown}
     >
-      <div className="w-[480px] overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)]">
+      <div className="w-[480px] overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]">
         <div className="flex items-center justify-between border-b border-border px-[18px] py-3">
           <span className="text-xs text-text-muted">
             {parentTitle ?? "팀 일정"} <span className="mx-[3px] text-border">/</span>
@@ -189,7 +189,7 @@ const TaskCreateModal = ({
 
         <div className="px-5 pt-[18px]">
           <input
-            className="w-full border-none text-[17px] font-semibold text-text-default outline-none placeholder:text-text-muted/50"
+            className="placeholder:text-text-muted/50 w-full border-none text-[17px] font-semibold text-text-default outline-none"
             autoFocus
             placeholder="작업 제목을 입력하세요"
             type="text"
@@ -233,7 +233,7 @@ const TaskCreateModal = ({
         <div className="px-[46px] py-3">
           <textarea
             ref={bodyRef}
-            className="min-h-[72px] w-full resize-none border-none text-[13px] leading-[1.75] text-text-muted outline-none placeholder:text-text-muted/50"
+            className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none text-[13px] leading-[1.75] text-text-muted outline-none"
             placeholder="설명을 추가하세요..."
             value={body}
             onChange={(event) => setBody(event.target.value)}
@@ -251,7 +251,7 @@ const TaskCreateModal = ({
               >
                 <div className="flex items-center gap-1.5">
                   <input
-                    className="w-full border-none text-[13px] font-medium text-text-default outline-none placeholder:text-text-muted/50"
+                    className="placeholder:text-text-muted/50 w-full border-none text-[13px] font-medium text-text-default outline-none"
                     placeholder="하위 일정 제목"
                     type="text"
                     value={draft.title}
@@ -269,7 +269,7 @@ const TaskCreateModal = ({
                   </button>
                 </div>
                 <textarea
-                  className="min-h-10 w-full resize-none border-none text-xs leading-[1.6] text-text-muted outline-none placeholder:text-text-muted/50"
+                  className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none text-xs leading-[1.6] text-text-muted outline-none"
                   placeholder="설명을 추가하세요..."
                   value={draft.body}
                   onChange={(event) => updateSubtaskDraft(draft.id, { body: event.target.value })}
@@ -288,7 +288,7 @@ const TaskCreateModal = ({
         )}
 
         <div className="flex items-center justify-between border-t border-border px-[18px] py-3.5">
-          <span className="flex items-center gap-1 text-[11px] text-text-muted/60">
+          <span className="text-text-muted/60 flex items-center gap-1 text-[11px]">
             <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
               ⌘
             </kbd>
