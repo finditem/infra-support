@@ -16,6 +16,18 @@ import type { MockAvailabilityBlock } from "../_lib/calendarMockData";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
+const getDateBadgeClassName = (
+  isCurrentDay: boolean,
+  inMonth: boolean,
+  isSunday: boolean,
+  isHoliday: boolean
+) => {
+  if (isCurrentDay) return "bg-primary font-bold text-text-inverse";
+  if (!inMonth) return "text-text-muted/50";
+  if (isSunday || isHoliday) return "font-semibold text-fg-state-error";
+  return "text-text-default";
+};
+
 interface CalendarGridProps {
   monthStart: Date;
   availability: MockAvailabilityBlock[];
@@ -76,13 +88,7 @@ const CalendarGrid = ({
               <span
                 className={cn(
                   "absolute left-2 top-2 flex size-6 items-center justify-center rounded-full text-[13px] font-medium",
-                  isToday(day)
-                    ? "bg-primary font-bold text-text-inverse"
-                    : !inMonth
-                      ? "text-text-muted/50"
-                      : isSunday || isHoliday
-                        ? "font-semibold text-fg-state-error"
-                        : "text-text-default"
+                  getDateBadgeClassName(isToday(day), inMonth, isSunday, isHoliday)
                 )}
               >
                 {format(day, "d")}
