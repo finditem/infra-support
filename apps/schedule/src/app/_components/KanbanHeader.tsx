@@ -1,4 +1,5 @@
 import { addWeeks, format } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 interface KanbanHeaderProps {
@@ -18,7 +19,7 @@ const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
           href={`?week=${prevWeekParam}`}
         >
-          ‹
+          <ChevronLeft size={16} />
         </Link>
         <span className="min-w-[150px] text-center text-sm font-medium text-text-default">
           {weekLabel}
@@ -28,7 +29,7 @@ const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
           href={`?week=${nextWeekParam}`}
         >
-          ›
+          <ChevronRight size={16} />
         </Link>
       </div>
     </header>
