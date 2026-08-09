@@ -33,10 +33,25 @@
 ### 미구현 기능
 
 - [x] DetailResponseChart 구현 — 현재 회색 placeholder div만 존재하므로 `src/components/charts`의 Recharts 기반 차트로 응답 시간 추이 렌더링
-- [ ] DetailHeader "수동요청" 버튼에 수동 체크 실행 mutation 연결 (현재 onClick 없음)
+- [x] DetailHeader "수동요청" 버튼에 수동 체크 실행 mutation 연결 (현재 onClick 없음)
 - [x] DetailHeader "수정" 버튼에 `/api/:apiId/edit` 이동 연결 (현재 onClick 없음)
 - [x] DetailSettings "설정수정" 버튼에 `/api/:apiId/edit` 이동 연결 (현재 onClick 없음)
 - [x] DetailIncidentHistory 확인 처리 버튼을 로컬 state 변경 대신 실제 mutation으로 연결
+
+### 수동 체크 실행 (수동요청 버튼)
+
+monitor-web은 지금까지 Supabase에만 직접 접근했고 monitor-server를 호출하는 경로가 없었다. 기존 `POST /api/monitor`는 `CRON_SECRET` Bearer로 보호되는데 Vite의 `VITE_*`는 번들에 노출되므로 웹에서 재사용할 수 없다. 따라서 Supabase 세션 JWT로 인증하는 단일 API 전용 엔드포인트를 새로 만든다.
+
+- [x] monitor-server: `api.repository.ts`에 `getApiById` 추가
+- [x] monitor-server: `processApi`가 저장한 점검 결과를 함께 반환하도록 변경하고 `runMonitoring` 호출부 갱신 (성공/실패 집계 의미는 유지)
+- [x] monitor-server: `lib/auth.ts` 추가 — Authorization 헤더의 Supabase access token 검증
+- [x] monitor-server: `lib/cors.ts` 추가 — 허용 오리진 목록 기반 CORS 헤더 생성
+- [x] monitor-server: `monitoring.service.ts`에 `runManualCheck(apiId)` 추가 (미존재/비활성/request_url 미설정을 구분해 반환)
+- [x] monitor-server: `POST /api/monitor/[apiId]` 라우트 추가 (OPTIONS preflight 포함)
+- [x] monitor-web: `.env.example`에 `VITE_MONITOR_SERVER_URL` 추가
+- [x] monitor-web: `apiDetail.queries.ts`에 `useApiManualCheckMutation` 추가 — 성공 시 detail/checkLogs/errorLogs 무효화 및 결과 토스트
+- [x] monitor-web: DetailHeader "수동요청" 버튼에 mutation 연결 및 실행 중 로딩 상태 표시
+- [x] 배포 환경변수 반영 — monitor-server에 `MONITOR_WEB_ORIGINS`, monitor-web에 `VITE_MONITOR_SERVER_URL` 설정 (로컬 `.env`와 Vercel 양쪽 모두)
 
 ### 버그 수정
 
