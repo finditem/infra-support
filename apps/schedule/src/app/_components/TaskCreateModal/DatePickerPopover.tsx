@@ -14,6 +14,7 @@ import {
   subMonths,
 } from "date-fns";
 import { ko } from "date-fns/locale";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/utils";
 import PropertyPopover from "./PropertyPopover";
 
@@ -51,7 +52,7 @@ const DatePickerPopover = ({ label, value, onChange }: DatePickerPopoverProps) =
               type="button"
               onClick={() => setMonthCursor((prev) => subMonths(prev, 1))}
             >
-              ‹
+              <ChevronLeft size={14} />
             </button>
             <span className="text-xs font-semibold text-text-default">
               {format(monthCursor, "yyyy'년' M'월'")}
@@ -61,7 +62,7 @@ const DatePickerPopover = ({ label, value, onChange }: DatePickerPopoverProps) =
               type="button"
               onClick={() => setMonthCursor((prev) => addMonths(prev, 1))}
             >
-              ›
+              <ChevronRight size={14} />
             </button>
           </div>
 

@@ -129,3 +129,87 @@
 - [x] `TaskCreateModal.tsx`: 하위 일정 draft 중 일부 생성이 실패해도 조용히 무시되던 것을, 실패한 draft 제목을 모아 `window.alert`로 안내하도록 수정 (성공한 항목은 그대로 저장됨)
 - [x] `KanbanHeader.tsx`: 주차 이동 링크를 `/?week=...` → `?week=...`로 변경 (상대 경로, 불필요한 `/` 제거)
 - [ ] (다음 작업으로 분리) 하위 일정 draft에 담당자/보고자/우선순위를 지정할 수 있게 하는 것 — 현재는 항상 담당자/보고자 없음, 우선순위 "중간"으로 고정 생성됨
+
+## 캘린더 날짜 셀 레이아웃 시프트 수정 + 공휴일 빨간색 표시 (팀원 피드백)
+
+`CalendarGrid.tsx`의 날짜 숫자가 문서 흐름(static position)에 있어 셀 내용에 따라 위치가 밀릴 수 있는 문제를 좌상단 고정으로 수정하고, 공휴일 날짜를 빨간색으로 표시한다.
+
+- [x] `date-holidays` 패키지 추가 (정적 하드코딩 대신 연도별 한국 공휴일을 계산 — 대체공휴일/음력 명절 포함)
+- [x] `_lib/holidays.ts` 신규 작성: `getHolidayDates(years: number[]): string[]` — 서버 컴포넌트(`calendar/page.tsx`)에서만 호출해 클라이언트 번들에 포함되지 않도록 함
+- [x] `calendar/page.tsx`: 조회 월 기준 연도-1~연도+1의 공휴일을 계산해 `CalendarView` → `CalendarGrid`로 `holidayDates` prop 전달 (그리드가 인접 연도로 넘어가는 경우 대비)
+- [x] `CalendarGrid.tsx`: 날짜 셀 버튼을 `relative`로 만들고 날짜 숫자 `span`을 `absolute left-2 top-2`로 좌상단 고정, 가능 시간 블록 목록에 `mt-[30px]` 추가해 겹치지 않도록 조정
+- [x] `CalendarGrid.tsx`: 날짜 숫자 색상 조건에 공휴일(`isHoliday`) 분기 추가 (`text-fg-state-error`, 요일 헤더 일요일과 동일 토큰), 오늘 강조(`isToday`)가 최우선
+- [x] pnpm build / pnpm lint 검증
+
+## 캘린더 헤더에 연/월 직접 선택 팝오버 추가
+
+이전/다음 달 화살표만 있던 월 이동 UI에, 월 라벨을 클릭하면 연도 네비게이션 + 12개월 그리드로 원하는 연/월을 바로 선택할 수 있는 팝오버를 추가한다.
+
+- [x] `PropertyPopover.tsx`: `label` prop을 옵셔널로 변경 (없으면 라벨 span 미노출) — 헤더처럼 label 없이 트리거만 필요한 곳에서도 재사용
+- [x] `calendar/_components/MonthPickerPopover.tsx` 신규 작성: `PropertyPopover` 재사용, 연도 네비게이션(‹ yyyy년 ›) + 1~12월 3x4 그리드, 현재 조회 중인 연/월 강조, 선택 시 `router.push(/calendar?month=yyyy-MM-01)`
+- [x] `CalendarHeader.tsx`: 월 라벨 `span`을 `MonthPickerPopover`로 교체
+- [x] pnpm build / pnpm lint 검증
+
+## 가능 시간 등록 모달 개선 (기존 "가능한 시간 추가" 위젯)
+
+날짜 클릭 시 뜨는 `AvailabilityTimePicker`가 화면 오른쪽에 고정된 사이드 패널 형태였던 것을, 캘린더 중앙에 뜨는 모달로 바꾸고 시간 선택을 시/분 단위로 세분화한다. 이름도 "가능한 시간 추가"에서 "가능 시간 등록"으로 바꾼다 (plan.md의 기존 "등록/삭제" 용어와 통일).
+
+- [x] `AvailabilityTimePicker.tsx`: 제목 텍스트 "가능한 시간 추가" → "가능 시간 등록"
+- [x] `AvailabilityTimePicker.tsx`: `fixed right-7 top-[200px]` 사이드 패널 대신, `TaskCreateModal.tsx`처럼 `fixed inset-0 flex items-center justify-center` 오버레이로 변경해 캘린더 중앙에 뜨도록 수정
+- [x] `AvailabilityTimePicker.tsx`: 시작/종료 시간 선택을 시(00~23) + 분(00/10/20/30/40/50) 두 개의 select로 분리
+- [x] `AvailabilityTimePicker.tsx`: 배경 오버레이 클릭 시 `onCancel` 호출로 모달 닫힘 (모달 패널 클릭은 `stopPropagation`으로 전파 차단)
+- [x] pnpm build / pnpm lint 검증
+
+## 가능 시간 등록 모달 시간 선택을 스크롤 휠 피커로 변경
+
+시(select) + 분(select) 드롭다운 두 개 대신, 오전/오후 + 시(1~12) + 분 세 열을 세로 스크롤로 고르는 휠 피커 UI로 바꾼다. 시작/종료 구분은 유지.
+
+- [x] `calendar/_components/TimeWheelPicker.tsx` 신규 작성: `overflow-y-scroll` + `snap-mandatory`인 재사용 가능한 휠 컬럼(오전/오후, 시, 분)과 가운데 선택 밴드(상하 보더) 렌더링, 스크롤 종료 시 가장 가까운 항목을 선택값으로 커밋
+- [x] `AvailabilityTimePicker.tsx`: 시작/종료 각각의 상태를 24시간 `hour`/`minute`에서 `period`("오전"/"오후") + `hour12`(01~12) + `minute`로 변경, `TimeWheelPicker`로 select 대체
+- [x] pnpm build / pnpm lint 검증
+
+## 일요일 날짜 빨간색 표시 + 공휴일 이름 표기
+
+날짜 셀에서 일요일은 공휴일 여부와 무관하게 항상 빨간색으로 표시하고, 공휴일인 날짜는 숫자 옆에 공휴일 이름을 함께 보여준다. 겸사겸사 `holidays.ts`가 `date-holidays`가 반환하는 `date` 필드(대표일 1개)만 보고 있어서 설날/추석처럼 여러 날에 걸친 연휴의 앞뒤 날짜가 누락되던 것도 `start`~`end` 구간 전체를 펼치는 방식으로 함께 고친다.
+
+- [x] `holidays.ts`: `getHolidayDates(): string[]` → `getHolidayNameMap(): Record<string, string>`로 변경, `date` 단일 필드 대신 `start`~`end` 구간을 `eachDayOfInterval`로 펼쳐서 연휴 전체 날짜에 이름을 매핑
+- [x] `calendar/page.tsx`, `CalendarView.tsx`: `holidayDates: string[]` prop을 `holidayNames: Record<string, string>`로 교체
+- [x] `CalendarGrid.tsx`: `day.getDay() === 0`(일요일) 조건을 색상 분기에 추가해 공휴일 여부와 무관하게 항상 `text-fg-state-error` 적용 (오늘 강조가 최우선인 것은 유지)
+- [x] `CalendarGrid.tsx`: 공휴일이면서 해당 월에 속한 날짜에 한해 날짜 숫자 옆에 공휴일 이름을 작은 빨간 텍스트로 표시 (`truncate`로 셀 폭 안에 맞춤)
+- [x] pnpm build / pnpm lint 검증
+
+## 캘린더 페이지의 팀원 색상이 칸반보드와 다르게 보이던 문제 수정
+
+팀원 색상은 `buildProfileColorMap`(`_lib/kanbanUtils.ts`)이 `profile.id`를 해시해 결정하는데, 캘린더 페이지가 실제 Supabase `profiles`가 아니라 `calendarMockData.ts`의 하드코딩된 가짜 프로필(`profile-1`, `profile-6`)을 쓰고 있어서 같은 사람이라도 칸반보드와 다른 id로 해시되어 다른 색이 나왔다. 캘린더도 칸반보드(`src/app/page.tsx`)와 동일하게 실제 `profiles` 테이블을 조회하도록 바꾼다. `availability`(가능 시간) 테이블 연동은 아직 하지 않으므로, 목업 시간 블록은 실제로 조회한 팀원 중 처음 두 명의 id를 그대로 사용하도록만 맞춘다.
+
+- [x] `calendar/page.tsx`: `mockProfiles`/`mockProfileColorMap` 대신 `createClient()`로 Supabase `profiles` 테이블을 조회(`src/app/page.tsx`와 동일한 패턴)하고 `buildProfileColorMap`으로 직접 색상 맵 생성
+- [x] `calendarMockData.ts`: `mockAvailability`가 하드코딩된 `"profile-1"`/`"profile-6"` 대신 인자로 받은 프로필 id 2개를 사용하도록 시그니처 변경, `MOCK_PROFILES`/`mockProfileColorMap`/`mockProfiles` 제거
+- [x] pnpm build / pnpm lint 검증
+
+## 이전/다음 화살표 버튼의 아이콘이 세로 중앙에서 벗어나 보이던 문제 수정
+
+`‹`/`›` 유니코드 문자를 텍스트로 그대로 쓰다 보니 폰트마다 글리프가 자기 em box 안에서 위쪽으로 치우쳐 있어, `flex items-center`로 감싸도 시각적으로 중앙이 아닌 것처럼 보였다. `lucide-react`의 `ChevronLeft`/`ChevronRight` SVG 아이콘으로 교체해 근본적으로 고친다. 같은 패턴이 캘린더/칸반 양쪽에 반복돼 있어 전부 통일한다.
+
+- [x] `lucide-react` 의존성 추가
+- [x] `CalendarHeader.tsx`, `KanbanHeader.tsx`: `size-8` 이전/다음 버튼의 `‹`/`›` 텍스트를 `<ChevronLeft size={16} />`/`<ChevronRight size={16} />`로 교체
+- [x] `MonthPickerPopover.tsx`, `DatePickerPopover.tsx`: 연/월 네비게이션 버튼의 `‹`/`›` 텍스트를 `<ChevronLeft size={14} />`/`<ChevronRight size={14} />`로 교체
+- [x] pnpm build / pnpm lint 검증
+
+## 캘린더 헤더 "캘린더" 텍스트 제거
+
+- [x] `CalendarHeader.tsx`: `h1` "캘린더" 텍스트 제거, `KanbanHeader.tsx`에서 "메인 칸반보드" 텍스트를 지웠을 때와 동일하게 `justify-between` → `justify-end`로 변경해 네비게이션 그룹이 오른쪽 정렬되도록 유지
+- [x] pnpm build / pnpm lint 검증
+
+## 가능 시간 블록에 팀원 이름(성 제외) 표시
+
+`CalendarGrid.tsx`의 시간 블록이 색상만으로 팀원을 구분하고 있어서, 시간 앞에 이름에서 성을 뗀 부분("이수현" → "수현")을 붙여 누구의 가능 시간인지 바로 알 수 있게 한다.
+
+- [x] `CalendarGrid.tsx`: 시간 블록에 `profile.name.slice(1)` (성 제외 이름) + 공백을 시간 앞에 표시
+- [x] pnpm build / pnpm lint 검증
+
+## 코드리뷰 반영 (타임존 버그, 접근성, 캐싱)
+
+- [x] `holidays.ts`: `new Date()`/`format()`이 서버 실행 환경의 로컬 타임존에 의존해 배포 환경(예: Vercel 기본 UTC)에서 공휴일 날짜가 밀리던 문제 수정 — date-fns 대신 epoch에 KST 오프셋(+9h)을 직접 더해 `toISOString()`으로 날짜를 뽑는 `toKstDateKey`로 교체, 타임존 무관하게 동일한 결과 나오는 것 재현 확인(UTC/Asia·Seoul/America·New_York)
+- [x] `holidays.ts`: 연도별 공휴일 계산 결과를 모듈 스코프 `Map`으로 캐싱 (`getHolidayNameMapForYear`) — 매 `/calendar` 요청마다 음력 공휴일을 재계산하던 것을 방지
+- [x] `TimeWheelPicker.tsx`: `WheelColumn`에 `role="listbox"`/`role="option"`/`aria-label`/`aria-selected`/`tabIndex` 추가, `ArrowUp`/`ArrowDown` 키보드로 값 변경 가능하도록 `onKeyDown` 추가, 항목 클릭으로도 바로 선택 가능하도록 `onClick` 추가 (기존 `<select>` 대비 키보드/스크린리더 접근성 회귀 수정)
+- [x] pnpm build / pnpm lint 검증

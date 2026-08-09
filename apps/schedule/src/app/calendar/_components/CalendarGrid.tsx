@@ -10,14 +10,28 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
+import { cn } from "@/utils";
 import type { ProfileWithColor } from "../../_types/kanban";
 import type { MockAvailabilityBlock } from "../_lib/calendarMockData";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
+const getDateBadgeClassName = (
+  isCurrentDay: boolean,
+  inMonth: boolean,
+  isSunday: boolean,
+  isHoliday: boolean
+) => {
+  if (isCurrentDay) return "bg-primary font-bold text-text-inverse";
+  if (!inMonth) return "text-text-muted/50";
+  if (isSunday || isHoliday) return "font-semibold text-fg-state-error";
+  return "text-text-default";
+};
+
 interface CalendarGridProps {
   monthStart: Date;
   availability: MockAvailabilityBlock[];
+  holidayNames: Record<string, string>;
   profileColorMap: Map<string, ProfileWithColor>;
   selectedProfileId: string | null;
   onSelectDate: (date: string) => void;
@@ -26,6 +40,7 @@ interface CalendarGridProps {
 const CalendarGrid = ({
   monthStart,
   availability,
+  holidayNames,
   profileColorMap,
   selectedProfileId,
   onSelectDate,
@@ -44,9 +59,10 @@ const CalendarGrid = ({
         {WEEKDAYS.map((weekday, index) => (
           <div
             key={weekday}
-            className={`p-[10px] text-center text-xs font-semibold ${
+            className={cn(
+              "p-[10px] text-center text-xs font-semibold",
               index === 0 ? "text-fg-state-error" : index === 6 ? "text-primary" : "text-text-muted"
-            }`}
+            )}
           >
             {weekday}
           </div>
@@ -58,27 +74,33 @@ const CalendarGrid = ({
           const dateKey = format(day, "yyyy-MM-dd");
           const dayBlocks = visibleAvailability.filter((block) => block.date === dateKey);
           const inMonth = isSameMonth(day, monthStart);
+          const holidayName = holidayNames[dateKey];
+          const isHoliday = Boolean(holidayName);
+          const isSunday = day.getDay() === 0;
 
           return (
             <button
               key={dateKey}
-              className="min-h-[110px] border-b border-r border-border/60 p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
+              className="relative min-h-[110px] border-b border-r border-border p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
               type="button"
               onClick={() => onSelectDate(dateKey)}
             >
               <span
-                className={`mb-[6px] flex size-6 items-center justify-center rounded-full text-[13px] font-medium ${
-                  isToday(day)
-                    ? "bg-primary font-bold text-text-inverse"
-                    : inMonth
-                      ? "text-text-default"
-                      : "text-text-muted/50"
-                }`}
+                className={cn(
+                  "absolute left-2 top-2 flex size-6 items-center justify-center rounded-full text-[13px] font-medium",
+                  getDateBadgeClassName(isToday(day), inMonth, isSunday, isHoliday)
+                )}
               >
                 {format(day, "d")}
               </span>
 
-              <div className="flex flex-col gap-[3px]">
+              {inMonth && isHoliday && (
+                <span className="absolute left-9 right-2 top-2 truncate text-[10px] font-medium leading-6 text-fg-state-error">
+                  {holidayName}
+                </span>
+              )}
+
+              <div className="mt-[30px] flex flex-col gap-[3px]">
                 {dayBlocks.map((block) => {
                   const profile = profileColorMap.get(block.profileId);
 
@@ -88,6 +110,7 @@ const CalendarGrid = ({
                       className="truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-white"
                       style={{ backgroundColor: profile?.color ?? "#9CA3AF" }}
                     >
+                      {profile && `${profile.name.slice(1)} `}
                       {block.startTime}~{block.endTime}
                     </span>
                   );

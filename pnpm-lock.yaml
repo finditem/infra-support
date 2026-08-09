@@ -104,7 +104,7 @@ importers:
         version: 6.21.0(eslint@8.57.1)(typescript@5.9.3)
       '@vitejs/plugin-react':
         specifier: ^4.2.0
-        version: 4.7.0(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.7.0(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
       eslint:
         specifier: ^8.57.1
         version: 8.57.1
@@ -125,10 +125,10 @@ importers:
         version: 5.9.3
       vite:
         specifier: ^8.0.16
-        version: 8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3)
+        version: 8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)
       vite-plugin-svgr:
         specifier: ^5.2.0
-        version: 5.2.0(typescript@5.9.3)(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3))
+        version: 5.2.0(typescript@5.9.3)(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
 
   apps/schedule:
     dependencies:
@@ -147,9 +147,12 @@ importers:
       date-fns:
         specifier: ^2.30.0
         version: 2.30.0
+      date-holidays:
+        specifier: ^3.34.1
+        version: 3.34.1
       lucide-react:
-        specifier: ^1.28.0
-        version: 1.28.0(react@18.3.1)
+        specifier: ^1.30.0
+        version: 1.30.0(react@18.3.1)
       next:
         specifier: ^15.5.22
         version: 15.5.22(@types/node@20.19.39)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1535,6 +1538,10 @@ packages:
   assert@2.1.0:
     resolution: {integrity: sha512-eLHpSK/Y4nhMJ07gDaAzoX/XAKS8PSaojml3M0DM4JpV1LAi5JOJ/p6H/XWrl8L+DzVEvVCW1z3vWAaB9oTsQw==}
 
+  astronomia@4.2.0:
+    resolution: {integrity: sha512-mTvpBGyXB80aSsDhAAiuwza5VqAyqmj5yzhjBrFhRy17DcWDzJrb8Vdl4Sm+g276S+mY7bk/5hi6akZ5RQFeHg==}
+    engines: {node: '>=12.0.0'}
+
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
@@ -1579,6 +1586,10 @@ packages:
 
   buffer@6.0.3:
     resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
+
+  caldate@2.0.5:
+    resolution: {integrity: sha512-JndhrUuDuE975KUhFqJaVR1OQkCHZqpOrJur/CFXEIEhWhBMjxO85cRSK8q4FW+B+yyPq6GYua2u4KvNzTcq0w==}
+    engines: {node: '>=12.0.0'}
 
   call-bind-apply-helpers@1.0.2:
     resolution: {integrity: sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==}
@@ -1782,9 +1793,30 @@ packages:
     resolution: {integrity: sha512-ndfJ/JxxMd3nw31uyKoY2naivF+r29V+Lc0svZxe1JvvIRmi8hUsrMvdOwgS1o6uBHmiz91geQ0ylPP0aj1VUA==}
     engines: {node: '>=12'}
 
+  date-bengali-revised@2.0.2:
+    resolution: {integrity: sha512-q9iDru4+TSA9k4zfm0CFHJj6nBsxP7AYgWC/qodK/i7oOIlj5K2z5IcQDtESfs/Qwqt/xJYaP86tkazd/vRptg==}
+    engines: {node: '>=12.0.0'}
+
+  date-chinese@2.1.4:
+    resolution: {integrity: sha512-WY+6+Qw92ZGWFvGtStmNQHEYpNa87b8IAQ5T8VKt4wqrn24lBXyyBnWI5jAIyy7h/KVwJZ06bD8l/b7yss82Ww==}
+    engines: {node: '>=12.0.0'}
+
+  date-easter@1.0.3:
+    resolution: {integrity: sha512-aOViyIgpM4W0OWUiLqivznwTtuMlD/rdUWhc5IatYnplhPiWrLv75cnifaKYhmQwUBLAMWLNG4/9mlLIbXoGBQ==}
+    engines: {node: '>=12.0.0'}
+
   date-fns@2.30.0:
     resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
     engines: {node: '>=0.11'}
+
+  date-holidays-parser@3.4.7:
+    resolution: {integrity: sha512-h09ZEtM6u5cYM6m1bX+1Ny9f+nLO9KVZUKNPEnH7lhbXYTfqZogaGTnhONswGeIJFF91UImIftS3CdM9HLW5oQ==}
+    engines: {node: '>=12.0.0'}
+
+  date-holidays@3.34.1:
+    resolution: {integrity: sha512-C5CR3/Rx7exJrtq2yPlCU0+rO06AeoKvUHCBCu3s37SUFi/xoVkE6DiErPlZ2tPGoorb85FLX3uuDlADT3h5fg==}
+    engines: {node: '>=12.0.0'}
+    hasBin: true
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -2272,6 +2304,9 @@ packages:
   jackspeak@3.4.3:
     resolution: {integrity: sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==}
 
+  jalaali-js@1.2.8:
+    resolution: {integrity: sha512-Jl/EwY84JwjW2wsWqeU4pNd22VNQ7EkjI36bDuLw31wH98WQW4fPjD0+mG7cdCK+Y8D6s9R3zLiQ3LaKu6bD8A==}
+
   jiti@1.21.7:
     resolution: {integrity: sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==}
     hasBin: true
@@ -2285,6 +2320,10 @@ packages:
 
   js-yaml@4.3.1:
     resolution: {integrity: sha512-CY6crGq313MX8GkwvB7tzgp99vjQxY1++5y10/BKN/GUfHqWaOGQMNZkBvqSzsZKWk/ijwHlWzzkLulsGHhjWQ==}
+    hasBin: true
+
+  js-yaml@5.2.3:
+    resolution: {integrity: sha512-n+mUVyUX5bVv7G/G2zyIHOhdxfuU1dY2NOFzTQUWiMUbFss8b57NFlgCCaggU78wSw5KVS9cllzeLyzyR+n5nw==}
     hasBin: true
 
   jsesc@3.1.0:
@@ -2467,8 +2506,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@1.28.0:
-    resolution: {integrity: sha512-fARAFJULsGuDDydjp6+6blekG/sBIM29TerzLjc9bQUKAcEfrSc4ZQKb25KRz4OMKd87cZTb5dgq0w/T6KufVg==}
+  lucide-react@1.30.0:
+    resolution: {integrity: sha512-tUIr2jXLbWpCkdtH8XP7P7YppM9ueWgTky99lpWDY6z5REs6B+O6ZQ3U5tHkUUY59ANyOv/PBcs8E4Fe3KO3eA==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -2514,6 +2553,12 @@ packages:
   minipass@7.1.3:
     resolution: {integrity: sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A==}
     engines: {node: '>=16 || 14 >=14.17'}
+
+  moment-timezone@0.5.48:
+    resolution: {integrity: sha512-f22b8LV1gbTO2ms2j2z13MuPogNoh5UzxL3nzNAYKGraILnbGc9NEE6dyiiiLv46DGRb8A4kg8UKWLjPthxBHw==}
+
+  moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -2742,6 +2787,10 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
+
+  prepin@1.0.3:
+    resolution: {integrity: sha512-0XL2hreherEEvUy0fiaGEfN/ioXFV+JpImqIzQjxk6iBg4jQ2ARKqvC4+BmRD8w/pnpD+lbxvh0Ub+z7yBEjvA==}
+    hasBin: true
 
   prettier-plugin-tailwindcss@0.0.0-insiders.f7d2598:
     resolution: {integrity: sha512-mLD3JnrHeUZ83H1qSp1z6DNWxesGmC/vrGgPpCcEU0KFJsrj6tW+kv0NLR5beQcqaUpFtexG/dqYsWmwObY3gQ==}
@@ -4520,7 +4569,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vitejs/plugin-react@4.7.0(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3))':
+  '@vitejs/plugin-react@4.7.0(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.29.7)
@@ -4528,7 +4577,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.27
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3)
+      vite: 8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)
     transitivePeerDependencies:
       - supports-color
 
@@ -4593,6 +4642,8 @@ snapshots:
       object.assign: 4.1.7
       util: 0.12.5
 
+  astronomia@4.2.0: {}
+
   available-typed-arrays@1.0.7:
     dependencies:
       possible-typed-array-names: 1.1.0
@@ -4636,6 +4687,10 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
+
+  caldate@2.0.5:
+    dependencies:
+      moment-timezone: 0.5.48
 
   call-bind-apply-helpers@1.0.2:
     dependencies:
@@ -4826,9 +4881,35 @@ snapshots:
 
   d3-timer@3.0.1: {}
 
+  date-bengali-revised@2.0.2: {}
+
+  date-chinese@2.1.4:
+    dependencies:
+      astronomia: 4.2.0
+
+  date-easter@1.0.3: {}
+
   date-fns@2.30.0:
     dependencies:
       '@babel/runtime': 7.29.2
+
+  date-holidays-parser@3.4.7:
+    dependencies:
+      astronomia: 4.2.0
+      caldate: 2.0.5
+      date-bengali-revised: 2.0.2
+      date-chinese: 2.1.4
+      date-easter: 1.0.3
+      deepmerge: 4.3.1
+      jalaali-js: 1.2.8
+      moment-timezone: 0.5.48
+
+  date-holidays@3.34.1:
+    dependencies:
+      date-holidays-parser: 3.4.7
+      js-yaml: 5.2.3
+      lodash: 4.18.1
+      prepin: 1.0.3
 
   debug@4.4.3:
     dependencies:
@@ -5329,6 +5410,8 @@ snapshots:
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
 
+  jalaali-js@1.2.8: {}
+
   jiti@1.21.7: {}
 
   jiti@2.6.1: {}
@@ -5336,6 +5419,10 @@ snapshots:
   js-tokens@4.0.0: {}
 
   js-yaml@4.3.1:
+    dependencies:
+      argparse: 2.0.1
+
+  js-yaml@5.2.3:
     dependencies:
       argparse: 2.0.1
 
@@ -5495,7 +5582,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@1.28.0(react@18.3.1):
+  lucide-react@1.30.0(react@18.3.1):
     dependencies:
       react: 18.3.1
 
@@ -5544,6 +5631,12 @@ snapshots:
   minimist@1.2.8: {}
 
   minipass@7.1.3: {}
+
+  moment-timezone@0.5.48:
+    dependencies:
+      moment: 2.30.1
+
+  moment@2.30.1: {}
 
   ms@2.1.3: {}
 
@@ -5759,6 +5852,8 @@ snapshots:
       source-map-js: 1.2.1
 
   prelude-ls@1.2.1: {}
+
+  prepin@1.0.3: {}
 
   prettier-plugin-tailwindcss@0.0.0-insiders.f7d2598(prettier@3.8.3):
     dependencies:
@@ -6267,18 +6362,18 @@ snapshots:
       d3-time: 3.1.0
       d3-timer: 3.0.1
 
-  vite-plugin-svgr@5.2.0(typescript@5.9.3)(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3)):
+  vite-plugin-svgr@5.2.0(typescript@5.9.3)(vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       '@rollup/pluginutils': 5.3.0
       '@svgr/core': 8.1.0(typescript@5.9.3)
       '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(typescript@5.9.3))
-      vite: 8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3)
+      vite: 8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)
     transitivePeerDependencies:
       - rollup
       - supports-color
       - typescript
 
-  vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3):
+  vite@8.0.16(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -6289,7 +6384,7 @@ snapshots:
       '@types/node': 25.6.0
       esbuild: 0.28.1
       fsevents: 2.3.3
-      jiti: 1.21.7
+      jiti: 2.6.1
       tsx: 4.21.0
       yaml: 2.8.3
 
