@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { BasicButton, Icon } from "@/components";
-import { useNavigate } from "react-router-dom";
-import { MOCK_ERROR_LOG_ITEMS } from "@/mock";
+import { BasicButton, EmptyState, Icon, LoadingState } from "@/components";
+import { useNavigate, useParams } from "react-router-dom";
+import { useUpdateErrorLogCheckedMutation } from "@/queries";
 import { cn } from "@/utils";
 import type { ApiStatus } from "@/types";
 import type { LogListItemData } from "@/pages/ErrorLog/_types";
@@ -24,12 +24,34 @@ const STATUS_CONFIG: Record<
   },
 } as const;
 
-const DetailIncidentHistory = () => {
-  const navigate = useNavigate();
-  const [incidents, setIncidents] = useState(MOCK_ERROR_LOG_ITEMS);
+const INCIDENT_COLUMN_COUNT = 6;
 
+interface DetailIncidentHistoryProps {
+  incidents: LogListItemData[];
+  isPending: boolean;
+}
+
+const DetailIncidentHistory = ({ incidents, isPending }: DetailIncidentHistoryProps) => {
+  const navigate = useNavigate();
+  const { apiId } = useParams<{ apiId: string }>();
+  const [resolvedIds, setResolvedIds] = useState<string[]>([]);
+  const { mutate: updateErrorLogChecked } = useUpdateErrorLogCheckedMutation();
+
+  // 목록은 쿼리 결과라 직접 수정할 수 없으므로, 확인 처리된 id를 따로 모아 덧씌운다.
+  const items = incidents.map((incident) =>
+    resolvedIds.includes(incident.id) ? { ...incident, status: true } : incident
+  );
+
+  // 실패 시 목록이 확인 처리된 것처럼 보이지 않도록, 서버 갱신에 성공한 뒤에만 로컬 상태를 반영한다.
   const handleResolve = (id: string) => {
-    setIncidents((prev) => prev.map((item) => (item.id === id ? { ...item, status: true } : item)));
+    updateErrorLogChecked(
+      { id, checked: true },
+      {
+        onSuccess: () => {
+          setResolvedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+        },
+      }
+    );
   };
 
   return (
@@ -42,7 +64,7 @@ const DetailIncidentHistory = () => {
           <h2 id="incident-title" className="typo-header4-bold">
             최근 장애 / 에러 상세 목록
           </h2>
-          <span>최근 7일 · 총 {incidents.length}건</span>
+          <span>{isPending ? "최근 7일" : `최근 7일 · 총 ${items.length}건`}</span>
         </div>
 
         <div className="min-h-[624px] overflow-x-auto">
@@ -58,14 +80,35 @@ const DetailIncidentHistory = () => {
               </tr>
             </thead>
             <tbody>
-              {incidents.map((item) => (
-                <DetailIncidentHistoryItem
-                  key={item.id}
-                  item={item}
-                  onNavigate={() => navigate("/error-log")}
-                  onResolve={handleResolve}
-                />
-              ))}
+              {isPending && (
+                <tr>
+                  <td colSpan={INCIDENT_COLUMN_COUNT}>
+                    <LoadingState message="장애/에러 목록을 불러오는 중입니다." />
+                  </td>
+                </tr>
+              )}
+
+              {!isPending && items.length === 0 && (
+                <tr>
+                  <td colSpan={INCIDENT_COLUMN_COUNT}>
+                    <EmptyState
+                      icon="check"
+                      iconClassName="text-fg-primary-normal-default"
+                      message="최근 7일간 발생한 장애나 에러가 없습니다."
+                    />
+                  </td>
+                </tr>
+              )}
+
+              {!isPending &&
+                items.map((item) => (
+                  <DetailIncidentHistoryItem
+                    key={item.id}
+                    item={item}
+                    onNavigate={(errorId) => navigate(`/api/${apiId}/errors/${errorId}`)}
+                    onResolve={handleResolve}
+                  />
+                ))}
             </tbody>
           </table>
         </div>
@@ -73,7 +116,7 @@ const DetailIncidentHistory = () => {
 
       <div className="flex justify-center">
         {/* TODO(지권): as prop 패턴 적용 후 변경 예정 */}
-        <BasicButton className="min-h-[56px] w-[148px]" onClick={() => navigate("/api-detail")}>
+        <BasicButton className="min-h-[56px] w-[148px]" onClick={() => navigate("/errors")}>
           <span className="flex items-center gap-2 text-white">
             <span className="typo-header4-bold">전체보기</span>
             <Icon name="arrowRight" size={23} />
@@ -89,7 +132,7 @@ export default DetailIncidentHistory;
 interface DetailIncidentHistoryItemProps {
   item: LogListItemData;
   onResolve: (id: string) => void;
-  onNavigate: () => void;
+  onNavigate: (errorId: string) => void;
 }
 
 const DetailIncidentHistoryItem = ({
@@ -124,6 +167,7 @@ const DetailIncidentHistoryItem = ({
       <td className="px-4 py-3">
         <BasicButton
           className="typo-body2-semibold rounded-full bg-[#D6F8E1]"
+          disabled={item.status}
           size="small"
           onClick={() => onResolve(item.id)}
         >
@@ -136,7 +180,7 @@ const DetailIncidentHistoryItem = ({
       <td className="px-4 py-3 text-center">
         <button
           className="typo-body2-semibold inline-flex h-[43px] w-[103px] items-center justify-center gap-1 rounded-lg border border-border-neutural-normal-default bg-white text-fg-neutural-default transition-colors hover:bg-fill-neutural-subtle-hover"
-          onClick={onNavigate}
+          onClick={() => onNavigate(item.id)}
         >
           <span>더보기</span>
           <Icon name="arrowRight" size={16} />
