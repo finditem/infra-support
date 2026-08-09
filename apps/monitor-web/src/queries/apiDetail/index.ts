@@ -3,4 +3,5 @@ export {
   useApiCheckLogsQuery,
   useApiDetailQuery,
   useApiErrorLogsQuery,
+  useApiManualCheckMutation,
 } from "./apiDetail.queries";

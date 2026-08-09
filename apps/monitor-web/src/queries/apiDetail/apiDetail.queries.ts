@@ -1,8 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useToast } from "@/hooks";
 import { supabase } from "@/lib";
 import { formatDateTime, formatTime } from "@/utils/ApiResponseTimeChartUtils";
+import useAppMutation from "../base/useAppMutation";
 import useAppQuery from "../base/useAppQuery";
-import { apisQueryKeys } from "../queryKeys";
+import { apisQueryKeys, errorLogQueryKeys } from "../queryKeys";
 import type { ApiCheckLog, ApiDetailData, ImpactedFeature } from "@/pages/ApiDetail/_types";
 import type { LogListItemData } from "@/pages/ErrorLog/_types";
 import type { ApiStatus } from "@/types";
@@ -10,7 +13,7 @@ import type { ApiStatus } from "@/types";
 /**
  * API 상세 페이지에서 사용하는 React Query 함수들을 모아둔 파일입니다.
  *
- * @author junyeol
+ * @author jikwon
  */
 
 const RECENT_CHECK_LOG_HOURS = 24;
@@ -276,5 +279,124 @@ export const useApiErrorLogsQuery = (apiId: string) => {
   return useAppQuery(apisQueryKeys.errorLogs(apiId), () => getApiErrorLogs(apiId), {
     enabled: apiId !== "",
     throwOnError: true,
+  });
+};
+
+type ManualCheckResult = {
+  status: ApiStatus;
+  responseTime: number | null;
+  httpStatus: number | null;
+  errorType: string | null;
+  errorMessage: string | null;
+  checkedAt: string;
+};
+
+type ManualCheckResponse = {
+  ok: boolean;
+  reason?: string;
+  result?: ManualCheckResult;
+};
+
+const MANUAL_CHECK_FAILURE_MESSAGE: Record<string, string> = {
+  not_found: "존재하지 않는 API입니다.",
+  inactive: "비활성 상태인 API는 점검할 수 없습니다.",
+  no_request_url: "요청 URL이 설정되지 않아 점검할 수 없습니다.",
+  save_failed: "점검은 실행했지만 결과를 저장하지 못했습니다.",
+};
+
+const MANUAL_CHECK_UNAUTHORIZED_MESSAGE = "로그인이 필요합니다.";
+const MANUAL_CHECK_DEFAULT_FAILURE_MESSAGE = "잠시 후 다시 시도해 주세요.";
+
+/**
+ * monitor-server에 단일 API 수동 점검을 요청합니다.
+ *
+ * @remarks
+ * - 크론 전용 `POST /api/monitor`와 달리, 로그인 세션의 access token으로 인증하는 `POST /api/monitor/:apiId`를 호출합니다.
+ * - 서버가 결과를 `monitoring_results`에 저장하므로, 호출 측은 응답을 토스트로 보여주고 관련 쿼리를 무효화하기만 하면 됩니다.
+ *
+ * @returns 방금 실행한 점검 결과
+ */
+
+export const requestApiManualCheck = async (apiId: string): Promise<ManualCheckResult> => {
+  const baseUrl = import.meta.env.VITE_MONITOR_SERVER_URL;
+
+  if (!baseUrl) {
+    throw new Error("VITE_MONITOR_SERVER_URL이 설정되지 않았습니다.");
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error(MANUAL_CHECK_UNAUTHORIZED_MESSAGE);
+  }
+
+  const response = await fetch(`${baseUrl}/api/monitor/${apiId}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+
+  const body: ManualCheckResponse | null = await response.json().catch(() => null);
+
+  if (response.status === 401) {
+    throw new Error(MANUAL_CHECK_UNAUTHORIZED_MESSAGE);
+  }
+
+  if (!response.ok || !body?.ok || !body.result) {
+    const reason = body?.reason ?? "";
+    throw new Error(MANUAL_CHECK_FAILURE_MESSAGE[reason] ?? MANUAL_CHECK_DEFAULT_FAILURE_MESSAGE);
+  }
+
+  return body.result;
+};
+
+const buildManualCheckDescription = (result: ManualCheckResult): string => {
+  const httpStatus = result.httpStatus !== null ? `HTTP ${result.httpStatus}` : EMPTY_VALUE;
+  const latency = result.responseTime !== null ? `${result.responseTime}ms` : EMPTY_VALUE;
+  const measurement = `${httpStatus} · ${latency}`;
+
+  if (result.status === "healthy") return measurement;
+
+  return result.errorMessage ? `${result.errorMessage} (${measurement})` : measurement;
+};
+
+/**
+ * 수동 점검 실행용 React Query 훅입니다.
+ *
+ * @remarks
+ * - 성공하면 판별된 상태(`healthy`/`degraded`/`outage`)에 맞는 토스트를 띄웁니다.
+ * - `apisQueryKeys.detail(apiId)`는 체크 로그, 영향 받는 기능, 에러 로그 key의 prefix라 하나만 무효화해도 상세 화면 전체가 갱신됩니다.
+ * - 점검 결과가 `degraded`/`outage`이면 `error_logs`에도 행이 추가되므로 에러 로그 목록 쿼리도 함께 무효화합니다.
+ *
+ * @returns 수동 점검 뮤테이션 결과 객체
+ */
+
+export const useApiManualCheckMutation = (apiId: string) => {
+  const queryClient = useQueryClient();
+  const { success, warning, error: errorToast } = useToast();
+
+  return useAppMutation(() => requestApiManualCheck(apiId), {
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: apisQueryKeys.detail(apiId) });
+      queryClient.invalidateQueries({ queryKey: errorLogQueryKeys.all });
+
+      const description = buildManualCheckDescription(result);
+
+      if (result.status === "healthy") {
+        success("수동 점검을 완료했습니다.", description);
+        return;
+      }
+
+      if (result.status === "degraded") {
+        warning("응답이 지연되고 있습니다.", description);
+        return;
+      }
+
+      errorToast("점검 결과 장애가 감지되었습니다.", description);
+    },
+    onError: (error) => {
+      errorToast("수동 점검에 실패했습니다.", error.message);
+    },
   });
 };
