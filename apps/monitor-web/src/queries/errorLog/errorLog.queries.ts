@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { addToast } from "@/hooks";
 import { supabase } from "@/lib";
 import useAppQuery from "../base/useAppQuery";
 import useAppMutation from "../base/useAppMutation";
@@ -90,6 +91,8 @@ const updateErrorLogChecked = async ({ id, checked }: UpdateErrorLogCheckedVaria
  * - `onMutate`에서 목록 캐시를 낙관적으로 갱신해 체크 상태가 즉시 반영되도록 합니다.
  * - 실패 시 `onError`에서 이전 캐시로 롤백하고, 성공/실패와 무관하게 `onSettled`에서
  *   `errorLogQueryKeys.list()`를 무효화해 서버 상태와 동기화합니다.
+ * - 뮤테이션 에러는 ErrorBoundary가 포착하지 못하므로 `onError`에서 토스트로 알립니다.
+ *   호출하는 화면이 여럿이라 토스트는 각 화면이 아니라 이 훅에서 한 번만 띄웁니다.
  *
  * @returns 확인 상태 변경 뮤테이션 결과 객체
  */
@@ -113,6 +116,12 @@ export const useUpdateErrorLogCheckedMutation = () => {
       if (context?.previousLogs) {
         queryClient.setQueryData(errorLogQueryKeys.list(), context.previousLogs);
       }
+
+      addToast({
+        type: "error",
+        message: "확인 처리에 실패했습니다.",
+        description: "잠시 후 다시 시도해 주세요.",
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: errorLogQueryKeys.list() });

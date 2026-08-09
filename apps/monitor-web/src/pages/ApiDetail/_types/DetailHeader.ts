@@ -1,11 +1,14 @@
-import type { ApiStatus } from "@/types";
-
 export interface ApiDetailData {
+  id: string;
   name: string;
-  statusCode: string;
-  status: ApiStatus;
+  description: string;
   category: string;
-  responseTime: string;
-  lastChecked: string;
-  successRate: string;
+  source: string;
+  sourceUrl: string | null;
+  requestUrl: string | null;
+  httpMethod: string;
+  checkIntervalMinutes: number;
+  isNotificationEnabled: boolean;
+  iconUrl: string | null;
+  isActive: boolean;
 }
