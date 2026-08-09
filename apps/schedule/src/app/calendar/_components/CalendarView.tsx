@@ -39,10 +39,12 @@ const CalendarView = ({
       <div className="flex-1 overflow-y-auto p-7">
         <CalendarGrid
           availability={availability}
+          currentProfileId={currentProfileId}
           holidayNames={holidayNames}
           monthStart={monthStart}
           profileColorMap={profileColorMap}
           selectedProfileId={selectedProfileId}
+          onDeleted={(id) => setAvailability((prev) => prev.filter((block) => block.id !== id))}
           onSelectDate={setSelectedDate}
         />
       </div>

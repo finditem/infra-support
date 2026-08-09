@@ -225,5 +225,5 @@
 - [x] `CalendarView.tsx`: `availability`를 client state로 끌어올려(`useState`) 생성/삭제 시 로컬에서 upsert/제거 (KanbanBoard의 `onSaved` 패턴과 동일), `currentProfileId`를 `AvailabilityTimePicker`에 전달
 - [x] `AvailabilityTimePicker.tsx`: "확인" 버튼을 `createAvailability` 호출로 연결, 제출 전 같은 사용자의 해당 날짜 기존 블록과 `rangesOverlap`으로 중복 검사해 겹치면 인라인 경고 표시 후 제출 막음, 성공 시 `onCreated` 콜백으로 부모 상태 갱신
 - [x] pnpm build / pnpm lint 검증 (삭제 기능 제외한 등록/조회 단계)
-- [ ] `CalendarGrid.tsx`: 날짜 셀을 `<button>`에서 `role="button"` `div`(`KanbanCard.tsx` 패턴)로 변경해 블록 내부에 실제 `<button>` 삭제 버튼을 중첩 가능하게 함, 본인이 등록한 블록 클릭 시 삭제 확인 버튼 노출 → `deleteAvailability` 호출 후 `onDeleted` 콜백
-- [ ] pnpm build / pnpm lint 검증
+- [x] `CalendarGrid.tsx`: 날짜 셀을 `<button>`에서 `role="button"` `div`(`KanbanCard.tsx` 패턴)로 변경해 블록 내부에 실제 `<button>` 삭제 버튼을 중첩 가능하게 함, 본인이 등록한 블록 클릭 시 삭제 확인 버튼 노출 → `deleteAvailability` 호출 후 `onDeleted` 콜백
+- [x] pnpm build / pnpm lint 검증
