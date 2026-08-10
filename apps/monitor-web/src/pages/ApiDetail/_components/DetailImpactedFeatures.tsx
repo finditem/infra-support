@@ -1,7 +1,14 @@
-import { Badge } from "@/components";
-import { MOCK_FEATURES } from "@/mock";
+import { Badge, LoadingSpinner } from "@/components";
+import type { ImpactedFeature } from "../_types";
 
-const DetailImpactedFeatures = () => {
+interface DetailImpactedFeaturesProps {
+  features: ImpactedFeature[];
+  isPending: boolean;
+}
+
+const DetailImpactedFeatures = ({ features, isPending }: DetailImpactedFeaturesProps) => {
+  const hasFeatures = features.length > 0;
+
   return (
     <section
       aria-describedby="features-description"
@@ -17,15 +24,30 @@ const DetailImpactedFeatures = () => {
         </span>
       </div>
 
-      <div aria-label="영향 받는 기능 목록" role="region" tabIndex={0} className="overflow-x-auto">
-        <ul className="flex items-center gap-3">
-          {MOCK_FEATURES.map((feature) => (
-            <li key={feature.id} className="shrink-0">
-              <Badge className="typo-body2-medium min-h-[40px] px-4" label={feature.name} />
-            </li>
-          ))}
-        </ul>
-      </div>
+      {isPending && <LoadingSpinner className="min-h-[40px]" size={24} />}
+
+      {!isPending && !hasFeatures && (
+        <p className="typo-body2-medium min-h-[40px] text-layout-body">
+          영향 받는 기능으로 등록된 항목이 없습니다.
+        </p>
+      )}
+
+      {!isPending && hasFeatures && (
+        <div
+          aria-label="영향 받는 기능 목록"
+          role="region"
+          tabIndex={0}
+          className="overflow-x-auto"
+        >
+          <ul className="flex items-center gap-3">
+            {features.map((feature) => (
+              <li key={feature.id} className="shrink-0">
+                <Badge className="typo-body2-medium min-h-[40px] px-4" label={feature.name} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   );
 };

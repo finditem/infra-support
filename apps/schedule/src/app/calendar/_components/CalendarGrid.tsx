@@ -12,11 +12,24 @@ import {
 } from "date-fns";
 import { useState } from "react";
 import type { AvailabilityRow } from "@/types/tables";
+import { cn } from "@/utils";
 import type { ProfileWithColor } from "../../_types/kanban";
 import { deleteAvailability } from "../_lib/actions";
 import { formatTimeRange } from "../_lib/time";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+const getDateBadgeClassName = (
+  isCurrentDay: boolean,
+  inMonth: boolean,
+  isSunday: boolean,
+  isHoliday: boolean
+) => {
+  if (isCurrentDay) return "bg-primary font-bold text-text-inverse";
+  if (!inMonth) return "text-text-muted/50";
+  if (isSunday || isHoliday) return "font-semibold text-fg-state-error";
+  return "text-text-default";
+};
 
 interface CalendarGridProps {
   monthStart: Date;
@@ -60,9 +73,10 @@ const CalendarGrid = ({
         {WEEKDAYS.map((weekday, index) => (
           <div
             key={weekday}
-            className={`p-[10px] text-center text-xs font-semibold ${
+            className={cn(
+              "p-[10px] text-center text-xs font-semibold",
               index === 0 ? "text-fg-state-error" : index === 6 ? "text-primary" : "text-text-muted"
-            }`}
+            )}
           >
             {weekday}
           </div>
@@ -81,7 +95,7 @@ const CalendarGrid = ({
           return (
             <div
               key={dateKey}
-              className="border-border/60 relative min-h-[110px] border-b border-r p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
+              className="relative min-h-[110px] border-b border-r border-border p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
             >
               <button
                 aria-label={`${dateKey} 가능 시간 추가`}
@@ -91,15 +105,10 @@ const CalendarGrid = ({
               />
 
               <span
-                className={`pointer-events-none relative z-10 flex size-6 items-center justify-center rounded-full text-[13px] font-medium ${
-                  isToday(day)
-                    ? "bg-primary font-bold text-text-inverse"
-                    : !inMonth
-                      ? "text-text-muted/50"
-                      : isSunday || isHoliday
-                        ? "font-semibold text-fg-state-error"
-                        : "text-text-default"
-                }`}
+                className={cn(
+                  "pointer-events-none relative z-10 flex size-6 items-center justify-center rounded-full text-[13px] font-medium",
+                  getDateBadgeClassName(isToday(day), inMonth, isSunday, isHoliday)
+                )}
               >
                 {format(day, "d")}
               </span>
@@ -129,7 +138,10 @@ const CalendarGrid = ({
                     return (
                       <span
                         key={block.id}
-                        className={`pointer-events-auto flex items-center gap-1 ${blockClassName}`}
+                        className={cn(
+                          "pointer-events-auto flex items-center gap-1",
+                          blockClassName
+                        )}
                         style={blockStyle}
                       >
                         삭제할까요?
@@ -155,7 +167,7 @@ const CalendarGrid = ({
                     return (
                       <button
                         key={block.id}
-                        className={`pointer-events-auto ${blockClassName} text-left`}
+                        className={cn("pointer-events-auto text-left", blockClassName)}
                         style={blockStyle}
                         type="button"
                         onClick={() => setPendingDeleteId(block.id)}
