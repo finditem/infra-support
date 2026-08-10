@@ -81,19 +81,17 @@ const CalendarGrid = ({
           return (
             <div
               key={dateKey}
-              role="button"
-              tabIndex={0}
-              className="border-border/60 relative min-h-[110px] cursor-pointer border-b border-r p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
-              onClick={() => onSelectDate(dateKey)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onSelectDate(dateKey);
-                }
-              }}
+              className="border-border/60 relative min-h-[110px] border-b border-r p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
             >
+              <button
+                aria-label={`${dateKey} 가능 시간 추가`}
+                className="absolute inset-0 z-0"
+                type="button"
+                onClick={() => onSelectDate(dateKey)}
+              />
+
               <span
-                className={`absolute left-2 top-2 flex size-6 items-center justify-center rounded-full text-[13px] font-medium ${
+                className={`pointer-events-none relative z-10 flex size-6 items-center justify-center rounded-full text-[13px] font-medium ${
                   isToday(day)
                     ? "bg-primary font-bold text-text-inverse"
                     : !inMonth
@@ -107,58 +105,69 @@ const CalendarGrid = ({
               </span>
 
               {inMonth && isHoliday && (
-                <span className="absolute left-9 right-2 top-2 truncate text-[10px] font-medium leading-6 text-fg-state-error">
+                <span className="pointer-events-none absolute left-9 right-2 top-2 z-10 truncate text-[10px] font-medium leading-6 text-fg-state-error">
                   {holidayName}
                 </span>
               )}
 
-              <div className="mt-[30px] flex flex-col gap-[3px]">
+              <div className="pointer-events-none relative z-10 mt-[3px] flex flex-col gap-[3px]">
                 {dayBlocks.map((block) => {
                   const profile = profileColorMap.get(block.user_id);
                   const isOwn = block.user_id === currentProfileId;
                   const isPendingDelete = pendingDeleteId === block.id;
+                  const label = (
+                    <>
+                      {profile && `${profile.name.slice(1)} `}
+                      {formatTimeRange(block.start_time, block.end_time)}
+                    </>
+                  );
+                  const blockClassName =
+                    "truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-white";
+                  const blockStyle = { backgroundColor: profile?.color ?? "#9CA3AF" };
+
+                  if (isPendingDelete) {
+                    return (
+                      <span
+                        key={block.id}
+                        className={`pointer-events-auto flex items-center gap-1 ${blockClassName}`}
+                        style={blockStyle}
+                      >
+                        삭제할까요?
+                        <button
+                          className="rounded bg-white/20 px-1 font-bold hover:bg-white/30"
+                          type="button"
+                          onClick={() => void handleDelete(block.id)}
+                        >
+                          삭제
+                        </button>
+                        <button
+                          className="rounded px-1 hover:bg-white/20"
+                          type="button"
+                          onClick={() => setPendingDeleteId(null)}
+                        >
+                          취소
+                        </button>
+                      </span>
+                    );
+                  }
+
+                  if (isOwn) {
+                    return (
+                      <button
+                        key={block.id}
+                        className={`pointer-events-auto ${blockClassName} text-left`}
+                        style={blockStyle}
+                        type="button"
+                        onClick={() => setPendingDeleteId(block.id)}
+                      >
+                        {label}
+                      </button>
+                    );
+                  }
 
                   return (
-                    <span
-                      key={block.id}
-                      role={isOwn ? "button" : undefined}
-                      tabIndex={isOwn ? 0 : undefined}
-                      className="truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-white"
-                      style={{ backgroundColor: profile?.color ?? "#9CA3AF" }}
-                      onClick={(event) => {
-                        if (!isOwn) return;
-                        event.stopPropagation();
-                        setPendingDeleteId((prev) => (prev === block.id ? null : block.id));
-                      }}
-                      onKeyDown={(event) => {
-                        if (!isOwn) return;
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          setPendingDeleteId((prev) => (prev === block.id ? null : block.id));
-                        }
-                      }}
-                    >
-                      {isPendingDelete ? (
-                        <span className="flex items-center gap-1">
-                          삭제할까요?
-                          <button
-                            className="rounded bg-white/20 px-1 font-bold hover:bg-white/30"
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              void handleDelete(block.id);
-                            }}
-                          >
-                            삭제
-                          </button>
-                        </span>
-                      ) : (
-                        <>
-                          {profile && `${profile.name.slice(1)} `}
-                          {formatTimeRange(block.start_time, block.end_time)}
-                        </>
-                      )}
+                    <span key={block.id} className={blockClassName} style={blockStyle}>
+                      {label}
                     </span>
                   );
                 })}
