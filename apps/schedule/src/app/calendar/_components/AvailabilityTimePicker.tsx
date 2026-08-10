@@ -53,7 +53,7 @@ const AvailabilityTimePicker = ({
     setError(null);
     setIsSubmitting(true);
 
-    const created = await createAvailability({
+    const { data: created, isOverlap } = await createAvailability({
       userId: currentProfileId,
       date,
       startTime,
@@ -63,7 +63,9 @@ const AvailabilityTimePicker = ({
     setIsSubmitting(false);
 
     if (!created) {
-      setError("등록에 실패했어요. 잠시 후 다시 시도해주세요.");
+      setError(
+        isOverlap ? "이미 등록된 시간대와 겹쳐요." : "등록에 실패했어요. 잠시 후 다시 시도해주세요."
+      );
       return;
     }
 

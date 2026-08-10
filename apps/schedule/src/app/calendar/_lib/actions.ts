@@ -10,12 +10,21 @@ interface CreateAvailabilityInput {
   endTime: string;
 }
 
+interface CreateAvailabilityResult {
+  data: AvailabilityRow | null;
+  isOverlap: boolean;
+}
+
+// exclusion_violation: DB의 availability_no_overlap 제약(0003_availability_no_overlap.sql)이
+// 같은 사용자의 겹치는 시간대 등록을 막을 때 발생한다.
+const EXCLUSION_VIOLATION_CODE = "23P01";
+
 export const createAvailability = async ({
   userId,
   date,
   startTime,
   endTime,
-}: CreateAvailabilityInput): Promise<AvailabilityRow | null> => {
+}: CreateAvailabilityInput): Promise<CreateAvailabilityResult> => {
   const supabase = await createClient();
 
   const insertPayload: AvailabilityInsert = {
@@ -33,10 +42,10 @@ export const createAvailability = async ({
 
   if (error) {
     console.error(error);
-    return null;
+    return { data: null, isOverlap: error.code === EXCLUSION_VIOLATION_CODE };
   }
 
-  return data;
+  return { data, isOverlap: false };
 };
 
 export const deleteAvailability = async (id: string): Promise<boolean> => {
