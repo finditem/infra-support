@@ -62,6 +62,6 @@ monitor-web은 지금까지 Supabase에만 직접 접근했고 monitor-server를
 
 - [x] 각 섹션의 로딩 상태 처리 (스켈레톤 또는 로딩 UI)
 - [x] 데이터 조회 실패 시 에러 상태 처리 및 토스트 연결
-- [ ] DetailIncidentHistory의 `TODO(지권)` 해소 — BasicButton `as` prop 패턴 적용
+- [x] DetailIncidentHistory의 `TODO(지권)` 해소 — BasicButton `as` prop 패턴 적용
 - [x] DetailSettings의 `TODO(지권)` 해소 — 버튼 outline 스타일 변경
 - [ ] 데이터 가공 로직이 생기면 비어 있는 `_hooks`, `_utils`로 분리
