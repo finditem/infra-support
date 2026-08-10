@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
+import { NavLink, useLocation, Link } from "react-router-dom";
 import { BasicButton, Icon } from "@/components";
 import { useApiListQuery, useLogoutMutation, useUserQuery } from "@/queries";
 import { cn } from "@/utils";
@@ -13,7 +13,6 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isApiDetailOpen, setIsApiDetailOpen] = useState(false);
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const isApiRoute = pathname.startsWith("/api/");
 
   const { data: user } = useUserQuery();
@@ -207,8 +206,7 @@ const Sidebar = () => {
                 로그아웃
               </BasicButton>
             ) : (
-              // TODO(지권): as prop 패턴 추가 후 navigate 제거 예정
-              <BasicButton className="min-h-[43px] min-w-[70px]" onClick={() => navigate("/login")}>
+              <BasicButton className="min-h-[43px] min-w-[70px]" as={Link} to="/login">
                 로그인
               </BasicButton>
             ))}
