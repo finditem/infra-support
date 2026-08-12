@@ -11,6 +11,8 @@ type ApisWritable = {
   icon_url: string | null;
   is_active: boolean | null;
   memo: string | null;
+  timeout_ms: number | null;
+  delay_threshold_ms: number | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -31,6 +33,8 @@ export type ApisInsert =
     | "icon_url"
     | "is_active"
     | "memo"
+    | "timeout_ms"
+    | "delay_threshold_ms"
     | "created_at"
     | "updated_at"
   > & {
@@ -44,6 +48,8 @@ export type ApisInsert =
     icon_url?: string | null;
     is_active?: boolean | null;
     memo?: string | null;
+    timeout_ms?: number | null;
+    delay_threshold_ms?: number | null;
     created_at?: string | null;
     updated_at?: string | null;
   };
