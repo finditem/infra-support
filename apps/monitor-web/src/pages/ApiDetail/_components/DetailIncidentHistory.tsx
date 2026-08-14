@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BasicButton, EmptyState, Icon, LoadingState } from "@/components";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useUpdateErrorLogCheckedMutation } from "@/queries";
 import { cn } from "@/utils";
 import type { ApiStatus } from "@/types";
@@ -115,8 +115,7 @@ const DetailIncidentHistory = ({ incidents, isPending }: DetailIncidentHistoryPr
       </div>
 
       <div className="flex justify-center">
-        {/* TODO(지권): as prop 패턴 적용 후 변경 예정 */}
-        <BasicButton className="min-h-[56px] w-[148px]" onClick={() => navigate("/errors")}>
+        <BasicButton className="min-h-[56px] w-[148px]" as={Link} to="/errors">
           <span className="flex items-center gap-2 text-white">
             <span className="typo-header4-bold">전체보기</span>
             <Icon name="arrowRight" size={23} />
