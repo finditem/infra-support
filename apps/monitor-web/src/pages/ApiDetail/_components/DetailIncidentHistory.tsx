@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { BasicButton, EmptyState, Icon, LoadingState } from "@/components";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useUpdateErrorLogCheckedMutation } from "@/queries";
 import { cn } from "@/utils";
+import { useIncidentResolution } from "../_hooks";
 import type { ApiStatus } from "@/types";
 import type { LogListItemData } from "@/pages/ErrorLog/_types";
 
@@ -34,25 +33,7 @@ interface DetailIncidentHistoryProps {
 const DetailIncidentHistory = ({ incidents, isPending }: DetailIncidentHistoryProps) => {
   const navigate = useNavigate();
   const { apiId } = useParams<{ apiId: string }>();
-  const [resolvedIds, setResolvedIds] = useState<string[]>([]);
-  const { mutate: updateErrorLogChecked } = useUpdateErrorLogCheckedMutation();
-
-  // 목록은 쿼리 결과라 직접 수정할 수 없으므로, 확인 처리된 id를 따로 모아 덧씌운다.
-  const items = incidents.map((incident) =>
-    resolvedIds.includes(incident.id) ? { ...incident, status: true } : incident
-  );
-
-  // 실패 시 목록이 확인 처리된 것처럼 보이지 않도록, 서버 갱신에 성공한 뒤에만 로컬 상태를 반영한다.
-  const handleResolve = (id: string) => {
-    updateErrorLogChecked(
-      { id, checked: true },
-      {
-        onSuccess: () => {
-          setResolvedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
-        },
-      }
-    );
-  };
+  const { items, handleResolve } = useIncidentResolution(incidents);
 
   return (
     <section

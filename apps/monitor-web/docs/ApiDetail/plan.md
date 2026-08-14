@@ -64,4 +64,14 @@ monitor-web은 지금까지 Supabase에만 직접 접근했고 monitor-server를
 - [x] 데이터 조회 실패 시 에러 상태 처리 및 토스트 연결
 - [x] DetailIncidentHistory의 `TODO(지권)` 해소 — BasicButton `as` prop 패턴 적용
 - [x] DetailSettings의 `TODO(지권)` 해소 — 버튼 outline 스타일 변경
-- [ ] 데이터 가공 로직이 생기면 비어 있는 `_hooks`, `_utils`로 분리
+- [x] 데이터 가공 로직을 `_utils`로 분리 — `_utils/ApiDetailUtils.ts`에 `getApiSummaryData`, `getCheckLogStatusCounts`, `getCheckLogTimeRange`, `formatCheckInterval` 작성 완료
+
+### \_hooks 분리
+
+`_utils`(순수 계산 함수)는 채워졌으나 `_hooks`는 배럴만 있고 비어 있어, 쿼리 호출과 로컬 상태를 끼고 도는 로직을 훅으로 옮긴다.
+
+- [x] `_hooks/useApiDetailData.ts` 신규 작성 — `ApiDetailContent`가 직접 호출하던 네 개의 쿼리(detail/checkLogs/affectedFeatures/errorLogs)와 `checkLogs` 기본값 처리, `getApiSummaryData` 계산을 훅으로 이동
+- [x] `ApiDetail.tsx`: `useApiDetailData(apiId)` 호출로 교체하고 페이지 컴포넌트는 조립만 담당하도록 정리 (`!apiData` 로딩 분기와 ErrorBoundary 구조는 유지)
+- [x] `_hooks/useIncidentResolution.ts` 신규 작성 — `DetailIncidentHistory`의 `resolvedIds` 상태, 확인 처리 결과를 목록에 덧씌우는 `items` 계산, `updateErrorLogChecked` 호출을 훅으로 이동
+- [x] `DetailIncidentHistory.tsx`: `useIncidentResolution(incidents)` 호출로 교체하고 렌더링만 담당하도록 정리
+- [x] `_hooks/index.ts`에 두 훅 re-export 추가 (`Login/_hooks/index.ts`의 `export { default as ... }` 패턴 유지)
