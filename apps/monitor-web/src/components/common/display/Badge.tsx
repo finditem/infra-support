@@ -53,7 +53,7 @@ const Badge = (props: BadgeProps) => {
     const statusBadgeClass = API_STATUS_BADGE_STYLES[props.status];
     return (
       <span className={cn(BADGE_BASE_STYLE, statusBadgeClass, props.className)}>
-        {props.dot && <span aria-hidden className="mr-1.5 size-3 rounded-full bg-current" />}
+        {props.dot && <span aria-hidden className="mr-1 size-2 rounded-full bg-current" />}
         {props.label}
       </span>
     );

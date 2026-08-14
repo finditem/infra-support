@@ -42,7 +42,7 @@ const DetailSummaryCards = ({ summaryData, isPending }: DetailSummaryCardsProps)
   ];
 
   return (
-    <section className="mb-3 mt-6 grid w-full grid-cols-4 gap-3">
+    <section className="mb-3 mt-5 grid w-full grid-cols-4 gap-3">
       {summaryCards.map((item) => (
         <SummaryCard key={item.label} {...item} isPending={isPending} />
       ))}
@@ -69,19 +69,19 @@ const SummaryCard = ({
   statusInfo,
   isPending,
 }: SummaryCardProps) => (
-  <div className="flex items-center gap-4 rounded-xl border border-border-neutural-normal-default bg-white p-8">
-    <div className="size-16 rounded-full bg-fill-primary-normal-disabled flex-center">
-      <Icon className={iconClassName} name={icon} size={32} />
+  <div className="flex items-center gap-3 rounded-xl border border-border-neutural-normal-default bg-white p-5">
+    <div className="size-11 rounded-full bg-fill-primary-normal-disabled flex-center">
+      <Icon className={iconClassName} name={icon} size={22} />
     </div>
     <div className="flex flex-col gap-2">
       <span className="typo-body2-medium text-layout-body">{label}</span>
-      <div className="flex min-h-[28px] items-center gap-[11px]">
+      <div className="flex min-h-[24px] items-center gap-2">
         {isPending ? (
           <Skeleton className="h-6 w-28" />
         ) : (
           <>
             {statusInfo && (
-              <div aria-hidden className={cn("size-3 rounded-full", statusInfo.dotColor)} />
+              <div aria-hidden className={cn("size-2 rounded-full", statusInfo.dotColor)} />
             )}
             <span className={cn("typo-header4-bold", statusInfo?.textColor)}>{value}</span>
           </>

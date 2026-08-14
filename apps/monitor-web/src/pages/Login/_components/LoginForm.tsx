@@ -5,8 +5,8 @@ const LoginForm = () => {
   const { values, handleChange, handleSubmit, isDisabled, isPending } = useLoginForm();
 
   return (
-    <form className="flex w-full flex-col gap-[70px]" onSubmit={handleSubmit}>
-      <fieldset className="flex flex-col gap-[30px]">
+    <form className="flex w-full flex-col gap-10" onSubmit={handleSubmit}>
+      <fieldset className="flex flex-col gap-5">
         <legend className="sr-only">로그인 정보</legend>
         <TextField
           autoComplete="username"
@@ -29,7 +29,7 @@ const LoginForm = () => {
       </fieldset>
 
       <BasicButton
-        className="typo-header4-bold min-h-[56px] disabled:text-fg-neutural-disabled"
+        className="typo-body1-semibold min-h-[44px] disabled:text-fg-neutural-disabled"
         disabled={isDisabled}
         loading={isPending}
         type="submit"

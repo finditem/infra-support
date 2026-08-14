@@ -78,9 +78,9 @@ const SearchInput = ({
         <input
           aria-label="검색어"
           className={cn(
-            "typo-body1-regular w-[518px] bg-white py-5 pl-[46px] pr-4",
-            showClearButton && "pr-10",
-            "rounded-[10px] border border-border-neutural-normal-default",
+            "typo-body2-regular w-[360px] bg-white py-3 pl-10 pr-4",
+            showClearButton && "pr-9",
+            "rounded-lg border border-border-neutural-normal-default",
             "disabled:cursor-not-allowed disabled:bg-fill-neutural-subtle-disabled disabled:text-fg-neutural-disabled"
           )}
           disabled={disabled}
@@ -93,17 +93,17 @@ const SearchInput = ({
         <button
           aria-label="검색"
           className={cn(
-            "absolute left-4 top-1/2 flex -translate-y-1/2 items-center justify-center",
+            "absolute left-3 top-1/2 flex -translate-y-1/2 items-center justify-center",
             "text-border-primary-normal-default disabled:text-border-primary-normal-disabled"
           )}
           disabled={disabled}
           type="submit"
         >
-          <Icon name="search" size={24} />
+          <Icon name="search" size={20} />
         </button>
 
         {showClearButton && (
-          <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center justify-center">
+          <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center">
             <ClearButton onClick={() => setValue("")} />
           </div>
         )}

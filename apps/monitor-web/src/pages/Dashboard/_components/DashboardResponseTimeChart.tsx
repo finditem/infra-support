@@ -22,7 +22,7 @@ const DashboardResponseTimeChart = ({ range }: DashboardResponseTimeChartProps) 
   const stats = calculateResponseTimeStats(data);
 
   return (
-    <section className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-8 py-12">
+    <section className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-6 py-5">
       <div className="flex items-start justify-between">
         <div>
           <h2 className="typo-header4-bold">전체 API 응답 속도 추이</h2>
@@ -33,7 +33,7 @@ const DashboardResponseTimeChart = ({ range }: DashboardResponseTimeChartProps) 
           </p>
         </div>
 
-        <div className="flex items-center gap-[10px]">
+        <div className="flex items-center gap-2">
           <span
             className={cn(
               "size-4 rounded-full text-white flex-center",
@@ -52,10 +52,10 @@ const DashboardResponseTimeChart = ({ range }: DashboardResponseTimeChartProps) 
           </p>
         </div>
       </div>
-      <div className="mt-[60px] h-[433px]">
+      <div className="mt-6 h-[300px]">
         {isLoading ? (
           <div className="h-full flex-center">
-            <LoadingSpinner size={32} />
+            <LoadingSpinner size={28} />
           </div>
         ) : (
           <ApiResponseTimeChart data={data} period={range} />

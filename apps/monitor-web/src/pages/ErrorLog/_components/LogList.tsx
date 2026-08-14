@@ -54,7 +54,7 @@ const LogList = ({ items, onCheckedChange }: LogListProps) => {
       <div
         aria-label="에러 로그 상태 필터"
         role="group"
-        className="flex items-center gap-6 px-12 py-8"
+        className="flex items-center gap-4 px-6 py-5"
       >
         {LOG_LIST_FILTERS.map((filter) => (
           <LogListFilterButton
@@ -98,7 +98,7 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
   return (
     <button
       aria-pressed={isActive}
-      className="typo-header3-bold flex items-center gap-2 py-3"
+      className="typo-header4-bold flex items-center gap-2 py-3"
       type="button"
       onClick={onClick}
     >
@@ -117,11 +117,11 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
 
 const LogListHeader = () => {
   return (
-    <div className="typo-body2-bold flex items-center justify-between bg-[#F9F9F9] px-12 py-6 text-[#858585]">
+    <div className="typo-body2-bold flex items-center justify-between bg-[#F9F9F9] px-6 py-4 text-[#858585]">
       <span>API 정보</span>
-      <div className="flex items-center gap-6 text-center">
-        <span className="w-[223px]">발생 시간</span>
-        <span className="w-[90px]">상태</span>
+      <div className="flex items-center gap-4 text-center">
+        <span className="w-[180px]">발생 시간</span>
+        <span className="w-[88px]">상태</span>
       </div>
     </div>
   );
