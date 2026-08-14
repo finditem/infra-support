@@ -227,3 +227,13 @@
 - [x] pnpm build / pnpm lint 검증 (삭제 기능 제외한 등록/조회 단계)
 - [x] `CalendarGrid.tsx`: 날짜 셀을 `<button>`에서 `role="button"` `div`(`KanbanCard.tsx` 패턴)로 변경해 블록 내부에 실제 `<button>` 삭제 버튼을 중첩 가능하게 함, 본인이 등록한 블록 클릭 시 삭제 확인 버튼 노출 → `deleteAvailability` 호출 후 `onDeleted` 콜백
 - [x] pnpm build / pnpm lint 검증
+
+## 초대 링크에서 비밀번호+이름 동시 설정
+
+관리자가 Supabase 대시보드에서 "Invite user"로 팀원을 초대하면, 팀원이 메일 링크를 클릭했을 때 비밀번호와 이름을 한 화면에서 함께 설정하도록 한다. 커스텀 SMTP 연결 및 Invite 이메일 템플릿의 링크를 `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite`로 수정하는 작업은 사용자가 Supabase 대시보드에서 직접 진행 (Claude가 할 수 없는 대시보드 설정).
+
+- [x] `src/app/auth/confirm/route.ts` 신규 작성: `token_hash`/`type` 쿼리 파라미터를 받아 `supabase.auth.verifyOtp`로 세션 생성 후 `/invite/setup`으로 리다이렉트, 실패 시 `/login?error=invite_expired`로 리다이렉트
+- [x] `src/app/invite/setup/page.tsx` 신규 작성: 이름/비밀번호/비밀번호 확인 입력 폼(`login/page.tsx` 스타일 재사용), 제출 시 `supabase.auth.updateUser({ password, data: { name } })` 호출 후 `profiles` 테이블의 `name`도 직접 update, 완료 시 `/`로 이동
+- [x] `src/app/login/page.tsx`: `?error=invite_expired` 쿼리 파라미터가 있으면 안내 메시지 표시 (`useSearchParams` 사용으로 `LoginForm`을 분리하고 `Suspense`로 감쌈)
+- [x] `middleware.ts`: `PUBLIC_PATHS`에 `/auth/confirm` 추가
+- [x] pnpm build / pnpm lint 검증
