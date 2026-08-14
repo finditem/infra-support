@@ -24,4 +24,5 @@ export const API_STATUS_BADGE_STYLES: Record<ApiStatus, string> = {
  * @author junyeol
  */
 
-export const BADGE_BASE_STYLE = "inline-flex items-center justify-center rounded-full border";
+export const BADGE_BASE_STYLE =
+  "inline-flex items-center justify-center rounded-full border px-2.5 py-0.5";
