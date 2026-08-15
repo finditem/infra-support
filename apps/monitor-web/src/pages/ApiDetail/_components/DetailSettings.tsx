@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BasicButton, Icon } from "@/components";
 import { cn } from "@/utils";
 import type { ApiDetailData } from "../_types";
-import { formatCheckInterval } from "../_utils";
+import { formatCheckInterval, formatThresholdMs } from "../_utils";
 
 const EMPTY_VALUE = "-";
 
@@ -14,7 +14,15 @@ interface DetailSettingsProps {
 const DetailSettings = ({ apiData }: DetailSettingsProps) => {
   const { apiId } = useParams<{ apiId: string }>();
   const navigate = useNavigate();
-  const { requestUrl, httpMethod, checkIntervalMinutes, isActive, isNotificationEnabled } = apiData;
+  const {
+    requestUrl,
+    httpMethod,
+    checkIntervalMinutes,
+    isActive,
+    isNotificationEnabled,
+    timeoutMs,
+    delayThresholdMs,
+  } = apiData;
 
   return (
     <section
@@ -67,6 +75,14 @@ const DetailSettings = ({ apiData }: DetailSettingsProps) => {
           <SettingItem className="gap-3 px-4 py-3" label="알림">
             <SettingStatus isEnabled={isNotificationEnabled} />
           </SettingItem>
+
+          <SettingItem className="gap-4 px-6 py-5" label="타임아웃">
+            <SettingThreshold milliseconds={timeoutMs} />
+          </SettingItem>
+
+          <SettingItem className="gap-4 px-6 py-5" label="지연 임계값">
+            <SettingThreshold milliseconds={delayThresholdMs} />
+          </SettingItem>
         </div>
       </div>
     </section>
@@ -88,6 +104,17 @@ const SettingItem = ({
     <span className="typo-body2-medium text-layout-body">{label}</span>
     <div className="text-layout-header">{children}</div>
   </div>
+);
+
+const SettingThreshold = ({ milliseconds }: { milliseconds: number | null }) => (
+  <span
+    className={cn(
+      "typo-header4-semibold text-layout-header",
+      milliseconds === null && "text-fg-neutural-disabled"
+    )}
+  >
+    {formatThresholdMs(milliseconds)}
+  </span>
 );
 
 const SettingStatus = ({ isEnabled }: { isEnabled: boolean }) => (
