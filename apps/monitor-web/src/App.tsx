@@ -31,6 +31,8 @@ export default function App() {
               <Route element={<ErrorDetail />} path="/api/:apiId/errors/:errorId" />
             </Route>
 
+            {/* 코드에서 404 화면으로 보낼 수 있도록 catch-all과 별개로 주소를 하나 둔다. */}
+            <Route element={<NotFound />} path="/404" />
             <Route element={<NotFound />} path="*" />
           </Routes>
         </div>

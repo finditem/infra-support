@@ -11,4 +11,5 @@ export interface ApiDetailData {
   isNotificationEnabled: boolean;
   iconUrl: string | null;
   isActive: boolean;
+  memo: string;
 }

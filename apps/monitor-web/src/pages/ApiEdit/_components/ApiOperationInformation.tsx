@@ -1,7 +1,16 @@
 import { Icon, TextareaField } from "@/components";
 import ApiInfoTooltip from "./ApiInfoTooltip";
+import type { ApiEditFormValues } from "../_types";
 
-const ApiOperationInformation = () => {
+interface ApiOperationInformationProps {
+  values: ApiEditFormValues;
+  onChange: <TField extends keyof ApiEditFormValues>(
+    field: TField,
+    value: ApiEditFormValues[TField]
+  ) => void;
+}
+
+const ApiOperationInformation = ({ values, onChange }: ApiOperationInformationProps) => {
   return (
     <section
       aria-labelledby="api-operation-information-title"
@@ -37,7 +46,12 @@ const ApiOperationInformation = () => {
           </span>
 
           <label className="relative flex cursor-pointer items-center gap-4">
-            <input className="peer sr-only" defaultChecked type="checkbox" />
+            <input
+              className="peer sr-only"
+              checked={values.isActive}
+              type="checkbox"
+              onChange={(event) => onChange("isActive", event.target.checked)}
+            />
             <span className="inline-block h-[30px] w-16 shrink-0 rounded-full bg-fill-neutural-subtle-hover transition-colors peer-checked:bg-[#1EB87B]" />
             <span className="absolute left-1 top-1 size-[22px] rounded-full bg-white transition-transform peer-checked:translate-x-8" />
             <span className="typo-header4-bold text-layout-header transition-colors peer-checked:text-[#62CDA3]">
@@ -48,12 +62,13 @@ const ApiOperationInformation = () => {
 
         <TextareaField
           id="api-memo"
-          caption="Caption"
-          defaultValue=""
+          caption="운영 중 참고할 내용을 남겨 두는 칸입니다. 사용자에게는 노출되지 않습니다."
           label="메모"
           labelClassName="typo-header4-bold"
           maxLength={500}
-          placeholder="Text"
+          placeholder="예 : 2026년 3월부터 요금제 변경 예정"
+          value={values.memo}
+          onChange={(event) => onChange("memo", event.target.value)}
         />
       </div>
     </section>

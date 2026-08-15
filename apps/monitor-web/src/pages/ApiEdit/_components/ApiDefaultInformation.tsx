@@ -1,7 +1,31 @@
-import { Icon, TextField, TextareaField } from "@/components";
+import { useState } from "react";
+import { Icon, Image, TextField, TextareaField } from "@/components";
 import ApiInfoTooltip from "./ApiInfoTooltip";
+import ApiSourceSelect from "./ApiSourceSelect";
+import type { ApiEditFormErrors, ApiEditFormValues } from "../_types";
 
-const ApiDefaultInformation = () => {
+interface ApiDefaultInformationProps {
+  values: ApiEditFormValues;
+  errors: ApiEditFormErrors;
+  /** 출처 드롭다운에 표시할 목록 */
+  sources: string[];
+  onChange: <TField extends keyof ApiEditFormValues>(
+    field: TField,
+    value: ApiEditFormValues[TField]
+  ) => void;
+}
+
+const ICON_PREVIEW_SIZE = 100;
+
+const ApiDefaultInformation = ({
+  values,
+  errors,
+  sources,
+  onChange,
+}: ApiDefaultInformationProps) => {
+  const [hasIconError, setHasIconError] = useState(false);
+  const showIconPreview = !!values.iconUrl.trim() && !hasIconError;
+
   return (
     <section
       aria-labelledby="api-default-information-title"
@@ -24,34 +48,36 @@ const ApiDefaultInformation = () => {
       <div className="flex flex-col gap-12">
         <TextField
           id="api-name"
-          defaultValue="Kakao Map API"
+          errorMessage={errors.name}
           label="API 이름"
           labelClassName="typo-header4-bold"
           required
+          value={values.name}
+          onChange={(event) => onChange("name", event.target.value)}
         />
 
         <TextareaField
           id="api-description"
-          caption="Caption"
-          defaultValue=""
+          caption="상세 페이지 상단에 표시되는 한 줄 소개입니다."
           label="API 설명"
           labelClassName="!typo-header4-bold"
           maxLength={500}
           placeholder="예 : 카카오 지도 표시"
+          value={values.description}
+          onChange={(event) => onChange("description", event.target.value)}
         />
 
         <div className="flex flex-col gap-4">
           <label className="typo-header4-bold text-layout-header" htmlFor="api-source">
             출처 <span className="text-error">*</span>
           </label>
-          <button
+          <ApiSourceSelect
             id="api-source"
-            className="flex w-full items-center justify-between rounded-[10px] border border-border-neutural-normal-default bg-white px-[17px] py-[21px]"
-            type="button"
-          >
-            <span className="typo-header4-semibold text-fg-neutural-default">Kakao</span>
-            <Icon name="chevronDown" size={20} />
-          </button>
+            errorMessage={errors.source}
+            sources={sources}
+            value={values.source}
+            onChange={(source) => onChange("source", source)}
+          />
         </div>
 
         <div className="flex flex-col gap-4">
@@ -70,8 +96,11 @@ const ApiDefaultInformation = () => {
           </span>
           <TextField
             id="api-source-link"
-            defaultValue="https://apis.map.kakao.com/"
             endIcon={<Icon name="linkAngled" size={20} />}
+            errorMessage={errors.sourceUrl}
+            placeholder="https://..."
+            value={values.sourceUrl}
+            onChange={(event) => onChange("sourceUrl", event.target.value)}
           />
         </div>
 
@@ -91,7 +120,12 @@ const ApiDefaultInformation = () => {
               <ApiInfoTooltip text="map, location, public-data 등 분류값을 수정합니다." />
             </span>
           </span>
-          <TextField id="api-category" defaultValue="map" />
+          <TextField
+            id="api-category"
+            errorMessage={errors.category}
+            value={values.category}
+            onChange={(event) => onChange("category", event.target.value)}
+          />
         </div>
 
         <div className="flex flex-col gap-4">
@@ -99,12 +133,29 @@ const ApiDefaultInformation = () => {
             아이콘
           </label>
           <div className="flex items-center gap-6">
-            <div className="size-[100px] shrink-0 rounded-full bg-fg-neutural-inversed-disabled" />
+            {showIconPreview ? (
+              <Image
+                alt=""
+                className="size-[100px] shrink-0 rounded-full object-cover"
+                height={ICON_PREVIEW_SIZE}
+                src={values.iconUrl.trim()}
+                width={ICON_PREVIEW_SIZE}
+                onError={() => setHasIconError(true)}
+              />
+            ) : (
+              <div className="size-[100px] shrink-0 rounded-full bg-fg-neutural-inversed-disabled" />
+            )}
             <TextField
               id="api-icon"
               className="flex-1"
               endIcon={<Icon name="linkAngled" size={20} />}
+              errorMessage={errors.iconUrl}
               placeholder="https://.../icon.png"
+              value={values.iconUrl}
+              onChange={(event) => {
+                setHasIconError(false);
+                onChange("iconUrl", event.target.value);
+              }}
             />
           </div>
         </div>
