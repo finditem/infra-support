@@ -36,46 +36,38 @@ const ApiResponseTimeTooltip = ({ active, payload }: ChartTooltipProps) => {
   const data = payload[0].payload;
 
   return (
-    <div className="relative flex w-[282px] flex-col gap-4 rounded-[10px] border border-border-divider-default bg-bg-layout-1depth p-6 shadow-sm">
-      <div className="flex flex-col gap-1">
-        <div className="truncate text-[18px] font-bold leading-[25px] text-layout-header">
-          {data.apiName}
-        </div>
-        <div className="text-[18px] font-medium leading-[25px] text-layout-body">
+    <div className="relative flex w-[190px] flex-col gap-2 rounded-lg border border-border-divider-default bg-bg-layout-1depth p-3 shadow-sm">
+      <div className="flex flex-col gap-0.5">
+        <div className="typo-caption1-semibold truncate text-layout-header">{data.apiName}</div>
+        <div className="typo-caption1-regular text-layout-body">
           {formatDateTime(data.checkedAt)}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <span
             aria-hidden="true"
-            className={`h-4 w-4 rounded-full ${STATUS_DOT_CLASS[data.status]}`}
+            className={`size-2 rounded-full ${STATUS_DOT_CLASS[data.status]}`}
           />
-          <span className={`text-[20px] font-bold leading-7 ${STATUS_TEXT_CLASS[data.status]}`}>
+          <span className={`typo-caption1-semibold ${STATUS_TEXT_CLASS[data.status]}`}>
             {STATUS_LABEL[data.status]}
           </span>
         </div>
       </div>
 
-      <dl className="flex w-full flex-col gap-2">
+      <dl className="flex w-full flex-col gap-1">
         <div className="flex items-center justify-between">
-          <dt className="text-[20px] font-medium leading-[27px] text-layout-body">응답 속도</dt>
-          <dd className="text-[22px] font-semibold leading-[30px] text-layout-header">
-            {data.responseTime}ms
-          </dd>
+          <dt className="typo-caption1-regular text-layout-body">응답 속도</dt>
+          <dd className="typo-caption1-semibold text-layout-header">{data.responseTime}ms</dd>
         </div>
 
         <div className="flex items-center justify-between">
-          <dt className="text-[20px] font-medium leading-[27px] text-layout-body">HTTP 상태</dt>
-          <dd className="text-[22px] font-semibold leading-[30px] text-layout-header">
-            {data.httpStatus}
-          </dd>
+          <dt className="typo-caption1-regular text-layout-body">HTTP 상태</dt>
+          <dd className="typo-caption1-semibold text-layout-header">{data.httpStatus}</dd>
         </div>
 
         <div className="flex items-center justify-between gap-2">
-          <dt className="shrink-0 text-[20px] font-medium leading-[27px] text-layout-body">
-            에러 메시지
-          </dt>
+          <dt className="typo-caption1-regular shrink-0 text-layout-body">에러 메시지</dt>
           <dd
-            className="min-w-0 truncate text-right text-[22px] font-semibold leading-[30px] text-layout-header"
+            className="typo-caption1-semibold min-w-0 truncate text-right text-layout-header"
             title={data.errorMessage}
           >
             {data.errorMessage}

@@ -28,11 +28,11 @@ const DashboardResponseStatusChart = ({ range }: DashboardResponseStatusChartPro
   const totalApiCount = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <section className="flex h-full flex-col rounded-xl border border-border-divider-default bg-bg-layout-1depth px-12 py-8">
+    <section className="flex h-full flex-col rounded-xl border border-border-divider-default bg-bg-layout-1depth px-6 py-5">
       <h2 className="typo-header4-bold">응답 상태 분포</h2>
 
       <div className="flex flex-1 flex-col justify-between">
-        <div className="mt-[60px] h-[260px]">
+        <div className="mt-6 h-[200px]">
           <ResponsiveContainer height="100%" width="100%">
             <PieChart>
               <Pie
@@ -40,8 +40,8 @@ const DashboardResponseStatusChart = ({ range }: DashboardResponseStatusChartPro
                 cy="50%"
                 data={chartData}
                 dataKey="value"
-                innerRadius={80}
-                outerRadius={120}
+                innerRadius={52}
+                outerRadius={80}
                 paddingAngle={4}
                 pointerEvents="none"
               >
@@ -68,7 +68,7 @@ const DashboardResponseStatusChart = ({ range }: DashboardResponseStatusChartPro
               <div className="flex items-center gap-2">
                 <span
                   aria-hidden="true"
-                  className="size-3 rounded-full"
+                  className="size-2 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
                 <span className="typo-body2-medium text-layout-header">{item.name}</span>

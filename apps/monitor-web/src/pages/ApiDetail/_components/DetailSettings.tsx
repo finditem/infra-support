@@ -19,25 +19,25 @@ const DetailSettings = ({ apiData }: DetailSettingsProps) => {
   return (
     <section
       aria-labelledby="settings-title"
-      className="my-8 flex flex-col gap-[60px] rounded-xl border border-[#DFDFDF] bg-white px-12 py-8"
+      className="my-5 flex flex-col gap-8 rounded-xl border border-[#DFDFDF] bg-white px-6 py-5"
     >
       <div className="flex items-center justify-between">
         <h2 id="settings-title" className="typo-header4-bold">
           API 설정 정보
         </h2>
         <BasicButton
-          className="min-h-[56px] w-[155px] py-4"
+          className="min-h-[36px] w-[104px] py-1.5"
           variant="outline"
           onClick={() => navigate(`/api/${apiId}/edit`)}
         >
           <span className="flex items-center gap-2 text-fill-neutural-normal-default">
-            <Icon name="editPencil" size={24} />
-            <span className="typo-header4-semibold">설정수정</span>
+            <Icon name="editPencil" size={16} />
+            <span className="typo-body2-semibold">설정수정</span>
           </span>
         </BasicButton>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5">
         <SettingItem label="요청 URL">
           <div className="flex items-center gap-1 rounded-lg border border-border-neutural-default bg-fill-neutural-iversed-disabled px-3 py-2">
             <span className="typo-caption1-semibold rounded-full bg-[#D6F8E1] px-3 py-1 text-[#009E53]">
@@ -50,21 +50,21 @@ const DetailSettings = ({ apiData }: DetailSettingsProps) => {
         </SettingItem>
 
         <div className="flex w-fit rounded-xl border">
-          <SettingItem className="gap-4 px-6 py-5" label="HTTP Method">
+          <SettingItem className="gap-3 px-4 py-3" label="HTTP Method">
             <span className="typo-header4-semibold text-layout-header">{httpMethod}</span>
           </SettingItem>
 
-          <SettingItem className="gap-4 px-6 py-5" label="체크 주기">
+          <SettingItem className="gap-3 px-4 py-3" label="체크 주기">
             <span className="typo-header4-semibold text-layout-header">
               {formatCheckInterval(checkIntervalMinutes)}
             </span>
           </SettingItem>
 
-          <SettingItem className="gap-4 px-6 py-5" label="활성 상태">
+          <SettingItem className="gap-3 px-4 py-3" label="활성 상태">
             <SettingStatus isEnabled={isActive} />
           </SettingItem>
 
-          <SettingItem className="gap-4 px-6 py-5" label="알림">
+          <SettingItem className="gap-3 px-4 py-3" label="알림">
             <SettingStatus isEnabled={isNotificationEnabled} />
           </SettingItem>
         </div>
@@ -84,7 +84,7 @@ const SettingItem = ({
   children: ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex min-w-[204px] flex-col gap-3", className)}>
+  <div className={cn("flex min-w-[160px] flex-col gap-2", className)}>
     <span className="typo-body2-medium text-layout-body">{label}</span>
     <div className="text-layout-header">{children}</div>
   </div>

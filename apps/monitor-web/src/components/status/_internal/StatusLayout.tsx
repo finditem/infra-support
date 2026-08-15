@@ -6,7 +6,7 @@ import { cn } from "@/utils";
  *
  * @remarks
  * - error, empty, loading 등 상태 컴포넌트의 공통 레이아웃 래퍼입니다.
- * - `className`으로 기본 `py-20 gap-5` 스타일을 오버라이드할 수 있습니다.
+ * - `className`으로 기본 `py-12 gap-4` 스타일을 오버라이드할 수 있습니다.
  *
  * @author jikwon
  */
@@ -14,7 +14,7 @@ import { cn } from "@/utils";
 interface StatusLayoutProps {
   /** error, empty, loading 상태 UI 요소 */
   children: ReactNode;
-  /** 기본 `py-20 gap-5` 스타일을 오버라이드할 스타일 */
+  /** 기본 `py-12 gap-4` 스타일을 오버라이드할 스타일 */
   className?: string;
   /** 스크린 리더 알림 방식. error는 "alert", 자식이 role을 직접 처리할 때는 "none", 그 외는 "status" */
   role?: "status" | "alert" | "none";
@@ -39,7 +39,7 @@ interface StatusLayoutProps {
 
 const StatusLayout = ({ children, className, role = "status" }: StatusLayoutProps) => {
   return (
-    <div role={role} className={cn("h-full w-full gap-5 py-20 flex-col-center", className)}>
+    <div role={role} className={cn("h-full w-full gap-4 py-12 flex-col-center", className)}>
       {children}
     </div>
   );

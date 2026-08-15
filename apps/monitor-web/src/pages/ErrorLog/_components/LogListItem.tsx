@@ -12,24 +12,26 @@ const LogListItem = ({ data, isLast = false, onCheckedChange }: LogListItemProps
   return (
     <li
       className={cn(
-        "flex items-center justify-between px-12 py-6",
+        "flex items-center justify-between px-6 py-4",
         !isLast && "border-b border-[#1D1D1D]/10"
       )}
     >
       <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-2">
         <div className="flex items-center gap-3">
-          <span className="typo-header3-bold">{data.apiName}</span>
+          <span className="typo-body1-semibold">{data.apiName}</span>
           <Badge className="shrink-0 px-2" label={data.errorType} status={data.errorStatus} />
         </div>
-        <span className="typo-body2-medium block max-w-[320px] truncate text-[#858585]">
+        <span className="typo-body2-medium block max-w-[280px] truncate text-[#858585]">
           {data.errorMessage}
         </span>
       </div>
-      <div className="flex items-center gap-6">
-        <span className="typo-body2-medium text-[#858585]">{data.occurredAt}</span>
+      <div className="flex items-center gap-4">
+        <span className="typo-body2-medium w-[180px] text-center text-[#858585]">
+          {data.occurredAt}
+        </span>
         <CheckboxButton
           className={cn(
-            "typo-body2-semibold w-[104px] justify-center rounded-full border border-transparent py-[3px]",
+            "typo-body2-semibold w-[88px] justify-center rounded-full border border-transparent py-0.5",
             data.status ? "bg-[#E3FCEE] text-[#0AA874]" : "bg-[#FFECEC] text-[#FF6363]"
           )}
           checked={data.status}

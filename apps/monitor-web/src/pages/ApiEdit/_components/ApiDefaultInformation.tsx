@@ -5,7 +5,7 @@ const ApiDefaultInformation = () => {
   return (
     <section
       aria-labelledby="api-default-information-title"
-      className="mt-9 flex flex-col gap-9 rounded-xl border border-[#DFDFDF] bg-white px-[76px] pb-9 pt-[37px] shadow-[0px_4px_20px_-4px_rgba(0,0,0,0.05)]"
+      className="mt-6 flex flex-col gap-6 rounded-xl border border-[#DFDFDF] bg-white px-8 pb-6 pt-6 shadow-[0px_4px_20px_-4px_rgba(0,0,0,0.05)]"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -19,9 +19,9 @@ const ApiDefaultInformation = () => {
         <p className="typo-body1-regular text-layout-body">상세 패널에 노출되는 정보</p>
       </div>
 
-      <hr className="-mx-[76px] border-t border-[#DFDFDF]" />
+      <hr className="-mx-8 border-t border-[#DFDFDF]" />
 
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-8">
         <TextField
           id="api-name"
           defaultValue="Kakao Map API"
@@ -40,13 +40,13 @@ const ApiDefaultInformation = () => {
           placeholder="예 : 카카오 지도 표시"
         />
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <label className="typo-header4-bold text-layout-header" htmlFor="api-source">
             출처 <span className="text-error">*</span>
           </label>
           <button
             id="api-source"
-            className="flex w-full items-center justify-between rounded-[10px] border border-border-neutural-normal-default bg-white px-[17px] py-[21px]"
+            className="flex w-full items-center justify-between rounded-lg border border-border-neutural-normal-default bg-white px-3.5 py-3"
             type="button"
           >
             <span className="typo-header4-semibold text-fg-neutural-default">Kakao</span>
@@ -54,7 +54,7 @@ const ApiDefaultInformation = () => {
           </button>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <span className="flex items-center gap-3">
             <span className="typo-header4-bold text-layout-header">출처 바로가기</span>
             <span className="group relative size-6 rounded-full bg-fill-neutural-subtle-hover flex-center">
@@ -75,7 +75,7 @@ const ApiDefaultInformation = () => {
           />
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <span className="flex items-center gap-3">
             <span className="typo-header4-bold text-layout-header">
               카테고리 <span className="text-error">*</span>
@@ -94,12 +94,12 @@ const ApiDefaultInformation = () => {
           <TextField id="api-category" defaultValue="map" />
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <label className="typo-header4-bold text-layout-header" htmlFor="api-icon">
             아이콘
           </label>
-          <div className="flex items-center gap-6">
-            <div className="size-[100px] shrink-0 rounded-full bg-fg-neutural-inversed-disabled" />
+          <div className="flex items-center gap-4">
+            <div className="size-16 shrink-0 rounded-full bg-fg-neutural-inversed-disabled" />
             <TextField
               id="api-icon"
               className="flex-1"
