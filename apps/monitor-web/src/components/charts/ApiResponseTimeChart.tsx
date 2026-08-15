@@ -178,7 +178,7 @@ const ApiResponseTimeChart = ({
       </div>
 
       {showLegend && (
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-10 text-[12px]">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-6 text-[12px]">
           {legendItems.map((item) => (
             <div key={item.apiId} className="flex items-center gap-2">
               <span

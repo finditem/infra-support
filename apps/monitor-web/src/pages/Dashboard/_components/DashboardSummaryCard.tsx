@@ -56,7 +56,7 @@ const DashboardSummaryCard = ({ range }: DashboardSummaryCardProps) => {
     {
       id: "outage-api",
       icon: "sidebarDetail",
-      iconSize: 24,
+      iconSize: 20,
       iconClassName: "text-fill-primary-strong-default",
       title: "장애 발생 API",
       mainValue: latestOutage ? latestOutage.apiName : "없음",
@@ -68,23 +68,23 @@ const DashboardSummaryCard = ({ range }: DashboardSummaryCardProps) => {
       {summaryCards.map((card) => (
         <article
           key={card.id}
-          className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-8 py-8"
+          className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-5 py-4"
         >
-          <div className="flex min-w-0 items-center gap-4">
+          <div className="flex min-w-0 items-center gap-3">
             <span
               className={cn(
-                "size-16 shrink-0 rounded-full flex-center",
+                "size-11 shrink-0 rounded-full flex-center",
                 card.iconBgClassName ?? "bg-fill-primary-normal-disabled"
               )}
             >
-              <Icon className={card.iconClassName} name={card.icon} size={card.iconSize ?? 32} />
+              <Icon className={card.iconClassName} name={card.icon} size={card.iconSize ?? 22} />
             </span>
 
             <div className="flex min-w-0 flex-col gap-2">
               <p className="typo-body2-medium truncate text-layout-body" title={card.title}>
                 {card.title}
               </p>
-              <div className="flex min-w-0 items-baseline gap-3">
+              <div className="flex min-w-0 items-baseline gap-2">
                 <span
                   className="typo-header4-bold truncate text-layout-header"
                   title={card.mainValue}
@@ -93,7 +93,7 @@ const DashboardSummaryCard = ({ range }: DashboardSummaryCardProps) => {
                 </span>
 
                 {card.subValues && (
-                  <div className="flex min-w-0 shrink-0 items-center gap-3">
+                  <div className="flex min-w-0 shrink-0 items-center gap-2">
                     {card.subValues.map((subValue) => (
                       <span
                         key={subValue}

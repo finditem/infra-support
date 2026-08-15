@@ -13,9 +13,9 @@ const DetailImpactedFeatures = ({ features, isPending }: DetailImpactedFeaturesP
     <section
       aria-describedby="features-description"
       aria-labelledby="features-title"
-      className="flex min-h-0 min-w-0 flex-col justify-between rounded-xl border border-[#DFDFDF] bg-white px-12 py-8"
+      className="flex min-h-0 min-w-0 flex-col justify-between rounded-xl border border-[#DFDFDF] bg-white px-6 py-5"
     >
-      <div className="flex flex-col gap-[13px]">
+      <div className="flex flex-col gap-2">
         <h2 id="features-title" className="typo-header3-bold">
           영향 받는 기능
         </h2>
@@ -24,10 +24,10 @@ const DetailImpactedFeatures = ({ features, isPending }: DetailImpactedFeaturesP
         </span>
       </div>
 
-      {isPending && <LoadingSpinner className="min-h-[40px]" size={24} />}
+      {isPending && <LoadingSpinner className="min-h-[32px]" size={20} />}
 
       {!isPending && !hasFeatures && (
-        <p className="typo-body2-medium min-h-[40px] text-layout-body">
+        <p className="typo-body2-medium min-h-[32px] text-layout-body">
           영향 받는 기능으로 등록된 항목이 없습니다.
         </p>
       )}
@@ -42,7 +42,7 @@ const DetailImpactedFeatures = ({ features, isPending }: DetailImpactedFeaturesP
           <ul className="flex items-center gap-3">
             {features.map((feature) => (
               <li key={feature.id} className="shrink-0">
-                <Badge className="typo-body2-medium min-h-[40px] px-4" label={feature.name} />
+                <Badge className="typo-body2-medium min-h-[32px] px-3" label={feature.name} />
               </li>
             ))}
           </ul>

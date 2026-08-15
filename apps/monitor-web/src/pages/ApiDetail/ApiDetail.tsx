@@ -66,7 +66,7 @@ const ApiDetailContent = () => {
       <DetailHeader apiData={apiData} statusCode={checkLogs[0]?.statusCode ?? EMPTY_VALUE} />
       <DetailSummaryCards isPending={isCheckLogsPending} summaryData={summaryData} />
 
-      <div className="grid h-[620px] min-h-0 grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)]">
+      <div className="grid h-[520px] min-h-0 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(280px,1fr)]">
         <DetailResponseChart />
 
         <div className="grid min-h-0 min-w-0 grid-rows-[minmax(0,2fr)_minmax(0,1fr)] gap-3">

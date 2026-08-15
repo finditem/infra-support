@@ -25,3 +25,8 @@ Thumbs.db
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# Claude Code 로컬 산출물
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/worktrees/

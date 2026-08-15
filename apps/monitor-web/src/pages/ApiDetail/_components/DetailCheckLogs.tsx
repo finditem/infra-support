@@ -34,7 +34,7 @@ const DetailCheckLogs = ({ logs, checkIntervalMinutes, isPending }: DetailCheckL
       aria-labelledby="logs-title"
       className="flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden rounded-xl border border-border-neutural-normal-default bg-white"
     >
-      <div className="space-y-4 bg-fill-neutural-subtle-default px-12 pb-6 pt-8">
+      <div className="space-y-3 bg-fill-neutural-subtle-default px-6 pb-4 pt-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h2 id="logs-title" className="typo-header3-bold">
@@ -55,7 +55,7 @@ const DetailCheckLogs = ({ logs, checkIntervalMinutes, isPending }: DetailCheckL
         <div className="typo-body2-medium flex items-center gap-4">
           {LEGEND_ITEMS.map(({ status, label, color }) => (
             <div key={status} className="flex items-center gap-2">
-              <div aria-hidden className={cn("size-3 rounded-full", color)} />
+              <div aria-hidden className={cn("size-2 rounded-full", color)} />
               <div className="space-x-1">
                 <span className="text-layout-body">{label}</span>
                 <span className="text-layout-header">{statusCounts[status]}</span>
@@ -69,7 +69,7 @@ const DetailCheckLogs = ({ logs, checkIntervalMinutes, isPending }: DetailCheckL
         aria-label="로그 목록"
         role="region"
         tabIndex={0}
-        className="mb-[15px] flex-1 overflow-y-auto px-12"
+        className="mb-3 flex-1 overflow-y-auto px-6"
       >
         {isPending && <LoadingState message="체크 로그를 불러오는 중입니다." />}
 
@@ -101,11 +101,11 @@ const DetailCheckLogsItem = ({ log }: DetailCheckLogsItemProps) => {
 
   return (
     <li className="flex w-full items-center justify-between py-1">
-      <div className="flex min-w-[100px] items-center gap-[6px]">
+      <div className="flex min-w-[88px] items-center gap-1.5">
         <div
           aria-label={statusInfo.label}
           role="img"
-          className={cn("size-3 rounded-full", statusInfo.color)}
+          className={cn("size-2 rounded-full", statusInfo.color)}
         />
         <time
           className="text-fg-neutural-normal-default typo-body2-medium"
@@ -122,7 +122,7 @@ const DetailCheckLogsItem = ({ log }: DetailCheckLogsItemProps) => {
         {message}
       </span>
 
-      <div className="text-fg-neutural-light-default typo-body2-medium flex items-center gap-8">
+      <div className="text-fg-neutural-light-default typo-body2-medium flex items-center gap-6">
         <span aria-label={`상태 코드: ${statusCode}`}>{statusCode}</span>
         <span aria-label={`응답 시간: ${latency}`}>{latency}</span>
       </div>
