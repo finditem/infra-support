@@ -45,6 +45,8 @@ type ApiRow = {
   is_notification_enabled: boolean;
   icon_url: string | null;
   is_active: boolean | null;
+  timeout_ms: number | null;
+  delay_threshold_ms: number | null;
 };
 
 const mapToApiDetailData = (row: ApiRow): ApiDetailData => ({
@@ -60,6 +62,8 @@ const mapToApiDetailData = (row: ApiRow): ApiDetailData => ({
   isNotificationEnabled: row.is_notification_enabled,
   iconUrl: row.icon_url,
   isActive: row.is_active ?? false,
+  timeoutMs: row.timeout_ms,
+  delayThresholdMs: row.delay_threshold_ms,
 });
 
 /**
@@ -72,7 +76,7 @@ export const getApiDetail = async (apiId: string): Promise<ApiDetailData> => {
   const { data, error } = await supabase
     .from("apis")
     .select(
-      "id, name, description, category, source, source_url, request_url, http_method, check_interval_minutes, is_notification_enabled, icon_url, is_active"
+      "id, name, description, category, source, source_url, request_url, http_method, check_interval_minutes, is_notification_enabled, icon_url, is_active, timeout_ms, delay_threshold_ms"
     )
     .eq("id", apiId)
     .single<ApiRow>();
