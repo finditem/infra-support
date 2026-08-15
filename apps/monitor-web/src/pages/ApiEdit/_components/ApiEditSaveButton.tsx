@@ -13,11 +13,7 @@ interface ApiEditSaveButtonProps {
 const ApiEditSaveButton = ({ className, disabled, isPending, onClick }: ApiEditSaveButtonProps) => {
   return (
     <BasicButton
-      className={cn(
-        "min-h-[44px] min-w-[180px] border border-border-neutural-normal-default bg-white py-2 text-[#ACACAC]",
-        !disabled && !isPending && "text-layout-header",
-        className
-      )}
+      className={cn("min-h-[44px] min-w-[180px] py-2", className)}
       disabled={disabled || isPending}
       onClick={onClick}
     >
