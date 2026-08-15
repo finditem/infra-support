@@ -14,7 +14,7 @@ const ApiEditSaveButton = ({ className, disabled, isPending, onClick }: ApiEditS
   return (
     <BasicButton
       className={cn(
-        "min-h-[56px] min-w-[247px] border border-border-neutural-normal-default bg-white py-4 text-[#ACACAC]",
+        "min-h-[44px] min-w-[180px] border border-border-neutural-normal-default bg-white py-2 text-[#ACACAC]",
         !disabled && !isPending && "text-layout-header",
         className
       )}
@@ -22,7 +22,7 @@ const ApiEditSaveButton = ({ className, disabled, isPending, onClick }: ApiEditS
       onClick={onClick}
     >
       <span className="flex items-center gap-2">
-        <Icon name="save" size={20} />
+        <Icon name="save" size={18} />
         <span className="typo-header4-semibold">{isPending ? "저장 중" : "저장"}</span>
       </span>
     </BasicButton>

@@ -14,7 +14,7 @@ const ApiOperationInformation = ({ values, onChange }: ApiOperationInformationPr
   return (
     <section
       aria-labelledby="api-operation-information-title"
-      className="mt-9 flex flex-col gap-9 rounded-xl border border-[#DFDFDF] bg-white px-[76px] pb-9 pt-[37px] shadow-[0px_4px_20px_-4px_rgba(0,0,0,0.05)]"
+      className="mt-6 flex flex-col gap-6 rounded-xl border border-[#DFDFDF] bg-white px-8 pb-6 pt-6 shadow-[0px_4px_20px_-4px_rgba(0,0,0,0.05)]"
     >
       <div className="flex items-center gap-2">
         <span className="size-6 rounded-full bg-[#1EB87B] flex-center">
@@ -25,10 +25,10 @@ const ApiOperationInformation = ({ values, onChange }: ApiOperationInformationPr
         </h2>
       </div>
 
-      <hr className="-mx-[76px] border-t border-[#DFDFDF]" />
+      <hr className="-mx-8 border-t border-[#DFDFDF]" />
 
-      <div className="flex flex-col gap-12">
-        <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-3">
           <span className="flex items-center gap-3">
             <span className="typo-header4-bold text-layout-header">
               활성화 상태 <span className="text-error">*</span>
@@ -45,15 +45,15 @@ const ApiOperationInformation = ({ values, onChange }: ApiOperationInformationPr
             </span>
           </span>
 
-          <label className="relative flex cursor-pointer items-center gap-4">
+          <label className="relative flex cursor-pointer items-center gap-3">
             <input
               className="peer sr-only"
               checked={values.isActive}
               type="checkbox"
               onChange={(event) => onChange("isActive", event.target.checked)}
             />
-            <span className="inline-block h-[30px] w-16 shrink-0 rounded-full bg-fill-neutural-subtle-hover transition-colors peer-checked:bg-[#1EB87B]" />
-            <span className="absolute left-1 top-1 size-[22px] rounded-full bg-white transition-transform peer-checked:translate-x-8" />
+            <span className="inline-block h-6 w-12 shrink-0 rounded-full bg-fill-neutural-subtle-hover transition-colors peer-checked:bg-[#1EB87B]" />
+            <span className="absolute left-1 top-1 size-4 rounded-full bg-white transition-transform peer-checked:translate-x-6" />
             <span className="typo-header4-bold text-layout-header transition-colors peer-checked:text-[#62CDA3]">
               활성화
             </span>

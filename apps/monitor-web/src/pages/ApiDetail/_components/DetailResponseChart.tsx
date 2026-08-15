@@ -22,7 +22,7 @@ const DetailResponseChart = () => {
   return (
     <section
       aria-labelledby="response-chart-title"
-      className="flex min-h-0 min-w-0 flex-col gap-8 rounded-xl border border-border-neutural-normal-default bg-white px-12 py-8"
+      className="flex min-h-0 min-w-0 flex-col gap-5 rounded-xl border border-border-neutural-normal-default bg-white px-6 py-5"
     >
       <div className="flex items-center justify-between">
         <h2 id="response-chart-title" className="typo-header3-bold">
@@ -36,7 +36,7 @@ const DetailResponseChart = () => {
       <div className="min-h-0 flex-1">
         {isLoading && (
           <div className="h-full flex-center">
-            <LoadingSpinner size={32} />
+            <LoadingSpinner size={28} />
           </div>
         )}
 

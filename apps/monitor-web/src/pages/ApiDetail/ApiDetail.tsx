@@ -1,13 +1,6 @@
-import { useMemo } from "react";
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { BasicButton, ErrorBoundary, ErrorState, LoadingState } from "@/components";
-import {
-  useApiAffectedFeaturesQuery,
-  useApiCheckLogsQuery,
-  useApiDetailQuery,
-  useApiErrorLogsQuery,
-} from "@/queries";
 import {
   DetailCheckLogs,
   DetailHeader,
@@ -17,7 +10,7 @@ import {
   DetailSettings,
   DetailSummaryCards,
 } from "./_components";
-import { getApiSummaryData } from "./_utils";
+import { useApiDetailData } from "./_hooks";
 
 const EMPTY_VALUE = "-";
 
@@ -50,14 +43,16 @@ export default ApiDetail;
 const ApiDetailContent = () => {
   const { apiId = "" } = useParams<{ apiId: string }>();
 
-  const { data: apiData } = useApiDetailQuery(apiId);
-  const { data: checkLogsData, isPending: isCheckLogsPending } = useApiCheckLogsQuery(apiId);
-  const { data: affectedFeaturesData, isPending: isAffectedFeaturesPending } =
-    useApiAffectedFeaturesQuery(apiId);
-  const { data: errorLogsData, isPending: isErrorLogsPending } = useApiErrorLogsQuery(apiId);
-
-  const checkLogs = useMemo(() => checkLogsData ?? [], [checkLogsData]);
-  const summaryData = useMemo(() => getApiSummaryData(checkLogs), [checkLogs]);
+  const {
+    apiData,
+    checkLogs,
+    summaryData,
+    affectedFeatures,
+    errorLogs,
+    isCheckLogsPending,
+    isAffectedFeaturesPending,
+    isErrorLogsPending,
+  } = useApiDetailData(apiId);
 
   // 조회 실패는 ErrorBoundary로 던져지므로, 기본 정보가 없다는 것은 아직 로딩 중이라는 뜻이다.
   // 헤더와 설정 정보는 이 데이터 없이 골격조차 그릴 수 없어서 이 쿼리만 페이지 전체를 막고,
@@ -71,7 +66,7 @@ const ApiDetailContent = () => {
       <DetailHeader apiData={apiData} statusCode={checkLogs[0]?.statusCode ?? EMPTY_VALUE} />
       <DetailSummaryCards isPending={isCheckLogsPending} summaryData={summaryData} />
 
-      <div className="grid h-[620px] min-h-0 grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)]">
+      <div className="grid h-[520px] min-h-0 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(280px,1fr)]">
         <DetailResponseChart />
 
         <div className="grid min-h-0 min-w-0 grid-rows-[minmax(0,2fr)_minmax(0,1fr)] gap-3">
@@ -81,7 +76,7 @@ const ApiDetailContent = () => {
             logs={checkLogs}
           />
           <DetailImpactedFeatures
-            features={affectedFeaturesData ?? []}
+            features={affectedFeatures}
             isPending={isAffectedFeaturesPending}
           />
         </div>
@@ -89,7 +84,7 @@ const ApiDetailContent = () => {
 
       <DetailSettings apiData={apiData} />
 
-      <DetailIncidentHistory incidents={errorLogsData ?? []} isPending={isErrorLogsPending} />
+      <DetailIncidentHistory incidents={errorLogs} isPending={isErrorLogsPending} />
     </>
   );
 };

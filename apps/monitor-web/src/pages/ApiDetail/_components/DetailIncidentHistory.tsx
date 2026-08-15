@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { BasicButton, EmptyState, Icon, LoadingState } from "@/components";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useUpdateErrorLogCheckedMutation } from "@/queries";
 import { cn } from "@/utils";
+import { useIncidentResolution } from "../_hooks";
 import type { ApiStatus } from "@/types";
 import type { LogListItemData } from "@/pages/ErrorLog/_types";
 
@@ -34,40 +33,24 @@ interface DetailIncidentHistoryProps {
 const DetailIncidentHistory = ({ incidents, isPending }: DetailIncidentHistoryProps) => {
   const navigate = useNavigate();
   const { apiId } = useParams<{ apiId: string }>();
-  const [resolvedIds, setResolvedIds] = useState<string[]>([]);
-  const { mutate: updateErrorLogChecked } = useUpdateErrorLogCheckedMutation();
-
-  // 목록은 쿼리 결과라 직접 수정할 수 없으므로, 확인 처리된 id를 따로 모아 덧씌운다.
-  const items = incidents.map((incident) =>
-    resolvedIds.includes(incident.id) ? { ...incident, status: true } : incident
-  );
-
-  // 실패 시 목록이 확인 처리된 것처럼 보이지 않도록, 서버 갱신에 성공한 뒤에만 로컬 상태를 반영한다.
-  const handleResolve = (id: string) => {
-    updateErrorLogChecked(
-      { id, checked: true },
-      {
-        onSuccess: () => {
-          setResolvedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
-        },
-      }
-    );
-  };
+  const { items, handleResolve } = useIncidentResolution(incidents);
 
   return (
     <section
       aria-labelledby="incident-title"
-      className="space-y-4 rounded-xl border border-border-neutural-normal-default bg-white px-12 py-8"
+      className="space-y-3 rounded-xl border border-border-neutural-normal-default bg-white px-6 py-5"
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-4">
           <h2 id="incident-title" className="typo-header4-bold">
             최근 장애 / 에러 상세 목록
           </h2>
-          <span>{isPending ? "최근 7일" : `최근 7일 · 총 ${items.length}건`}</span>
+          <span className="typo-body2-regular text-layout-body">
+            {isPending ? "최근 7일" : `최근 7일 · 총 ${items.length}건`}
+          </span>
         </div>
 
-        <div className="min-h-[624px] overflow-x-auto">
+        <div className="min-h-[480px] overflow-x-auto">
           <table className="w-full table-fixed border-collapse text-left">
             <thead>
               <tr className="typo-body2-medium border-b border-border-neutural-normal-default text-fg-neutural-inversed-focused">
@@ -115,10 +98,10 @@ const DetailIncidentHistory = ({ incidents, isPending }: DetailIncidentHistoryPr
       </div>
 
       <div className="flex justify-center">
-        <BasicButton className="min-h-[56px] w-[148px]" as={Link} to="/errors">
+        <BasicButton className="min-h-[44px] w-[124px]" as={Link} to="/errors">
           <span className="flex items-center gap-2 text-white">
             <span className="typo-header4-bold">전체보기</span>
-            <Icon name="arrowRight" size={23} />
+            <Icon name="arrowRight" size={18} />
           </span>
         </BasicButton>
       </div>
@@ -143,24 +126,24 @@ const DetailIncidentHistoryItem = ({
   const statusInfo = statusKey !== "healthy" ? STATUS_CONFIG[statusKey] : null;
 
   return (
-    <tr className="typo-header4-medium py-[10px] pl-6 pr-4 text-layout-header">
+    <tr className="typo-body2-medium py-2 pl-4 pr-3 text-layout-header">
       <td className="px-4 py-3 text-layout-body">{item.occurredAt}</td>
       <td className="px-4 py-3 text-center">
         {statusInfo && (
           <span
             className={cn(
-              "text-body2-semibold inline-flex h-[32px] w-[72px] items-center justify-center gap-1.5 rounded-full",
+              "typo-body2-semibold inline-flex h-[26px] w-[64px] items-center justify-center gap-1.5 rounded-full",
               statusInfo.bgColor,
               statusInfo.textColor
             )}
           >
-            <span className={cn("typo-body2-semibold size-3 rounded-full", statusInfo.dotColor)} />
+            <span className={cn("size-2 rounded-full", statusInfo.dotColor)} />
             {statusInfo.label}
           </span>
         )}
       </td>
       <td className="px-4 py-3">{item.errorType}</td>
-      <td className="max-w-[400px] truncate px-4 py-3" title={item.errorMessage}>
+      <td className="max-w-[320px] truncate px-4 py-3" title={item.errorMessage}>
         {item.errorMessage}
       </td>
       <td className="px-4 py-3">
@@ -170,7 +153,7 @@ const DetailIncidentHistoryItem = ({
           size="small"
           onClick={() => onResolve(item.id)}
         >
-          <span className="flex items-center gap-[5px] text-[#009E53]">
+          <span className="flex items-center gap-1 text-[#009E53]">
             <Icon name="check" size={14} />
             확인
           </span>
@@ -178,7 +161,7 @@ const DetailIncidentHistoryItem = ({
       </td>
       <td className="px-4 py-3 text-center">
         <button
-          className="typo-body2-semibold inline-flex h-[43px] w-[103px] items-center justify-center gap-1 rounded-lg border border-border-neutural-normal-default bg-white text-fg-neutural-default transition-colors hover:bg-fill-neutural-subtle-hover"
+          className="typo-body2-semibold inline-flex h-[36px] w-[88px] items-center justify-center gap-1 rounded-lg border border-border-neutural-normal-default bg-white text-fg-neutural-default transition-colors hover:bg-fill-neutural-subtle-hover"
           onClick={() => onNavigate(item.id)}
         >
           <span>더보기</span>

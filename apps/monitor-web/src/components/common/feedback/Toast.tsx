@@ -60,7 +60,7 @@ const Toast = ({ toast }: ToastProps) => {
       aria-atomic="true"
       role={ROLE_MAP[toast.type]}
       className={cn(
-        "animate-toast-in flex min-w-64 max-w-sm items-center gap-3 rounded-lg p-5 shadow-lg",
+        "animate-toast-in flex min-w-64 max-w-sm items-center gap-3 rounded-lg p-4 shadow-lg",
         STYLE_MAP[toast.type]
       )}
     >
@@ -69,9 +69,9 @@ const Toast = ({ toast }: ToastProps) => {
       </span>
 
       <div className="flex flex-1 items-start justify-between">
-        <div className="flex flex-col gap-[14px]">
-          <p className="flex-1 text-xl font-semibold leading-5">{toast.message}</p>
-          <span className="text-lg leading-4">{toast.description}</span>
+        <div className="flex flex-col gap-1">
+          <p className="typo-body1-semibold flex-1">{toast.message}</p>
+          <span className="typo-body2-regular">{toast.description}</span>
         </div>
 
         <button

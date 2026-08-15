@@ -88,8 +88,8 @@ const ApiEditForm = ({ apiId, apiData }: ApiEditFormProps) => {
   };
 
   return (
-    <div className="-mx-8">
-      <div className="mx-auto flex max-w-[1154px] flex-col gap-6 px-8">
+    <div className="-mx-6">
+      <div className="mx-auto flex max-w-[960px] flex-col gap-5 px-6">
         <ApiEditHeader apiId={apiId} apiName={apiData.name} />
         <ApiEditTitle
           apiName={apiData.name}

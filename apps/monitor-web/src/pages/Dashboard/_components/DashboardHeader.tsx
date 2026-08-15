@@ -6,11 +6,11 @@ const DashboardHeader = ({ range, onRangeChange }: DashboardTimeRangeProps) => {
   return (
     <header
       aria-labelledby="dashboard-title"
-      className="-mx-8 -mt-8 flex items-center justify-between border border-border-divider-default bg-white px-10 py-5"
+      className="-mx-6 -mt-6 flex items-center justify-between border border-border-divider-default bg-white px-6 py-4"
     >
       <div className="flex items-center">
-        <Icon className="m-4" height={23} name="sidebarDashboard" width={23} />
-        <h1 id="dashboard-title" className="typo-header1-bold">
+        <Icon className="mr-2" height={20} name="sidebarDashboard" width={20} />
+        <h1 id="dashboard-title" className="typo-header3-bold">
           메인 대시보드
         </h1>
       </div>

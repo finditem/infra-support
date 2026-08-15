@@ -13,10 +13,10 @@ export default function App() {
 
       <main
         ref={mainRef}
-        className="relative flex flex-1 flex-col overflow-x-auto overflow-y-auto bg-[#F7F7F7] p-8"
+        className="relative flex flex-1 flex-col overflow-x-auto overflow-y-auto bg-[#F7F7F7] p-6"
       >
         <ScrollToTop targetRef={mainRef} />
-        <div className="flex min-w-[1520px] flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col">
           <Routes>
             <Route element={<Dashboard />} path="/" />
 

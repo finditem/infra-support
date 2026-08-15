@@ -47,7 +47,7 @@ const ApiSourceSelect = ({ id, value, sources, errorMessage, onChange }: ApiSour
         aria-haspopup="listbox"
         aria-invalid={!!errorMessage}
         className={cn(
-          "flex w-full items-center justify-between rounded-[10px] border border-border-neutural-normal-default bg-white px-[17px] py-[21px]",
+          "flex w-full items-center justify-between rounded-lg border border-border-neutural-normal-default bg-white px-3.5 py-3",
           errorMessage && "border-error"
         )}
         type="button"
@@ -68,10 +68,10 @@ const ApiSourceSelect = ({ id, value, sources, errorMessage, onChange }: ApiSour
         <ul
           aria-labelledby={id}
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+4px)] z-10 max-h-[240px] overflow-y-auto rounded-[10px] border border-border-neutural-normal-default bg-white py-2 shadow-[0px_4px_20px_-4px_rgba(0,0,0,0.1)]"
+          className="absolute left-0 right-0 top-[calc(100%+4px)] z-10 max-h-[240px] overflow-y-auto rounded-lg border border-border-neutural-normal-default bg-white py-2 shadow-[0px_4px_20px_-4px_rgba(0,0,0,0.1)]"
         >
           {sources.length === 0 && (
-            <li className="typo-body1-regular px-[17px] py-3 text-layout-body">
+            <li className="typo-body1-regular px-3.5 py-2.5 text-layout-body">
               선택할 수 있는 출처가 없습니다.
             </li>
           )}
@@ -80,7 +80,7 @@ const ApiSourceSelect = ({ id, value, sources, errorMessage, onChange }: ApiSour
             <li key={source} aria-selected={source === value} role="option">
               <button
                 className={cn(
-                  "typo-header4-semibold w-full px-[17px] py-3 text-left text-fg-neutural-default transition-colors hover:bg-fill-neutural-subtle-hover",
+                  "typo-header4-semibold w-full px-3.5 py-2.5 text-left text-fg-neutural-default transition-colors hover:bg-fill-neutural-subtle-hover",
                   source === value && "bg-fill-neutural-subtle-hover"
                 )}
                 type="button"
