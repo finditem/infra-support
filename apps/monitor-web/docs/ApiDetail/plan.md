@@ -64,7 +64,7 @@ monitor-web은 지금까지 Supabase에만 직접 접근했고 monitor-server를
 - [x] 데이터 조회 실패 시 에러 상태 처리 및 토스트 연결
 - [x] DetailIncidentHistory의 `TODO(지권)` 해소 — BasicButton `as` prop 패턴 적용
 - [x] DetailSettings의 `TODO(지권)` 해소 — 버튼 outline 스타일 변경
-- [x] 데이터 가공 로직이 생기면 비어 있는 `_hooks`, `_utils`로 분리 — `_utils/ApiDetailUtils.ts`에 요약 계산, 상태 집계, 조회 구간, 체크 주기, 임계값 포맷 함수가 모두 모여 있어 분리는 완료된 상태로 본다. `_hooks`는 비워 둔다: 상세 화면의 서버 상태는 전부 `queries/apiDetail/`이 담당하고, 컴포넌트에 남은 것은 `useParams`/`useNavigate` 호출뿐이라 페이지 전용 훅으로 감쌀 로컬 상태나 부수효과가 없다. 훅이 필요한 로직이 생기면 그때 `_hooks`에 추가한다
+- [x] 데이터 가공 로직이 생기면 비어 있는 `_hooks`, `_utils`로 분리 — `_utils/ApiDetailUtils.ts`에 요약 계산, 상태 집계, 조회 구간, 체크 주기, 임계값 포맷 함수가 모두 모여 있고, `_hooks`는 아래 "\_hooks 분리" 항목에서 채웠다
 
 ### API별 타임아웃/지연 임계값 노출
 
@@ -84,3 +84,13 @@ PR #134에서 `apis` 테이블에 `timeout_ms`, `delay_threshold_ms`(둘 다 nul
 - 전역 기준값을 숫자까지 보여주고 싶다면, monitor-server의 두 상수를 `@infra-support/shared`의 공용 상수로 올려 서버와 웹이 같은 값을 참조하게 만드는 선행 작업이 필요하다. 이는 monitor-server 담당 범위이므로 후속 항목으로 남긴다.
 
 - [ ] 후속(다른 담당자 범위): 전역 기준값 상수를 `@infra-support/shared`로 올리면 "전역 기본값" 표기를 실제 숫자 병기로 바꾼다
+
+### \_hooks 분리
+
+`_utils`(순수 계산 함수)는 채워졌으나 `_hooks`는 배럴만 있고 비어 있어, 쿼리 호출과 로컬 상태를 끼고 도는 로직을 훅으로 옮긴다.
+
+- [x] `_hooks/useApiDetailData.ts` 신규 작성 — `ApiDetailContent`가 직접 호출하던 네 개의 쿼리(detail/checkLogs/affectedFeatures/errorLogs)와 `checkLogs` 기본값 처리, `getApiSummaryData` 계산을 훅으로 이동
+- [x] `ApiDetail.tsx`: `useApiDetailData(apiId)` 호출로 교체하고 페이지 컴포넌트는 조립만 담당하도록 정리 (`!apiData` 로딩 분기와 ErrorBoundary 구조는 유지)
+- [x] `_hooks/useIncidentResolution.ts` 신규 작성 — `DetailIncidentHistory`의 `resolvedIds` 상태, 확인 처리 결과를 목록에 덧씌우는 `items` 계산, `updateErrorLogChecked` 호출을 훅으로 이동
+- [x] `DetailIncidentHistory.tsx`: `useIncidentResolution(incidents)` 호출로 교체하고 렌더링만 담당하도록 정리
+- [x] `_hooks/index.ts`에 두 훅 re-export 추가 (`Login/_hooks/index.ts`의 `export { default as ... }` 패턴 유지)
