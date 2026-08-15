@@ -61,7 +61,7 @@ const API_TABLE_COLUMNS: {
     label: "상태",
     render: (api) => (
       <Badge
-        className={cn("h-[32px] w-[72px] border-0", API_STATUS_BADGE_BG[api.apiStatus])}
+        className={cn("h-[26px] w-[64px] border-0", API_STATUS_BADGE_BG[api.apiStatus])}
         dot
         label={API_STATUS_LABEL[api.apiStatus]}
         status={api.apiStatus}
@@ -84,7 +84,7 @@ const DashboardApiList = () => {
   };
 
   return (
-    <section className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-12 py-8">
+    <section className="rounded-xl border border-border-divider-default bg-bg-layout-1depth px-6 py-5">
       <h2 className="typo-header4-bold text-layout-header">전체 API 목록</h2>
 
       <div className="mt-6 overflow-hidden rounded-xl">
@@ -92,7 +92,7 @@ const DashboardApiList = () => {
           <thead className="bg-bg-layout-2depth">
             <tr className="typo-body2-medium text-layout-body">
               {API_TABLE_COLUMNS.map((column) => (
-                <th key={column.id} className="px-5 py-4 text-center">
+                <th key={column.id} className="px-4 py-3 text-center">
                   {column.label}
                 </th>
               ))}
@@ -110,7 +110,7 @@ const DashboardApiList = () => {
                 {API_TABLE_COLUMNS.map((column) => (
                   <td
                     key={column.id}
-                    className="typo-header4-medium px-5 py-4 text-center text-layout-body"
+                    className="typo-body2-medium px-4 py-3 text-center text-layout-body"
                   >
                     {column.render(api)}
                   </td>

@@ -12,7 +12,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
   const isLastPage = currentPage === totalPages;
 
   return (
-    <nav aria-label="에러 로그 페이지 이동" className="gap-4 py-6 flex-center">
+    <nav aria-label="에러 로그 페이지 이동" className="gap-3 py-4 flex-center">
       <PaginationNavButton
         disabled={isFirstPage}
         iconName="arrowLeft"
@@ -61,7 +61,7 @@ const PaginationNavButton = ({ disabled, iconName, label, onClick }: PaginationN
   return (
     <button
       className={cn(
-        "typo-body2-medium gap-2 rounded-[12px] border border-border-divider-default px-2 py-2 flex-center",
+        "typo-body2-medium gap-2 rounded-[10px] border border-border-divider-default px-2 py-1.5 flex-center",
         disabled ? "text-fg-neutural-inversed-default" : "text-[#1D1D1D]/60"
       )}
       disabled={disabled}

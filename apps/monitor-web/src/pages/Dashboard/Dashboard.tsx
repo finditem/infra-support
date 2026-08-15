@@ -31,10 +31,10 @@ const Dashboard = () => {
     >
       <DashboardHeader range={range} onRangeChange={setRange} />
 
-      <div className="mt-[30px] flex flex-col gap-[30px]">
+      <div className="mt-5 flex flex-col gap-5">
         <DashboardSummaryCard range={range} />
 
-        <div className="grid grid-cols-[minmax(0,1fr)_372px] gap-6">
+        <div className="grid grid-cols-[minmax(0,1fr)_320px] gap-5">
           <DashboardResponseTimeChart range={range} />
           <DashboardResponseStatusChart range={range} />
         </div>

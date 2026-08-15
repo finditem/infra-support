@@ -2,8 +2,7 @@
 import { cn } from "@/utils";
 import type { DashboardTimeRangeProps } from "../_types";
 
-const TIME_TOGGLE_BUTTON_STYLE =
-  "min-w-[68px] rounded-full px-[6px] py-[10px] text-[16px] font-bold leading-6";
+const TIME_TOGGLE_BUTTON_STYLE = "typo-body2-semibold min-w-[56px] rounded-full px-3 py-1.5";
 
 const SELECTED_TIME_TOGGLE_BUTTON_STYLE =
   "bg-fill-primary-strong-default text-white shadow-[1px_2px_8.2px_0_rgba(16,102,67,0.33)]";
@@ -15,7 +14,7 @@ const DashboardTimeToggle = ({ range, onRangeChange }: DashboardTimeRangeProps) 
     <div
       aria-label="조회 기간"
       role="group"
-      className="flex rounded-full bg-bg-layout-1depth p-[6px] shadow-[inset_0_4px_12px_-4px_rgba(0,0,0,0.12)]"
+      className="flex rounded-full bg-bg-layout-1depth p-1 shadow-[inset_0_4px_12px_-4px_rgba(0,0,0,0.12)]"
     >
       <button
         aria-pressed={range === "24h"}
