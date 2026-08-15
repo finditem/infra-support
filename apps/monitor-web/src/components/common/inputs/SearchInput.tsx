@@ -93,7 +93,7 @@ const SearchInput = ({
         <button
           aria-label="검색"
           className={cn(
-            "absolute left-3 top-1/2 flex -translate-y-1/2 items-center justify-center",
+            "absolute left-3 top-1/2 -translate-y-1/2 flex-center",
             "text-border-primary-normal-default disabled:text-border-primary-normal-disabled"
           )}
           disabled={disabled}
@@ -103,7 +103,7 @@ const SearchInput = ({
         </button>
 
         {showClearButton && (
-          <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex-center">
             <ClearButton onClick={() => setValue("")} />
           </div>
         )}
