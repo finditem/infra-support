@@ -195,12 +195,7 @@ const Sidebar = () => {
           </div>
           {isOpen &&
             (user ? (
-              // TODO(지권): outline 스타일 추가 후 변경 예정
-              <BasicButton
-                className="border border-border-primary-normal-default bg-white text-fill-primary-strong-default"
-                loading={isPending}
-                onClick={() => logout()}
-              >
+              <BasicButton loading={isPending} variant="outline-primary" onClick={() => logout()}>
                 로그아웃
               </BasicButton>
             ) : (

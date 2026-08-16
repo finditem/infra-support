@@ -12,7 +12,7 @@ export const LOADING_SPINNER_SIZE: Record<Size, number> = {
   small: 14,
 };
 
-export type Variant = "primary" | "outline";
+export type Variant = "primary" | "outline" | "outline-primary";
 
 export const BASE_STYLES =
   "relative inline-flex min-w-16 items-center justify-center gap-2 rounded-lg transition-colors text-white";
@@ -22,6 +22,9 @@ export const VARIANT_STYLES: Record<Variant, string> = {
     "bg-fill-primary-strong-default hover:bg-fill-primary-strong-hover active:bg-fill-primary-strong-pressed",
   outline:
     "border border-border-neutural-normal-default bg-white text-fg-neutural-default hover:bg-fill-neutural-subtle-hover active:bg-fill-neutural-subtle-pressed",
+  // primary 계열에는 neutral의 subtle 스케일에 대응하는 토큰이 없어, hover/pressed에 한 단계 옅은 normal 토큰을 사용한다.
+  "outline-primary":
+    "border border-border-primary-normal-default bg-white text-fill-primary-strong-default hover:bg-fill-primary-normal-default active:bg-fill-primary-normal-hover",
 };
 
 export const STATE_STYLES =
