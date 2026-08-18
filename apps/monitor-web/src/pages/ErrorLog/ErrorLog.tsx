@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { BasicButton, ErrorBoundary, ErrorState, LoadingState } from "@/components";
 import { useErrorLogListQuery, useUpdateErrorLogCheckedMutation } from "@/queries";
-import { LogHeader, LogSummaryCards, LogList } from "./_components";
+import { LogHeader, LogLoadingState, LogSummaryCards, LogList } from "./_components";
 import { getLogSummaryData } from "./_utils";
 
 // 쿼리를 호출하는 컴포넌트는 ErrorBoundary의 자식이어야 에러가 포착되므로, 페이지를 껍데기와 내용으로 나눈다.
@@ -60,7 +60,7 @@ const ErrorLogContent = () => {
     return (
       <>
         <LogHeader />
-        <LoadingState message="에러 로그를 불러오는 중입니다." />
+        <LogLoadingState />
       </>
     );
   }

@@ -58,7 +58,7 @@
 
 - [x] 사전 확인: `components/status/`에 `EmptyState`, `LoadingState`, `ErrorState`가 이미 구현되어 있음(`message`/`icon`/`iconSize`/`iconClassName` props 공통, `ErrorState`는 `children` 추가 지원). 신규 컴포넌트를 만들지 말고 이 셋을 재사용
 - [x] 목록 조회 결과가 빈 배열일 때 `LogList`에서 기존 `ul` 대신 `EmptyState` 렌더링 — 필터 적용 후 빈 결과와 원본 데이터 자체가 없는 경우를 구분하지 않고, 필터(전체/확인전/확인완료) 기준 3가지 문구(`LOG_LIST_EMPTY_MESSAGE`)로 결정. 아이콘은 신규 `emptyErrorlog`(60x60) 공통 사용, 메시지는 `typo-header3-bold text-layout-header`로 표시하기 위해 `EmptyState`에 `messageClassName` prop 추가
-- [ ] 최초 목록 조회 중(쿼리 `isPending`)에는 `LogList` 영역에 `LoadingState` 렌더링 — Supabase 전환(`useErrorLogListQuery`) 작업과 함께 진행
+- [x] 최초 목록 조회 중(쿼리 `isPending`)에는 페이지 전체를 대체하는 기존 방식을 유지하되, 표시 내용을 신규 컴포넌트 `LogLoadingState`로 교체 — 공용 `LoadingState`(아이콘 자체가 회전) 대신, 신규 `loadingErrorlog` 아이콘(정지)을 중앙에 두고 그 주변에 기존 `loadingSpinner` 링 아이콘을 겹쳐 `animate-spin`으로 회전시키는 형태. 아이콘 크기 60px, 링 80px. 하단 텍스트 "에러 로그를 불러오고 있어요."는 `typo-header3-bold text-fg-primary-normal-default`로 표시. `ErrorLog.tsx`의 `isPending` 분기에서 `LoadingState` 대신 사용
 - [x] 새로고침(`onRefresh`) 진행 중 UI 결정 — 기존 `LoadingState`를 재사용하되, `LogHeader`/`LogSummaryCards`는 유지하고 `LogList` 영역만 `isFetching`일 때 `LoadingState`(메시지: "새로고침하는 중입니다.")로 교체. 버튼 자체에 로딩 표시하는 방식은 추후 필요 시 검토
 - [ ] 목록 조회 실패(쿼리 `isError`) 시 `LogList` 영역에 `ErrorState` 렌더링, 필요 시 `children`으로 재시도 버튼 추가 (쿼리의 `refetch` 연결)
 - [ ] `LogSummaryCards`도 로딩/에러 시 카드 값을 어떻게 보여줄지 결정 (예: 스켈레톤, `-` 플레이스홀더, 또는 `LogList`와 동일한 상태 컴포넌트 공유)
