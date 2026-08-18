@@ -46,7 +46,7 @@
 - [x] `queries/errorLog/errorLog.queries.ts`에 `useErrorLogListQuery` 작성 (`useAppQuery` 기반, `mock.queries.ts`의 `getApis` 패턴 참고). `occurred_at`은 기존 `utils/ApiResponseTimeChartUtils.ts`의 `formatDateTime`을 재사용해 `yyyy-MM-dd HH:mm`으로 표시
 - [x] 확인 상태 토글(`is_checked`)을 Supabase에 반영하는 `useAppMutation` 기반 훅(`useUpdateErrorLogCheckedMutation`) 추가 — 성공 시 `errorLogQueryKeys.list()` invalidate. 기존 `LogList`의 `onCheckedChange` 로컬 state 변경을 대체
 - [x] `ErrorLog.tsx`의 `useState<LogListItemData[]>(MOCK_ERROR_LOG_ITEMS)`를 `useErrorLogListQuery`로 교체. 로딩/에러는 기존 `LoadingState`/`ErrorState` 재사용해 최초 조회 단계만 우선 처리(새로고침 중 UI, 빈 목록 처리는 아래 별도 섹션에서 이어서 결정)
-- [ ] mock 관련 코드(`@/mock/errorLog.ts`, `MOCK_ERROR_LOG_ITEMS` import) 정리 — `ApiDetail/_components/DetailIncidentHistory.tsx`가 여전히 `MOCK_ERROR_LOG_ITEMS`를 사용 중이라 지금은 제거하지 않음. 해당 컴포넌트도 실 데이터로 전환되는 시점에 함께 정리
+- [x] mock 관련 코드(`@/mock/errorLog.ts`, `MOCK_ERROR_LOG_ITEMS` import) 정리 — 확인 결과 `@/mock/errorLog.ts` 파일 자체가 이미 삭제되어 있고(`241d388`), `DetailIncidentHistory.tsx`도 `incidents`/`isPending` props와 `useIncidentResolution` 훅으로 실 데이터 전환이 끝나 `MOCK_ERROR_LOG_ITEMS` 참조가 없음. 저장소 전체에도 `MOCK_` 데이터 export가 남아있지 않아 완료 처리
 
 ## LogSummaryCards 새로고침 버튼 기능 연결
 
@@ -56,8 +56,8 @@
 
 ## 데이터 없음/로딩/에러 상태 UI
 
-- [ ] 사전 확인: `components/status/`에 `EmptyState`, `LoadingState`, `ErrorState`가 이미 구현되어 있음(`message`/`icon`/`iconSize`/`iconClassName` props 공통, `ErrorState`는 `children` 추가 지원). 신규 컴포넌트를 만들지 말고 이 셋을 재사용
-- [ ] 목록 조회 결과가 빈 배열일 때 `LogList`(또는 `ErrorLog.tsx`)에서 기존 `ul` 대신 `EmptyState` 렌더링 — 필터 적용 후 빈 결과(예: "확인전" 필터인데 전부 확인완료)와 원본 데이터 자체가 없는 경우를 같은 메시지로 둘지, 문구를 구분할지 결정
+- [x] 사전 확인: `components/status/`에 `EmptyState`, `LoadingState`, `ErrorState`가 이미 구현되어 있음(`message`/`icon`/`iconSize`/`iconClassName` props 공통, `ErrorState`는 `children` 추가 지원). 신규 컴포넌트를 만들지 말고 이 셋을 재사용
+- [x] 목록 조회 결과가 빈 배열일 때 `LogList`에서 기존 `ul` 대신 `EmptyState` 렌더링 — 필터 적용 후 빈 결과와 원본 데이터 자체가 없는 경우를 구분하지 않고, 필터(전체/확인전/확인완료) 기준 3가지 문구(`LOG_LIST_EMPTY_MESSAGE`)로 결정. 아이콘은 신규 `emptyErrorlog`(60x60) 공통 사용, 메시지는 `typo-header3-bold text-layout-header`로 표시하기 위해 `EmptyState`에 `messageClassName` prop 추가
 - [ ] 최초 목록 조회 중(쿼리 `isPending`)에는 `LogList` 영역에 `LoadingState` 렌더링 — Supabase 전환(`useErrorLogListQuery`) 작업과 함께 진행
 - [x] 새로고침(`onRefresh`) 진행 중 UI 결정 — 기존 `LoadingState`를 재사용하되, `LogHeader`/`LogSummaryCards`는 유지하고 `LogList` 영역만 `isFetching`일 때 `LoadingState`(메시지: "새로고침하는 중입니다.")로 교체. 버튼 자체에 로딩 표시하는 방식은 추후 필요 시 검토
 - [ ] 목록 조회 실패(쿼리 `isError`) 시 `LogList` 영역에 `ErrorState` 렌더링, 필요 시 `children`으로 재시도 버튼 추가 (쿼리의 `refetch` 연결)
