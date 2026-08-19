@@ -107,3 +107,32 @@ export const formatCheckInterval = (minutes: number): string => {
 
   return `${hours}시간 ${remainingMinutes}분`;
 };
+
+const GLOBAL_THRESHOLD_LABEL = "전역 기본값";
+const THRESHOLD_LOCALE = "ko-KR";
+
+/**
+ * API별로 설정된 임계값(ms)을 화면 표시용 문자열로 변환합니다.
+ *
+ * @remarks
+ * - `null`은 이 API만의 기준값이 없어 monitor-server의 전역 기준값을 따른다는 뜻입니다.
+ * - 전역 기준값 숫자는 monitor-server 내부 상수라 웹에서 참조할 수 없으므로, 숫자 대신 `전역 기본값`으로만 표기합니다.
+ *
+ * @example
+ * ```ts
+ * formatThresholdMs(5000); // "5,000ms"
+ * formatThresholdMs(null); // "전역 기본값"
+ * ```
+ *
+ * @returns `N,NNNms` 형식의 임계값 문자열 또는 `전역 기본값`
+ *
+ * @author jikwon
+ */
+
+export const formatThresholdMs = (milliseconds: number | null): string => {
+  if (milliseconds === null) {
+    return GLOBAL_THRESHOLD_LABEL;
+  }
+
+  return `${milliseconds.toLocaleString(THRESHOLD_LOCALE)}ms`;
+};

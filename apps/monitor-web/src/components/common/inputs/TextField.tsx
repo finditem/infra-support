@@ -72,7 +72,7 @@ const TextField = ({
   const showEndIcon = !showClearButton && !!endIcon;
 
   return (
-    <div className="flex w-full flex-col gap-3">
+    <div className="flex w-full flex-col gap-2">
       {label && (
         <label
           className={cn("typo-body2-regular text-layout-header", labelClassName)}
@@ -89,14 +89,14 @@ const TextField = ({
           aria-describedby={errorId ?? captionId}
           aria-invalid={!!errorMessage}
           className={cn(
-            "w-full rounded-[10px] border bg-white px-4 py-5 transition-colors",
+            "w-full rounded-lg border bg-white px-3.5 py-3 transition-colors",
             "border-border-neutural-default",
             "placeholder:text-body1-regular placeholder:text-fg-neutural-placeholder",
             "hover:text-fg-neutural-hover",
             "focus:text-fg-neutural-focused",
             "disabled:cursor-not-allowed disabled:bg-fill-neutural-iversed-disabled disabled:text-fg-neutural-disabled",
             errorMessage && "border-error",
-            (showClearButton || showEndIcon) && "pr-12",
+            (showClearButton || showEndIcon) && "pr-10",
             className
           )}
           disabled={disabled}
@@ -104,9 +104,9 @@ const TextField = ({
           {...props}
         />
         {showClearButton && (
-          <ClearButton className="absolute right-4" onClick={() => onClear?.()} />
+          <ClearButton className="absolute right-3" onClick={() => onClear?.()} />
         )}
-        {showEndIcon && <span className="absolute right-4 flex-center">{endIcon}</span>}
+        {showEndIcon && <span className="absolute right-3 flex-center">{endIcon}</span>}
       </div>
 
       {errorMessage && (

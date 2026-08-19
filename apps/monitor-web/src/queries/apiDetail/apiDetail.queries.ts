@@ -45,6 +45,9 @@ type ApiRow = {
   is_notification_enabled: boolean;
   icon_url: string | null;
   is_active: boolean | null;
+  memo: string | null;
+  timeout_ms: number | null;
+  delay_threshold_ms: number | null;
 };
 
 const mapToApiDetailData = (row: ApiRow): ApiDetailData => ({
@@ -60,7 +63,28 @@ const mapToApiDetailData = (row: ApiRow): ApiDetailData => ({
   isNotificationEnabled: row.is_notification_enabled,
   iconUrl: row.icon_url,
   isActive: row.is_active ?? false,
+  memo: row.memo ?? "",
+  timeoutMs: row.timeout_ms,
+  delayThresholdMs: row.delay_threshold_ms,
 });
+
+const NOT_FOUND_ERROR_CODE = "PGRST116";
+
+/**
+ * 요청한 `apiId`에 해당하는 API가 없을 때 던지는 에러입니다.
+ *
+ * @remarks
+ * - 조회 실패 전반과 구분해야 하는 경우에만 사용합니다. 예를 들어 ApiEdit은 이 에러일 때만 404 페이지로 이동시킵니다.
+ *
+ * @author jikwon
+ */
+
+export class ApiNotFoundError extends Error {
+  constructor(apiId: string) {
+    super(`존재하지 않는 API입니다: ${apiId}`);
+    this.name = "ApiNotFoundError";
+  }
+}
 
 /**
  * Supabase `apis` 테이블에서 단일 API의 기본 정보를 조회합니다.
@@ -72,12 +96,16 @@ export const getApiDetail = async (apiId: string): Promise<ApiDetailData> => {
   const { data, error } = await supabase
     .from("apis")
     .select(
-      "id, name, description, category, source, source_url, request_url, http_method, check_interval_minutes, is_notification_enabled, icon_url, is_active"
+      "id, name, description, category, source, source_url, request_url, http_method, check_interval_minutes, is_notification_enabled, icon_url, is_active, memo, timeout_ms, delay_threshold_ms"
     )
     .eq("id", apiId)
     .single<ApiRow>();
 
   if (error) {
+    if (error.code === NOT_FOUND_ERROR_CODE) {
+      throw new ApiNotFoundError(apiId);
+    }
+
     throw new Error(error.message);
   }
 

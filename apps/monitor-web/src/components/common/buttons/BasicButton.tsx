@@ -23,7 +23,7 @@ import {
  *
  * @remarks
  * - `size`로 버튼 스타일 속성을 제어합니다.
- * - `variant`로 채움(`primary`)/외곽선(`outline`) 스타일을 제어합니다.
+ * - `variant`로 채움(`primary`)/중립 외곽선(`outline`)/primary 외곽선(`outline-primary`) 스타일을 제어합니다.
  * - `loading`이 `true`이면 스피너를 표시하고 버튼을 비활성화합니다.
  * - 로딩 중에는 `aria-busy`가 자동 적용됩니다.
  * - `as`로 렌더링할 엘리먼트/컴포넌트를 바꿀 수 있습니다 (예: `react-router-dom`의 `Link`). 이때 `disabled`는 클릭만 막고, 네이티브 `disabled` 속성에 의존하는 비활성 스타일은 적용되지 않습니다.

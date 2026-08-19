@@ -118,7 +118,7 @@ const ModalLayout = ({
         aria-labelledby={ariaLabelledBy}
         aria-modal="true"
         role="dialog"
-        className={cn("w-fit rounded-lg bg-white p-6", className)}
+        className={cn("w-fit rounded-lg bg-white p-5", className)}
       >
         {children}
       </div>
