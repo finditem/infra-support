@@ -52,7 +52,7 @@
 
 - [x] 현재 `ErrorLog.tsx`의 `onRefresh`가 mock 배열 재할당(no-op에 가까움)으로 되어 있는 부분을, 위 Supabase 전환 이후에는 쿼리 refetch(TanStack Query의 `refetch` 또는 `queryClient.invalidateQueries(errorLogQueryKeys.list())`)로 교체 — `useErrorLogListQuery`의 `refetch`를 그대로 연결
 - [x] 새로고침 버튼에 30초 쿨타임 적용 — 클릭 시 `IconButton`을 일반 `button`으로 교체(아이콘/카운트다운 텍스트를 조건부 렌더링해야 해서 아이콘 전용인 `IconButton`으로는 표현 불가)하고, `cooldown` state를 30부터 1초 간격으로 감소시키며 `disabled` 처리. 쿨타임 중에는 아이콘 대신 남은 초를 텍스트로 표시
-- [ ] 새로고침 성공/실패에 대한 사용자 피드백(토스트 등) 필요 여부 확인 — 프로젝트에 `useToast` 훅이 이미 있으므로 재사용 검토
+- [x] 새로고침 성공/실패에 대한 사용자 피드백을 토스트로 구현 — `handleRefresh`에서 `refetch()` 결과의 `isError` 여부로 `useToast`(`success`/`error`) 분기. `useErrorLogListQuery`의 `throwOnError`를 `true`에서 `(_error, query) => query.state.data === undefined`(캐시된 데이터가 없을 때만 던짐)로 변경 — 기존엔 새로고침 실패도 무조건 ErrorBoundary로 던져져 토스트를 띄울 새 없이 전체 화면이 에러 상태로 대체됐음. 이제 최초 조회 실패만 기존처럼 `ErrorBoundary`로 전파되고, 새로고침 실패는 기존 목록을 유지한 채 에러 토스트만 표시
 
 ## 데이터 없음/로딩/에러 상태 UI
 
