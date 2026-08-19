@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
-import { BasicButton, ErrorBoundary, ErrorState, LoadingState } from "@/components";
+import { BasicButton, ErrorBoundary, ErrorState } from "@/components";
 import { useErrorLogListQuery, useUpdateErrorLogCheckedMutation } from "@/queries";
 import { LogHeader, LogLoadingState, LogSummaryCards, LogList } from "./_components";
 import { getLogSummaryData } from "./_utils";
@@ -14,7 +14,12 @@ const ErrorLog = () => {
       fallback={(_error, resetBoundary) => (
         <>
           <LogHeader />
-          <ErrorState icon="clear" message="에러 로그를 불러오지 못했습니다.">
+          <ErrorState
+            icon="errorErrorlog"
+            iconSize={60}
+            message="에러 로그 조회에 실패했어요."
+            messageClassName="typo-header3-bold text-layout-header"
+          >
             <BasicButton
               onClick={() => {
                 resetQueryErrors();
@@ -55,22 +60,12 @@ const ErrorLogContent = () => {
     }
   };
 
-  // 조회 실패는 ErrorBoundary로 던져지므로 여기서는 로딩만 처리한다.
-  if (isPending) {
-    return (
-      <>
-        <LogHeader />
-        <LogLoadingState />
-      </>
-    );
-  }
-
   return (
     <>
       <LogHeader />
       <LogSummaryCards data={summaryData} onRefresh={handleRefresh} />
-      {isManualRefreshing ? (
-        <LoadingState message="에러 로그를 새로고침하는 중입니다." />
+      {isPending || isManualRefreshing ? (
+        <LogLoadingState />
       ) : (
         <LogList items={items} onCheckedChange={handleCheckedChange} />
       )}

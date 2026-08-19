@@ -21,6 +21,8 @@ interface ErrorStateProps {
   iconSize?: number;
   /** 아이콘에 적용할 스타일 (default: `"text-gray-400"`) */
   iconClassName?: string;
+  /** 메시지에 적용할 스타일 (default: `"text-sm text-gray-500"`) */
+  messageClassName?: string;
   /** 추가 UI */
   children?: ReactNode;
 }
@@ -39,12 +41,13 @@ const ErrorState = ({
   icon,
   iconSize = 32,
   iconClassName = "text-gray-400",
+  messageClassName = "text-sm text-gray-500",
   children,
 }: ErrorStateProps) => {
   return (
     <StatusLayout role="alert">
       {icon && <Icon className={iconClassName} name={icon} size={iconSize} />}
-      <p className="text-sm text-gray-500">{message}</p>
+      <p className={messageClassName}>{message}</p>
       {children}
     </StatusLayout>
   );
