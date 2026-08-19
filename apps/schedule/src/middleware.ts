@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/auth/confirm"];
+const NO_AUTH_REQUIRED_PATHS = ["/login", "/auth/confirm"];
+const GUEST_ONLY_PATHS = ["/login"];
 
 export const middleware = async (request: NextRequest) => {
   let response = NextResponse.next({ request });
@@ -27,9 +28,10 @@ export const middleware = async (request: NextRequest) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isPublicPath = PUBLIC_PATHS.includes(request.nextUrl.pathname);
+  const isNoAuthRequiredPath = NO_AUTH_REQUIRED_PATHS.includes(request.nextUrl.pathname);
+  const isGuestOnlyPath = GUEST_ONLY_PATHS.includes(request.nextUrl.pathname);
 
-  if (!user && !isPublicPath) {
+  if (!user && !isNoAuthRequiredPath) {
     const redirectResponse = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
@@ -37,7 +39,7 @@ export const middleware = async (request: NextRequest) => {
     return redirectResponse;
   }
 
-  if (user && isPublicPath) {
+  if (user && isGuestOnlyPath) {
     const redirectResponse = NextResponse.redirect(new URL("/", request.url));
     response.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie.name, cookie.value, cookie);

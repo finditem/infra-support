@@ -237,3 +237,4 @@
 - [x] `src/app/login/page.tsx`: `?error=invite_expired` 쿼리 파라미터가 있으면 안내 메시지 표시 (`useSearchParams` 사용으로 `LoginForm`을 분리하고 `Suspense`로 감쌈)
 - [x] `middleware.ts`: `PUBLIC_PATHS`에 `/auth/confirm` 추가
 - [x] pnpm build / pnpm lint 검증
+- [x] (PR #145 Codex 리뷰 반영) `middleware.ts`: 로그인된 사용자가 초대 메일 링크를 열면 `verifyOtp` 실행 전에 `/`로 리다이렉트되던 버그 수정 — `PUBLIC_PATHS`를 `NO_AUTH_REQUIRED_PATHS`(`/login`, `/auth/confirm`)와 `GUEST_ONLY_PATHS`(`/login`만)로 분리
