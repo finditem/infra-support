@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "찾길 팀 일정",
-  description: "찾아줘! 팀 내부 일정 관리 툴",
+  description: "찾길 팀 내부 일정 관리 툴",
 };
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
