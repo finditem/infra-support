@@ -38,13 +38,15 @@ const PropertyPopover = ({
     const panelWidth = panelRef.current?.offsetWidth ?? 0;
     const spaceBelow = window.innerHeight - triggerRect.bottom;
     const showAbove = panelHeight > 0 && spaceBelow < panelHeight + GAP;
+    const left =
+      align === "center"
+        ? triggerRect.left + triggerRect.width / 2 - panelWidth / 2
+        : triggerRect.left;
+    const clampedLeft = Math.min(Math.max(GAP, left), window.innerWidth - panelWidth - GAP);
 
     setPosition({
       top: showAbove ? triggerRect.top - panelHeight - GAP : triggerRect.bottom + GAP,
-      left:
-        align === "center"
-          ? triggerRect.left + triggerRect.width / 2 - panelWidth / 2
-          : triggerRect.left,
+      left: clampedLeft,
     });
   }, [isOpen, align]);
 

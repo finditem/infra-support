@@ -131,7 +131,7 @@ const CalendarGrid = ({
                     </>
                   );
                   const blockClassName =
-                    "truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-white";
+                    "truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-slate-800";
                   const blockStyle = { backgroundColor: profile?.color ?? "#9CA3AF" };
 
                   if (isPendingDelete) {
@@ -146,14 +146,14 @@ const CalendarGrid = ({
                       >
                         삭제할까요?
                         <button
-                          className="rounded bg-white/20 px-1 font-bold hover:bg-white/30"
+                          className="rounded bg-black/10 px-1 font-bold hover:bg-black/15"
                           type="button"
                           onClick={() => void handleDelete(block.id)}
                         >
                           삭제
                         </button>
                         <button
-                          className="rounded px-1 hover:bg-white/20"
+                          className="rounded px-1 hover:bg-black/10"
                           type="button"
                           onClick={() => setPendingDeleteId(null)}
                         >

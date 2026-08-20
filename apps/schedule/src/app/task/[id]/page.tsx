@@ -25,7 +25,7 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
   const [{ data: statuses }, { data: profiles }, { data: subtasks }, { data: currentProfile }] =
     await Promise.all([
       supabase.from("task_statuses").select("*").order("order_index"),
-      supabase.from("profiles").select("*").order("name"),
+      supabase.from("profiles").select("*").not("registered_at", "is", null).order("name"),
       supabase.from("tasks").select("*").eq("parent_id", id).order("created_at"),
       user
         ? supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
@@ -37,7 +37,7 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
       <NavBar />
       <TaskDetailHeader title={parentTask.title} />
 
-      <div className="flex-1 px-8 py-6">
+      <div className="flex-1 px-4 py-6 sm:px-8">
         <KanbanBoard
           currentProfileId={currentProfile?.id ?? null}
           parentId={parentTask.id}

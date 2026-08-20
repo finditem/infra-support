@@ -15,7 +15,7 @@ const KanbanProgress = ({ progress }: KanbanProgressProps) => {
       {progress.map(({ profile, percent }) => (
         <div key={profile.id} className="flex min-w-[180px] items-center gap-2">
           <span
-            className="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+            className="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-slate-800"
             style={{ backgroundColor: profile.color }}
           >
             {getInitial(profile.name)}
