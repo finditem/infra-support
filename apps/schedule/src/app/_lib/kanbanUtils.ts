@@ -12,16 +12,6 @@ import {
 import type { ProfilesRow, TaskStatusesRow, TasksRow } from "@/types/tables";
 import type { KanbanFilterState, KanbanProgressEntry, ProfileWithColor } from "../_types/kanban";
 
-/** 문자열을 0~359 사이 hue 값으로 해시한다. 팀원 수가 늘어나도 팔레트를 수동으로 추가할 필요 없이 id마다 고유한 색을 만들기 위해 사용한다. */
-const hashToHue = (value: string) => {
-  let hash = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    hash = (hash << 5) - hash + value.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash) % 360;
-};
-
 export const getMonday = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
 
 export const getWeekLabel = (weekStart: Date) => {
@@ -82,12 +72,7 @@ export const getDefaultDueDate = (now: Date = new Date()) => {
 };
 
 export const buildProfileColorMap = (profiles: ProfilesRow[]) =>
-  new Map<string, ProfileWithColor>(
-    profiles.map((profile) => [
-      profile.id,
-      { ...profile, color: `hsl(${hashToHue(profile.id)} 65% 45%)` },
-    ])
-  );
+  new Map<string, ProfileWithColor>(profiles.map((profile) => [profile.id, profile]));
 
 export const isTaskOverdue = (task: TasksRow, statuses: TaskStatusesRow[]) => {
   const doneStatus = statuses.find((status) => status.name === "완료");
