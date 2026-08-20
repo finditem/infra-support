@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "팀 일정 관리",
+  title: "찾길 팀 일정",
   description: "찾아줘! 팀 내부 일정 관리 툴",
 };
 
