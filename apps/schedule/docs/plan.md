@@ -253,3 +253,16 @@
 - [x] `invite/setup/page.tsx`: `login/page.tsx`와 동일한 배경 radial gradient 블롭, 카드 스타일(`rounded-2xl`, 그림자), 로고+타이틀 헤더 적용
 - [x] `invite/setup/page.tsx`: 이름/비밀번호/비밀번호 확인 입력에 `lucide-react` 아이콘(User/Lock) 추가, `rounded-xl` 입력 스타일로 통일
 - [ ] pnpm build / pnpm lint 검증
+
+## 팀원 색상 랜덤 파스텔 배정으로 변경
+
+`buildProfileColorMap`(`_lib/kanbanUtils.ts`)이 `profile.id`를 해시해 렌더링 시점마다 `hsl(hue 65% 45%)`를 즉석 계산하던 방식은, 가입 시점에 색을 "배정"하는 로직이 아예 없었고 hue 1차원만 랜덤이라 팀 규모가 작으면 특정 색상대(초록 계열)에 몰리는 문제가 있었다. 색상을 가입(초대) 시점에 DB에 저장하고, 겹치지 않는 파스텔 hue를 우선 배정하도록 바꾼다.
+
+- [x] `supabase/migrations/0005_add_profile_color.sql` 신규 작성: `profiles.color text` 컬럼 추가, `assign_profile_color()` 함수(12개 파스텔 hue 후보 중 미사용 hue 우선 배정, 소진 시 랜덤 폴백), `handle_new_user()` 트리거가 가입 시 색을 함께 insert하도록 수정, 기존 행 backfill 후 `not null` 제약 추가
+- [x] `src/types/tables/profiles.ts`: `ProfilesWritable`/`ProfilesInsert`에 `color` 필드 추가
+- [x] `src/app/_types/kanban.ts`: `ProfileWithColor`를 `ProfilesRow`와 동일하게 단순화
+- [x] `_lib/kanbanUtils.ts`: `hashToHue` 삭제, `buildProfileColorMap`을 DB에 저장된 `color`를 그대로 매핑하도록 단순화
+- [x] `KanbanCard.tsx`, `KanbanProgress.tsx`, `ProfilePickerPopover.tsx`, `CalendarGrid.tsx`의 아바타 `text-white`를 어두운 고정 텍스트 색으로 교체 (파스텔 배경 대비 확보)
+- [x] `CalendarGrid.tsx`의 삭제 확인 오버레이(`bg-white/20` 등)를 어두운 오버레이로 교체
+- [x] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)

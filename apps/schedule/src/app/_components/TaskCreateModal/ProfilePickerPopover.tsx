@@ -31,7 +31,7 @@ const ProfilePickerPopover = ({
         selected ? (
           <span className="flex items-center gap-1 text-xs text-text-default">
             <span
-              className="flex size-4 items-center justify-center rounded-full text-[8px] font-bold text-white"
+              className="flex size-4 items-center justify-center rounded-full text-[8px] font-bold text-slate-800"
               style={{ backgroundColor: selected.color }}
             >
               {getInitial(selected.name)}
@@ -76,7 +76,7 @@ const ProfilePickerPopover = ({
               }}
             >
               <span
-                className="flex size-4 items-center justify-center rounded-full text-[8px] font-bold text-white"
+                className="flex size-4 items-center justify-center rounded-full text-[8px] font-bold text-slate-800"
                 style={{ backgroundColor: profile.color }}
               >
                 {getInitial(profile.name)}

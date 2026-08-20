@@ -74,7 +74,7 @@ const KanbanCard = ({
           {assignee && (
             <span className="flex items-center gap-1">
               <span
-                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-slate-800"
                 style={{ backgroundColor: assignee.color }}
               >
                 {getInitial(assignee.name)}
@@ -86,7 +86,7 @@ const KanbanCard = ({
           {reporter && (
             <span className="flex items-center gap-1">
               <span
-                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-slate-800"
                 style={{ backgroundColor: reporter.color }}
               >
                 {getInitial(reporter.name)}
