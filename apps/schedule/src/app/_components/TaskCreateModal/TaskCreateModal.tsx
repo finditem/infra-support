@@ -169,7 +169,7 @@ const TaskCreateModal = ({
       className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-5"
       onKeyDown={handleKeyDown}
     >
-      <div className="w-[480px] overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]">
+      <div className="w-full max-w-[480px] overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]">
         <div className="flex items-center justify-between border-b border-border px-[18px] py-3">
           <span className="text-xs text-text-muted">
             {parentTitle ?? "팀 일정"} <span className="mx-[3px] text-border">/</span>
@@ -199,7 +199,7 @@ const TaskCreateModal = ({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-[2px] px-5 py-3">
+        <div className="grid grid-cols-1 gap-[2px] px-5 py-3 sm:grid-cols-2">
           <ProfilePickerPopover
             label="담당자"
             placeholder="담당자 선택"
