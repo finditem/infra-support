@@ -4,3 +4,13 @@
 -- profiles 행은 registered_at이 NULL(미가입)인 채로 남는다.
 alter table public.profiles
   add column registered_at timestamptz;
+
+-- 이미 초대 수락 후 비밀번호 설정(회원가입)을 마친 기존 사용자는 registered_at을 채워
+-- 이번 필터 추가로 목록에서 사라지지 않도록 한다. 아직 설정 전인 사용자는
+-- auth.users.encrypted_password가 비어 있으므로 백필 대상에서 제외된다.
+update public.profiles p
+set registered_at = p.created_at
+from auth.users u
+where u.id = p.id
+  and u.encrypted_password is not null
+  and u.encrypted_password != '';
