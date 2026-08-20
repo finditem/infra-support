@@ -13,6 +13,10 @@ declare
   used_hues int[];
   candidate int;
 begin
+  -- 동시에 여러 초대가 처리될 때 같은 색을 동시에 읽어 중복 배정하는 것을 막기 위해
+  -- 트랜잭션이 끝날 때까지 유지되는 advisory lock으로 아래 조회~반환을 직렬화한다.
+  perform pg_advisory_xact_lock(hashtext('public.profiles.color'));
+
   select array_agg(distinct (substring(color from 'hsl\((\d+)'))::int)
     into used_hues
     from public.profiles
