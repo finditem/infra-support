@@ -1,8 +1,13 @@
 import { useMemo, useState } from "react";
-import { Badge } from "@/components";
+import { Badge, EmptyState } from "@/components";
 import LogListItem from "./LogListItem";
 import Pagination from "./Pagination";
-import { LOG_LIST_FILTERS, LOG_LIST_PAGE_SIZE, type LogListFilterKey } from "../_constants";
+import {
+  LOG_LIST_EMPTY_MESSAGE,
+  LOG_LIST_FILTERS,
+  LOG_LIST_PAGE_SIZE,
+  type LogListFilterKey,
+} from "../_constants";
 import { cn } from "@/utils";
 import type { LogListItemData } from "../_types";
 
@@ -69,16 +74,25 @@ const LogList = ({ items, onCheckedChange }: LogListProps) => {
 
       <LogListHeader />
 
-      <ul>
-        {pagedItems.map((item, index) => (
-          <LogListItem
-            key={item.id}
-            data={item}
-            isLast={index === pagedItems.length - 1}
-            onCheckedChange={(checked) => onCheckedChange(item.id, checked)}
-          />
-        ))}
-      </ul>
+      {pagedItems.length === 0 ? (
+        <EmptyState
+          icon="emptyErrorlog"
+          iconSize={60}
+          message={LOG_LIST_EMPTY_MESSAGE[selectedFilter]}
+          messageClassName="typo-header3-bold text-layout-header"
+        />
+      ) : (
+        <ul>
+          {pagedItems.map((item, index) => (
+            <LogListItem
+              key={item.id}
+              data={item}
+              isLast={index === pagedItems.length - 1}
+              onCheckedChange={(checked) => onCheckedChange(item.id, checked)}
+            />
+          ))}
+        </ul>
+      )}
 
       <Pagination currentPage={activePage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </section>
