@@ -238,3 +238,12 @@
 - [x] `middleware.ts`: `PUBLIC_PATHS`에 `/auth/confirm` 추가
 - [x] pnpm build / pnpm lint 검증
 - [x] (PR #145 Codex 리뷰 반영) `middleware.ts`: 로그인된 사용자가 초대 메일 링크를 열면 `verifyOtp` 실행 전에 `/`로 리다이렉트되던 버그 수정 — `PUBLIC_PATHS`를 `NO_AUTH_REQUIRED_PATHS`(`/login`, `/auth/confirm`)와 `GUEST_ONLY_PATHS`(`/login`만)로 분리
+
+## 파비콘 추가 + 탭 타이틀 변경 + 로그인 화면 디자인 개선
+
+- [x] `src/app/icon.svg` 신규 작성 (사용자 제공 로고 SVG) — Next.js App Router 파일 기반 메타데이터 컨벤션으로 자동 favicon 연결
+- [x] `middleware.ts`: matcher에 `icon.svg`, `logo.svg` 제외 추가 — 비로그인 상태에서 `/icon.svg`, `/logo.svg` 요청이 `/login`으로 리다이렉트되어 파비콘/로고 이미지가 안 뜨던 버그 수정
+- [x] `layout.tsx`: 탭 타이틀 "팀 일정 관리" → "찾길 팀 일정"
+- [x] `public/logo.svg` 신규 작성 (icon.svg와 동일 내용) — 로그인 화면에서 `<img>`로 재사용
+- [x] `login/page.tsx` 디자인 개선: 로고 이미지 + 앱명/부제 헤더 추가, 카드 스타일을 `TaskCreateModal.tsx` 패턴(`rounded-2xl`, 그림자)로 통일, 배경에 로고 색상 기반 은은한 radial gradient 블롭 추가, 이메일/비밀번호 입력에 `lucide-react` Mail/Lock 아이콘 추가, 초대 만료 안내 문구를 박스 스타일로 개선
+- [ ] pnpm build / pnpm lint 검증
