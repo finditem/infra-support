@@ -1,5 +1,6 @@
 "use client";
 
+import { Users } from "lucide-react";
 import { useState } from "react";
 import type { AvailabilityRow } from "@/types/tables";
 import type { ProfileWithColor } from "../../_types/kanban";
@@ -27,16 +28,28 @@ const CalendarView = ({
   const [availability, setAvailability] = useState(initialAvailability);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="flex flex-1">
       <MemberSidebar
+        isOpen={isSidebarOpen}
         profiles={profiles}
         selectedProfileId={selectedProfileId}
+        onClose={() => setIsSidebarOpen(false)}
         onSelectProfile={setSelectedProfileId}
       />
 
-      <div className="flex-1 overflow-y-auto p-7">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-7">
+        <button
+          className="mb-4 flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm text-text-muted hover:bg-fill-neutural-subtle-hover sm:hidden"
+          type="button"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <Users aria-hidden size={16} />
+          팀원 필터
+        </button>
+
         <CalendarGrid
           availability={availability}
           currentProfileId={currentProfileId}

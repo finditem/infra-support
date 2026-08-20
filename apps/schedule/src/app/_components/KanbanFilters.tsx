@@ -14,7 +14,7 @@ interface KanbanFiltersProps {
 
 const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps) => {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <select
         aria-label="담당자 필터"
         className={SELECT_CLASSNAME}

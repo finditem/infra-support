@@ -36,7 +36,7 @@ const LoginForm = () => {
 
   return (
     <form
-      className="relative z-10 flex w-full max-w-sm flex-col gap-5 rounded-2xl border border-border bg-surface-elevated p-10 shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
+      className="relative z-10 flex w-full max-w-sm flex-col gap-5 rounded-2xl border border-border bg-surface-elevated p-6 shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)] sm:p-10"
       onSubmit={handleSubmit}
     >
       <div className="flex flex-col items-center gap-3 text-center">
@@ -106,7 +106,7 @@ const LoginPage = () => (
   <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-surface px-4">
     <div
       aria-hidden
-      className="pointer-events-none absolute -top-40 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(54,222,141,0.35),_transparent_70%)] blur-3xl dark:bg-[radial-gradient(circle,_rgba(54,222,141,0.18),_transparent_70%)]"
+      className="pointer-events-none absolute -top-40 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(54,222,141,0.35),_transparent_70%)] blur-3xl dark:bg-[radial-gradient(circle,_rgba(54,222,141,0.18),_transparent_70%)] sm:h-[480px] sm:w-[480px]"
     />
     <Suspense fallback={null}>
       <LoginForm />

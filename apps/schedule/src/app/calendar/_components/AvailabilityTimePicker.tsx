@@ -74,7 +74,7 @@ const AvailabilityTimePicker = ({
       onClick={onCancel}
     >
       <div
-        className="w-[260px] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
+        className="w-[260px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
         onClick={(event) => event.stopPropagation()}
       >
         <p className="mb-1 text-sm font-semibold text-text-default">가능 시간 등록</p>
