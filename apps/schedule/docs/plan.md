@@ -247,3 +247,9 @@
 - [x] `public/logo.svg` 신규 작성 (icon.svg와 동일 내용) — 로그인 화면에서 `<img>`로 재사용
 - [x] `login/page.tsx` 디자인 개선: 로고 이미지 + 앱명/부제 헤더 추가, 카드 스타일을 `TaskCreateModal.tsx` 패턴(`rounded-2xl`, 그림자)로 통일, 배경에 로고 색상 기반 은은한 radial gradient 블롭 추가, 이메일/비밀번호 입력에 `lucide-react` Mail/Lock 아이콘 추가, 초대 만료 안내 문구를 박스 스타일로 개선
 - [ ] pnpm build / pnpm lint 검증
+
+## 초대 계정 설정 화면(/invite/setup) 디자인을 로그인 화면과 통일
+
+- [x] `invite/setup/page.tsx`: `login/page.tsx`와 동일한 배경 radial gradient 블롭, 카드 스타일(`rounded-2xl`, 그림자), 로고+타이틀 헤더 적용
+- [x] `invite/setup/page.tsx`: 이름/비밀번호/비밀번호 확인 입력에 `lucide-react` 아이콘(User/Lock) 추가, `rounded-xl` 입력 스타일로 통일
+- [ ] pnpm build / pnpm lint 검증
