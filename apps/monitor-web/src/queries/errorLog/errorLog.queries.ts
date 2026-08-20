@@ -60,14 +60,16 @@ export const getErrorLogs = async (): Promise<LogListItemData[]> => {
  *
  * @remarks
  * - `errorLogQueryKeys.list()`를 queryKey로 사용합니다.
- * - `throwOnError: true`로 설정되어 에러는 ErrorBoundary로 전파됩니다.
+ * - `throwOnError`는 캐시된 데이터가 없을 때(최초 조회)만 `true`를 반환해 ErrorBoundary로 전파합니다.
+ *   새로고침처럼 이미 데이터가 있는 상태에서의 실패는 던지지 않고 `isError`로만 남겨,
+ *   기존 목록을 유지한 채 토스트 등으로 알릴 수 있게 합니다.
  *
  * @returns 에러 로그 목록 조회 쿼리 결과 객체
  */
 
 export const useErrorLogListQuery = () => {
   return useAppQuery(errorLogQueryKeys.list(), getErrorLogs, {
-    throwOnError: true,
+    throwOnError: (_error, query) => query.state.data === undefined,
   });
 };
 

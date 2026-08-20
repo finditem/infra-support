@@ -3,6 +3,9 @@ import BaseLogo from "@/assets/icons/base-logo.svg?react";
 import Check from "@/assets/icons/check.svg?react";
 import Clear from "@/assets/icons/clear.svg?react";
 import EditPencil from "@/assets/icons/edit-pencil.svg?react";
+import EmptyErrorlog from "@/assets/icons/empty-errorlog.svg?react";
+import ErrorErrorlog from "@/assets/icons/error-errorlog.svg?react";
+import LoadingErrorlog from "@/assets/icons/loading-errorlog.svg?react";
 import LoadingSpinner from "@/assets/icons/loading-spinner.svg?react";
 import NotFound from "@/assets/icons/not-found.svg?react";
 import ErrorLog from "@/assets/icons/errorLog.svg?react";
@@ -34,6 +37,9 @@ export const ICON_MAP = {
   check: Check,
   clear: Clear,
   editPencil: EditPencil,
+  emptyErrorlog: EmptyErrorlog,
+  errorErrorlog: ErrorErrorlog,
+  loadingErrorlog: LoadingErrorlog,
   loadingSpinner: LoadingSpinner,
   notFound: NotFound,
   errorLog: ErrorLog,

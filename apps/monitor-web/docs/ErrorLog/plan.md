@@ -46,19 +46,19 @@
 - [x] `queries/errorLog/errorLog.queries.ts`에 `useErrorLogListQuery` 작성 (`useAppQuery` 기반, `mock.queries.ts`의 `getApis` 패턴 참고). `occurred_at`은 기존 `utils/ApiResponseTimeChartUtils.ts`의 `formatDateTime`을 재사용해 `yyyy-MM-dd HH:mm`으로 표시
 - [x] 확인 상태 토글(`is_checked`)을 Supabase에 반영하는 `useAppMutation` 기반 훅(`useUpdateErrorLogCheckedMutation`) 추가 — 성공 시 `errorLogQueryKeys.list()` invalidate. 기존 `LogList`의 `onCheckedChange` 로컬 state 변경을 대체
 - [x] `ErrorLog.tsx`의 `useState<LogListItemData[]>(MOCK_ERROR_LOG_ITEMS)`를 `useErrorLogListQuery`로 교체. 로딩/에러는 기존 `LoadingState`/`ErrorState` 재사용해 최초 조회 단계만 우선 처리(새로고침 중 UI, 빈 목록 처리는 아래 별도 섹션에서 이어서 결정)
-- [ ] mock 관련 코드(`@/mock/errorLog.ts`, `MOCK_ERROR_LOG_ITEMS` import) 정리 — `ApiDetail/_components/DetailIncidentHistory.tsx`가 여전히 `MOCK_ERROR_LOG_ITEMS`를 사용 중이라 지금은 제거하지 않음. 해당 컴포넌트도 실 데이터로 전환되는 시점에 함께 정리
+- [x] mock 관련 코드(`@/mock/errorLog.ts`, `MOCK_ERROR_LOG_ITEMS` import) 정리 — 확인 결과 `@/mock/errorLog.ts` 파일 자체가 이미 삭제되어 있고(`241d388`), `DetailIncidentHistory.tsx`도 `incidents`/`isPending` props와 `useIncidentResolution` 훅으로 실 데이터 전환이 끝나 `MOCK_ERROR_LOG_ITEMS` 참조가 없음. 저장소 전체에도 `MOCK_` 데이터 export가 남아있지 않아 완료 처리
 
 ## LogSummaryCards 새로고침 버튼 기능 연결
 
 - [x] 현재 `ErrorLog.tsx`의 `onRefresh`가 mock 배열 재할당(no-op에 가까움)으로 되어 있는 부분을, 위 Supabase 전환 이후에는 쿼리 refetch(TanStack Query의 `refetch` 또는 `queryClient.invalidateQueries(errorLogQueryKeys.list())`)로 교체 — `useErrorLogListQuery`의 `refetch`를 그대로 연결
 - [x] 새로고침 버튼에 30초 쿨타임 적용 — 클릭 시 `IconButton`을 일반 `button`으로 교체(아이콘/카운트다운 텍스트를 조건부 렌더링해야 해서 아이콘 전용인 `IconButton`으로는 표현 불가)하고, `cooldown` state를 30부터 1초 간격으로 감소시키며 `disabled` 처리. 쿨타임 중에는 아이콘 대신 남은 초를 텍스트로 표시
-- [ ] 새로고침 성공/실패에 대한 사용자 피드백(토스트 등) 필요 여부 확인 — 프로젝트에 `useToast` 훅이 이미 있으므로 재사용 검토
+- [x] 새로고침 성공/실패에 대한 사용자 피드백을 토스트로 구현 — `handleRefresh`에서 `refetch()` 결과의 `isError` 여부로 `useToast`(`success`/`error`) 분기. `useErrorLogListQuery`의 `throwOnError`를 `true`에서 `(_error, query) => query.state.data === undefined`(캐시된 데이터가 없을 때만 던짐)로 변경 — 기존엔 새로고침 실패도 무조건 ErrorBoundary로 던져져 토스트를 띄울 새 없이 전체 화면이 에러 상태로 대체됐음. 이제 최초 조회 실패만 기존처럼 `ErrorBoundary`로 전파되고, 새로고침 실패는 기존 목록을 유지한 채 에러 토스트만 표시
 
 ## 데이터 없음/로딩/에러 상태 UI
 
-- [ ] 사전 확인: `components/status/`에 `EmptyState`, `LoadingState`, `ErrorState`가 이미 구현되어 있음(`message`/`icon`/`iconSize`/`iconClassName` props 공통, `ErrorState`는 `children` 추가 지원). 신규 컴포넌트를 만들지 말고 이 셋을 재사용
-- [ ] 목록 조회 결과가 빈 배열일 때 `LogList`(또는 `ErrorLog.tsx`)에서 기존 `ul` 대신 `EmptyState` 렌더링 — 필터 적용 후 빈 결과(예: "확인전" 필터인데 전부 확인완료)와 원본 데이터 자체가 없는 경우를 같은 메시지로 둘지, 문구를 구분할지 결정
-- [ ] 최초 목록 조회 중(쿼리 `isPending`)에는 `LogList` 영역에 `LoadingState` 렌더링 — Supabase 전환(`useErrorLogListQuery`) 작업과 함께 진행
-- [x] 새로고침(`onRefresh`) 진행 중 UI 결정 — 기존 `LoadingState`를 재사용하되, `LogHeader`/`LogSummaryCards`는 유지하고 `LogList` 영역만 `isFetching`일 때 `LoadingState`(메시지: "새로고침하는 중입니다.")로 교체. 버튼 자체에 로딩 표시하는 방식은 추후 필요 시 검토
-- [ ] 목록 조회 실패(쿼리 `isError`) 시 `LogList` 영역에 `ErrorState` 렌더링, 필요 시 `children`으로 재시도 버튼 추가 (쿼리의 `refetch` 연결)
-- [ ] `LogSummaryCards`도 로딩/에러 시 카드 값을 어떻게 보여줄지 결정 (예: 스켈레톤, `-` 플레이스홀더, 또는 `LogList`와 동일한 상태 컴포넌트 공유)
+- [x] 사전 확인: `components/status/`에 `EmptyState`, `LoadingState`, `ErrorState`가 이미 구현되어 있음(`message`/`icon`/`iconSize`/`iconClassName` props 공통, `ErrorState`는 `children` 추가 지원). 신규 컴포넌트를 만들지 말고 이 셋을 재사용
+- [x] 목록 조회 결과가 빈 배열일 때 `LogList`에서 기존 `ul` 대신 `EmptyState` 렌더링 — 필터 적용 후 빈 결과와 원본 데이터 자체가 없는 경우를 구분하지 않고, 필터(전체/확인전/확인완료) 기준 3가지 문구(`LOG_LIST_EMPTY_MESSAGE`)로 결정. 아이콘은 신규 `emptyErrorlog`(60x60) 공통 사용, 메시지는 `typo-header3-bold text-layout-header`로 표시하기 위해 `EmptyState`에 `messageClassName` prop 추가
+- [x] 최초 목록 조회 중(쿼리 `isPending`) 로딩 UI로 신규 컴포넌트 `LogLoadingState` 작성 — 공용 `LoadingState`(아이콘 자체가 회전) 대신, 신규 `loadingErrorlog` 아이콘(정지)을 중앙에 두고 그 주변에 CSS `border` 기반 링(두께 6px, `border-fg-primary-normal-default`)을 겹쳐 `animate-spin`으로 회전시키는 형태. 아이콘 크기 60px, 링 80px. 하단 텍스트 "에러 로그를 불러오고 있어요."는 `typo-header3-bold text-fg-primary-normal-default`로 표시
+- [x] 최초 로딩/새로고침 모두 페이지 전체가 아니라 `LogList` 영역만 `LogLoadingState`로 교체하는 것으로 결정 — `LogHeader`/`LogSummaryCards`는 `isPending`/`isManualRefreshing`과 무관하게 항상 렌더링. `summaryData`는 `items`(`isPending`일 땐 `data ?? []`로 빈 배열)로 계산되므로 `LogSummaryCards`는 초반에 0건으로 표시됐다가 데이터 도착 시 실제 수치로 갱신됨(별도 스켈레톤/플레이스홀더 처리 없이 이 동작을 의도한 것으로 결정, line 64 항목 해결)
+- [x] 목록 조회 실패 시 UI 반영 — 조회 실패는 기존에 `ErrorBoundary`로 던져지도록 되어 있어(쿼리 자체의 `isError` 분기가 아님) `ErrorLog.tsx`의 `ErrorBoundary` fallback에 있던 `ErrorState`를 갱신. 아이콘 `errorErrorlog`(60px, 신규), 메시지 "에러 로그 조회에 실패했어요.", `typo-header3-bold text-layout-header`로 표시하기 위해 `ErrorState`에도 `EmptyState`와 동일하게 `messageClassName` prop 추가. 재시도 버튼(`resetQueryErrors` + `resetBoundary`)은 기존 그대로 유지. 이 경우는 `ErrorBoundary`가 `LogHeader` 아래 전체(SummaryCards 포함)를 대체하므로 카드 표시 여부 고민 불필요
+- [x] `LogSummaryCards`도 로딩/에러 시 카드 값을 어떻게 보여줄지 결정 — 로딩(최초/새로고침)은 위 항목대로 0건 표시 후 실제 값으로 갱신, 에러는 `ErrorBoundary`가 카드를 포함해 전체를 대체하므로 별도 처리 불필요
