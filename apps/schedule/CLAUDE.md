@@ -1,6 +1,6 @@
 # schedule
 
-찾아줘! 팀 내부 일정 관리 툴. Next.js App Router SPA(별도 백엔드 앱 없음), 모니터링 프로젝트와는 완전히 분리된 자체 Supabase 프로젝트를 사용한다.
+찾길 팀 내부 일정 관리 툴. Next.js App Router SPA(별도 백엔드 앱 없음), 모니터링 프로젝트와는 완전히 분리된 자체 Supabase 프로젝트를 사용한다.
 
 ## 기술 스택
 
