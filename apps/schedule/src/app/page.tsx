@@ -37,7 +37,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
       <NavBar />
       <KanbanHeader weekLabel={getWeekLabel(weekStart)} weekStart={weekStart} />
 
-      <div className="flex-1 px-8 py-6">
+      <div className="flex-1 px-4 py-6 sm:px-8">
         {weekRow ? (
           <KanbanBoard
             currentProfileId={currentProfile?.id ?? null}
