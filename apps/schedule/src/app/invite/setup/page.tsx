@@ -38,7 +38,7 @@ const InviteSetupPage = () => {
       return;
     }
 
-    const profileUpdate: ProfilesUpdate = { name };
+    const profileUpdate: ProfilesUpdate = { name, registered_at: new Date().toISOString() };
     const { error: updateProfileError } = await supabase
       .from("profiles")
       .update(profileUpdate)
