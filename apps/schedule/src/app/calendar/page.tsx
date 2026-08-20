@@ -28,7 +28,7 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
       data: { user },
     },
   ] = await Promise.all([
-    supabase.from("profiles").select("*").order("name"),
+    supabase.from("profiles").select("*").not("registered_at", "is", null).order("name"),
     supabase
       .from("availability")
       .select("*")

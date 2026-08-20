@@ -23,7 +23,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
   const [{ data: statuses }, { data: profiles }, { data: tasks }, { data: currentProfile }] =
     await Promise.all([
       supabase.from("task_statuses").select("*").order("order_index"),
-      supabase.from("profiles").select("*").order("name"),
+      supabase.from("profiles").select("*").not("registered_at", "is", null).order("name"),
       weekRow
         ? supabase.from("tasks").select("*").eq("week_id", weekRow.id).order("created_at")
         : Promise.resolve({ data: [] }),
