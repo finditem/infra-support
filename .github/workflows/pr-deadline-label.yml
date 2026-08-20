@@ -1,0 +1,66 @@
+name: PR Deadline Label
+
+# 브랜치 접두사를 보고 처리 기한 라벨을 붙인다.
+# D 라벨은 처리 기한만 나타낸다. 긴급 머지는 별도의 emergency 라벨로 처리하므로 여기서는 관여하지 않는다.
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Add deadline label from branch prefix
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+
+          PREFIX="${HEAD_REF%%/*}"
+
+          case "$PREFIX" in
+            hotfix)
+              LABEL="D-0"
+              ;;
+            fix)
+              LABEL="D-1"
+              ;;
+            feat|design)
+              LABEL="D-3"
+              ;;
+            docs|refactor|test|chore|rename|asset)
+              LABEL="D-5"
+              ;;
+            *)
+              # develop 에서 올라오는 배포 PR이나 dependabot 처럼 규칙에 없는 브랜치는 사람이 판단한다.
+              echo "기한 라벨 규칙에 없는 브랜치다: ${HEAD_REF}"
+              exit 0
+              ;;
+          esac
+
+          # 이미 기한 라벨이 있으면 손대지 않는다. 사람이 정한 값이 우선한다.
+          EXISTING=$(gh pr view "$PR_NUMBER" --json labels \
+            --jq '[.labels[].name | select(test("^D-[0-9]+$"))] | join(" ")')
+
+          if [ -n "$EXISTING" ]; then
+            echo "이미 기한 라벨이 있다: ${EXISTING}"
+            exit 0
+          fi
+
+          gh pr edit "$PR_NUMBER" --add-label "$LABEL"
+          echo "브랜치 ${HEAD_REF} 에 ${LABEL} 을 붙였다."

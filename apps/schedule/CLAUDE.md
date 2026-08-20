@@ -35,7 +35,7 @@ supabase/
 
 - 서버 컴포넌트/라우트 핸들러에서는 항상 `src/lib/supabase/server.ts`의 `createClient()`를 사용한다.
 - 클라이언트 컴포넌트에서는 `src/lib/supabase/client.ts`의 `createClient()`를 사용한다.
-- 인증 가드는 `src/middleware.ts`에서 처리한다. `/login`을 제외한 모든 경로는 비로그인 시 `/login`으로 리다이렉트된다. 새 공개 경로가 필요하면 `middleware.ts`의 `PUBLIC_PATHS`에 추가한다.
+- 인증 가드는 `src/middleware.ts`에서 처리한다. `NO_AUTH_REQUIRED_PATHS`(비로그인도 접근 가능)와 `GUEST_ONLY_PATHS`(로그인 시 `/`로 리다이렉트)를 분리해서 관리한다 — `/login`처럼 로그인 상태에서 접근하면 안 되는 경로는 두 배열 모두에, `/auth/confirm`처럼 로그인 여부와 무관하게 항상 접근 가능해야 하는 경로는 `NO_AUTH_REQUIRED_PATHS`에만 추가한다.
 - 회원가입 화면은 두지 않는다 — 관리자가 Supabase 대시보드에서 계정을 생성하면 `handle_new_user` 트리거가 `profiles` 행을 자동으로 만든다.
 
 ## 데이터/타입

@@ -1,4 +1,3 @@
-// TODO(지권): 토스트 디자인 변경 필요
 import { useEffect } from "react";
 import type { Toast as ToastItem } from "@/types";
 import { cn } from "@/utils/cn";
