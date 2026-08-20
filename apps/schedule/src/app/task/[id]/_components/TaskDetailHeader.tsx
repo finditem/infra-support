@@ -7,7 +7,7 @@ interface TaskDetailHeaderProps {
 
 const TaskDetailHeader = ({ title }: TaskDetailHeaderProps) => {
   return (
-    <header className="flex items-center gap-4 border-b border-border bg-surface-elevated px-8 py-5">
+    <header className="flex items-center gap-4 border-b border-border bg-surface-elevated px-4 py-5 sm:px-8">
       <Link
         className="flex items-center gap-1 text-sm font-medium text-text-muted hover:text-text-default"
         href="/"
