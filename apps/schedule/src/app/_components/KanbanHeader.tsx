@@ -12,7 +12,7 @@ const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
   const nextWeekParam = format(addWeeks(weekStart, 1), "yyyy-MM-dd");
 
   return (
-    <header className="flex items-center justify-end border-b border-border bg-surface-elevated px-8 py-5">
+    <header className="flex items-center justify-end border-b border-border bg-surface-elevated px-4 py-5 sm:px-8">
       <div className="flex items-center gap-2">
         <Link
           aria-label="이전 주"
