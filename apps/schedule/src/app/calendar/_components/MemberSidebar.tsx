@@ -25,7 +25,7 @@ const MemberSidebar = ({
       )}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[220px] shrink-0 border-r border-border bg-surface-elevated p-4 transition-transform duration-200 sm:static sm:z-auto sm:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-[220px] shrink-0 overflow-y-auto border-r border-border bg-surface-elevated p-4 transition-transform duration-200 sm:static sm:z-auto sm:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
