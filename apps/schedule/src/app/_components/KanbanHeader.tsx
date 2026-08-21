@@ -5,9 +5,10 @@ import Link from "next/link";
 interface KanbanHeaderProps {
   weekLabel: string;
   weekStart: Date;
+  sprintName: string | null;
 }
 
-const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
+const KanbanHeader = ({ weekLabel, weekStart, sprintName }: KanbanHeaderProps) => {
   const prevWeekParam = format(addWeeks(weekStart, -1), "yyyy-MM-dd");
   const nextWeekParam = format(addWeeks(weekStart, 1), "yyyy-MM-dd");
 
@@ -21,9 +22,14 @@ const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
         >
           <ChevronLeft size={16} />
         </Link>
-        <span className="min-w-[150px] text-center text-sm font-medium text-text-default">
-          {weekLabel}
-        </span>
+        <div className="flex min-w-[150px] flex-col items-center gap-1">
+          {sprintName && (
+            <span className="bg-primary/10 rounded-full px-2 py-0.5 text-xs font-medium text-primary">
+              {sprintName}
+            </span>
+          )}
+          <span className="text-center text-sm font-medium text-text-default">{weekLabel}</span>
+        </div>
         <Link
           aria-label="다음 주"
           className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"

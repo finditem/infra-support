@@ -35,7 +35,11 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
   return (
     <main className="flex min-h-screen flex-col bg-surface">
       <NavBar />
-      <KanbanHeader weekLabel={getWeekLabel(weekStart)} weekStart={weekStart} />
+      <KanbanHeader
+        sprintName={weekRow?.sprint_name ?? null}
+        weekLabel={getWeekLabel(weekStart)}
+        weekStart={weekStart}
+      />
 
       <div className="flex-1 px-8 py-6">
         {weekRow ? (
