@@ -227,7 +227,7 @@ const TaskCreateModal = ({
         <div className="overflow-y-auto">
           <div className="px-5 pt-[18px]">
             <input
-              className="placeholder:text-text-muted/50 w-full border-none text-[17px] font-semibold text-text-default outline-none"
+              className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[17px] font-semibold text-text-default outline-none"
               autoFocus
               placeholder="작업 제목을 입력하세요"
               type="text"
@@ -271,7 +271,7 @@ const TaskCreateModal = ({
           <div className="px-[46px] py-3">
             <textarea
               ref={bodyRef}
-              className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none text-[13px] leading-[1.75] text-text-muted outline-none"
+              className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none bg-transparent text-[13px] leading-[1.75] text-text-muted outline-none"
               placeholder="설명을 추가하세요..."
               value={body}
               onChange={(event) => setBody(event.target.value)}
@@ -289,7 +289,7 @@ const TaskCreateModal = ({
                 >
                   <div className="flex items-center gap-1.5">
                     <input
-                      className="placeholder:text-text-muted/50 w-full border-none text-[13px] font-medium text-text-default outline-none"
+                      className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[13px] font-medium text-text-default outline-none"
                       placeholder="하위 일정 제목"
                       type="text"
                       value={draft.title}
@@ -307,7 +307,7 @@ const TaskCreateModal = ({
                     </button>
                   </div>
                   <textarea
-                    className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none text-xs leading-[1.6] text-text-muted outline-none"
+                    className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none bg-transparent text-xs leading-[1.6] text-text-muted outline-none"
                     placeholder="설명을 추가하세요..."
                     value={draft.body}
                     onChange={(event) => updateSubtaskDraft(draft.id, { body: event.target.value })}

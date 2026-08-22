@@ -21,19 +21,11 @@ const TeamsSettingsPage = async () => {
     <main className="flex min-h-screen flex-col bg-surface">
       <NavBar />
 
-      <div className="flex-1 px-4 py-6 sm:px-8">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-          <SettingsTabs />
+      <div className="flex-1 px-8 py-6">
+        <SettingsTabs />
 
-          <div className="flex flex-col gap-1">
-            <h1 className="text-lg font-bold text-text-default">팀 관리</h1>
-            <p className="text-xs text-text-muted">
-              팀원을 팀으로 묶어 관리합니다. 한 사람이 여러 팀에 속할 수 있습니다.
-            </p>
-          </div>
-
-          <TeamsManager currentProfileId={currentProfileId} profiles={profiles} teams={teams} />
-        </div>
+        <h1 className="mb-4 mt-6 text-lg font-semibold text-text-default">팀 관리</h1>
+        <TeamsManager currentProfileId={currentProfileId} profiles={profiles} teams={teams} />
       </div>
     </main>
   );
