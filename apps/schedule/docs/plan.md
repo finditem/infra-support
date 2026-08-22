@@ -279,5 +279,19 @@
 - [x] `src/components/NavBar.tsx`: `NAV_ITEMS`에 `{ href: "/settings", label: "설정" }` 추가
 - [x] `src/app/_components/KanbanHeader.tsx`: `sprintName: string | null` prop 추가, 있을 때만 weekLabel 위에 배지로 표시
 - [x] `src/app/page.tsx`: `KanbanHeader`에 `sprintName={weekRow.sprint_name}` 전달
-- [ ] pnpm build / pnpm lint 검증
-- [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
+- [x] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가) — 아래 재설계로 0006 대신 0007을 적용할 것
+
+## 스프린트를 주차 종속에서 기간 기반 독립 엔티티로 재설계
+
+위 방식은 주차(`weeks`)마다 스프린트 이름을 매번 입력해야 해서 번거롭다는 피드백을 받았다. `weeks.sprint_name` 텍스트 컬럼 대신, 자체 기간(시작일~종료일)을 갖는 `sprints` 테이블을 새로 둔다. 설정 화면은 주차 목록을 순회하며 입력받는 표 대신, "+" 버튼으로 이름과 기간을 입력하면 새 스프린트가 목록 아래로 쌓이는 UI로 바꾼다. 칸반 헤더는 현재 주의 시작일이 어느 스프린트의 기간에 속하는지 조회해서 표시하며, 헤더 UI 자체(배지 위치/스타일)는 이전 작업에서 이미 확정된 것을 그대로 쓴다.
+
+- [x] `supabase/migrations/0007_replace_week_sprint_name_with_sprints.sql` 신규 작성: `weeks.sprint_name` 컬럼 제거, `sprints(id, name, start_date, end_date, created_at)` 테이블 생성 및 `authenticated_full_access` RLS 정책 추가 (0006은 적용하지 않고 이 마이그레이션으로 대체)
+- [x] `src/types/tables/weeks.ts`에서 `sprint_name` 제거(원복), `src/types/tables/sprints.ts` 신규 작성, `src/types/tables/index.ts`에 re-export 추가
+- [x] `src/app/_lib/kanban.ts`: `getSprintForWeek(supabase, weekStart)` 추가 — 주어진 주 시작일이 `start_date`~`end_date` 범위에 포함되는 스프린트를 조회
+- [x] `src/app/page.tsx`: `weekRow.sprint_name` 대신 `getSprintForWeek` 조회 결과를 `KanbanHeader`의 `sprintName`으로 전달
+- [x] `src/app/settings/_lib/actions.ts`: `updateWeekSprintName`을 `createSprint({ name, startDate, endDate })`로 교체
+- [x] `src/app/settings/page.tsx`: `weeks` 대신 `sprints` 전체를 `created_at` 오름차순 조회
+- [x] `src/app/settings/_components/SprintSettingsTable.tsx` 삭제, `SprintList.tsx` 신규 작성: "+" 버튼 + 이름/기간(시작일~종료일) 입력 폼, 저장 시 입력값 초기화 후 목록 맨 아래에 추가
+- [x] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL(0007)을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
