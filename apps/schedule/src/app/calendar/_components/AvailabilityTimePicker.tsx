@@ -3,9 +3,9 @@
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useState } from "react";
+import { ModalOverlay } from "@/components/ModalOverlay";
 import type { AvailabilityRow } from "@/types/tables";
 import { cn } from "@/utils";
-import { useEscapeKey } from "../_hooks";
 import { createAvailability } from "../_lib/actions";
 import type { TimeValue } from "../_lib/time";
 import { rangesOverlap, toDbTime } from "../_lib/time";
@@ -48,8 +48,6 @@ const AvailabilityTimePicker = ({
   const [is24Hour, setIs24Hour] = useState(readIs24Hour);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEscapeKey(onCancel);
 
   const toggleTimeFormat = () => {
     const next = !is24Hour;
@@ -103,14 +101,8 @@ const AvailabilityTimePicker = ({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
-      onClick={onCancel}
-    >
-      <div
-        className="w-[260px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
-        onClick={(event) => event.stopPropagation()}
-      >
+    <ModalOverlay className="z-[100]" onClose={onCancel}>
+      <div className="w-[260px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]">
         <div className="mb-1 flex items-start justify-between gap-2">
           <p className="text-sm font-semibold text-text-default">일정 등록</p>
           <button
@@ -162,7 +154,7 @@ const AvailabilityTimePicker = ({
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 };
 

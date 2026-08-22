@@ -7,6 +7,7 @@ import { CornerDownLeft } from "lucide-react";
 import { createTask, deleteTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
+import { ModalOverlay } from "@/components/ModalOverlay";
 import type { TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
 import ProfilePickerPopover from "../ProfilePickerPopover";
 import type { MentionTarget } from "../../_lib/mentions";
@@ -193,20 +194,18 @@ const TaskCreateModal = ({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      onClose();
-    } else if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
       event.preventDefault();
       void handleSubmit();
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-5"
-      onKeyDown={handleKeyDown}
-    >
-      <div className="flex max-h-[85vh] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]">
+    <ModalOverlay className="z-[200] p-5" onClose={onClose}>
+      <div
+        className="flex max-h-[85vh] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
+        onKeyDown={handleKeyDown}
+      >
         <div className="flex shrink-0 items-center justify-between border-b border-border px-[18px] py-3">
           <span className="text-xs text-text-muted">
             {parentTitle ?? "팀 일정"} <span className="mx-[3px] text-border">/</span>
@@ -378,7 +377,7 @@ const TaskCreateModal = ({
           </div>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 };
 
