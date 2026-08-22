@@ -35,3 +35,62 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/*
+ * 테마 전환은 클릭한 토글 버튼 자리에서 원이 퍼지며 새 테마가 드러나는 방식이다.
+ * 기본 교차 페이드를 끄고 새 화면 스냅샷만 ThemeToggle에서 clip-path로 열어 준다.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* 원이 퍼지는 동안 토글 버튼만 그 위에 남아 해와 달이 교차 페이드되는 것이 보이게 한다. */
+.theme-toggle {
+  view-transition-name: theme-toggle;
+}
+
+::view-transition-group(theme-toggle) {
+  z-index: 3;
+}
+
+/*
+ * View Transitions를 지원하지 않는 브라우저에서 쓰는 대체 동작이다.
+ * 테마를 바꾸는 순간에만 색상 전환을 켠다. 전환을 항상 켜두면 hover 같은 다른 전환의
+ * 시간이 함께 늘어나고, 첫 렌더에서 시스템 테마가 잡힐 때도 색이 번지듯 바뀌어 보인다.
+ * ThemeToggle이 setTheme 직전에 .theme-transition을 붙이고 전환이 끝나면 떼어낸다.
+ * duration은 ThemeToggle의 THEME_TRANSITION_DURATION과 같은 값으로 맞춘다.
+ */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 240ms ease,
+    border-color 240ms ease,
+    color 240ms ease,
+    fill 240ms ease,
+    stroke 240ms ease,
+    box-shadow 240ms ease,
+    opacity 240ms ease,
+    transform 240ms ease !important;
+  transition-delay: 0ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition: none !important;
+  }
+}

@@ -4,16 +4,21 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { Pencil, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { cn } from "@/utils";
 import DatePickerPopover from "@/app/_components/TaskCreateModal/DatePickerPopover";
 import { createSprint, deleteSprint, updateSprint } from "../_lib/actions";
+import {
+  settingsFormButtonClassName,
+  settingsIconButtonClassName,
+  settingsInputClassName,
+  settingsRowClassName,
+  settingsTextButtonClassName,
+} from "../_lib/styles";
 import type { SprintsRow } from "@/types/tables";
 
 interface SprintListProps {
   sprints: SprintsRow[];
 }
-
-const inputClassName =
-  "rounded-lg border border-border bg-surface-elevated px-3 py-1.5 text-sm text-text-default outline-none transition focus:border-primary";
 
 const getToday = () => format(new Date(), "yyyy-MM-dd");
 
@@ -98,14 +103,14 @@ const SprintList = ({ sprints }: SprintListProps) => {
       <form className="flex flex-wrap items-center gap-2" onSubmit={handleSubmit}>
         <button
           aria-label="스프린트 추가"
-          className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-elevated text-text-muted hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+          className={cn(settingsFormButtonClassName, "flex size-9 items-center justify-center")}
           disabled={!canSubmit}
           type="submit"
         >
           <Plus size={16} />
         </button>
         <input
-          className={inputClassName}
+          className={settingsInputClassName}
           placeholder="예: 1차 스프린트"
           type="text"
           value={name}
@@ -139,10 +144,13 @@ const SprintList = ({ sprints }: SprintListProps) => {
               return (
                 <li
                   key={sprint.id}
-                  className="flex flex-wrap items-center gap-2 rounded-lg border border-primary bg-surface-elevated px-4 py-2.5"
+                  className={cn(
+                    settingsRowClassName,
+                    "flex flex-wrap items-center gap-2 border-primary"
+                  )}
                 >
                   <input
-                    className={inputClassName}
+                    className={settingsInputClassName}
                     type="text"
                     value={editName}
                     onChange={(event) => setEditName(event.target.value)}
@@ -163,7 +171,10 @@ const SprintList = ({ sprints }: SprintListProps) => {
                     onChange={setEditEndDate}
                   />
                   <button
-                    className="ml-auto rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+                    className={cn(
+                      settingsTextButtonClassName,
+                      "ml-auto text-primary disabled:opacity-50"
+                    )}
                     disabled={!canSaveEdit}
                     type="button"
                     onClick={() => void handleSaveEdit()}
@@ -171,7 +182,7 @@ const SprintList = ({ sprints }: SprintListProps) => {
                     저장
                   </button>
                   <button
-                    className="rounded-md px-2 py-1 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+                    className={cn(settingsTextButtonClassName, "text-text-muted")}
                     type="button"
                     onClick={() => setEditingId(null)}
                   >
@@ -185,19 +196,19 @@ const SprintList = ({ sprints }: SprintListProps) => {
               return (
                 <li
                   key={sprint.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-surface-elevated px-4 py-2.5"
+                  className={cn(settingsRowClassName, "flex items-center justify-between")}
                 >
                   <span className="text-sm text-text-default">삭제할까요?</span>
                   <div className="flex items-center gap-1">
                     <button
-                      className="rounded-md px-2 py-1 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover"
+                      className={cn(settingsTextButtonClassName, "text-fg-state-error")}
                       type="button"
                       onClick={() => void handleDelete(sprint.id)}
                     >
                       삭제
                     </button>
                     <button
-                      className="rounded-md px-2 py-1 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+                      className={cn(settingsTextButtonClassName, "text-text-muted")}
                       type="button"
                       onClick={() => setPendingDeleteId(null)}
                     >
@@ -211,7 +222,7 @@ const SprintList = ({ sprints }: SprintListProps) => {
             return (
               <li
                 key={sprint.id}
-                className="flex items-center justify-between rounded-lg border border-border bg-surface-elevated px-4 py-2.5"
+                className={cn(settingsRowClassName, "flex items-center justify-between")}
               >
                 <span className="text-sm font-medium text-text-default">{sprint.name}</span>
                 <div className="flex items-center gap-3">
@@ -221,7 +232,7 @@ const SprintList = ({ sprints }: SprintListProps) => {
                   </span>
                   <button
                     aria-label="스프린트 수정"
-                    className="flex size-6 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
+                    className={settingsIconButtonClassName}
                     type="button"
                     onClick={() => startEdit(sprint)}
                   >
@@ -229,7 +240,7 @@ const SprintList = ({ sprints }: SprintListProps) => {
                   </button>
                   <button
                     aria-label="스프린트 삭제"
-                    className="flex size-6 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
+                    className={settingsIconButtonClassName}
                     type="button"
                     onClick={() => setPendingDeleteId(sprint.id)}
                   >

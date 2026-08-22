@@ -419,3 +419,33 @@
 - [x] `CalendarGrid.tsx`: 삭제 확인을 ESC로 취소, 확인이 떠 있는 동안 전체 화면 클릭 흡수 레이어를 깔아 바깥 클릭으로도 취소(뒤 날짜 셀의 등록 모달이 같이 열리지 않도록 클릭을 막음)
 - [x] pnpm build / pnpm lint 검증
 - [x] (PR #157 Codex 리뷰 반영) `CalendarGrid.tsx`: 클릭 흡수 레이어를 `z-30`에서 `z-[5]`로 낮춰 삭제 확인의 삭제/취소 버튼이 눌리지 않던 문제 수정 — 시간 블록 목록(`relative z-10`)이 스택 컨텍스트라 그 안의 확인 버튼이 레이어 위로 올라올 수 없었다
+
+## 설정 페이지 레이아웃 통일 (스프린트 기준)
+
+스프린트와 팀 관리는 탭으로 오가는 같은 화면인데 각각 다른 브랜치에서 만들어져 본문 너비, 여백, 모서리 반경, 폼과 목록 행의 형태가 서로 달랐다. 탭을 옮길 때마다 화면이 흔들려 보여서 팀 관리를 스프린트 형식에 맞춘다.
+
+- [x] `src/app/settings/_lib/styles.ts` 신규 작성: 두 페이지가 함께 쓰는 입력, 추가 버튼, 목록 행, 아이콘 버튼, 글자 버튼 클래스 상수를 분리 (기준값은 스프린트 쪽 그대로)
+- [x] `src/app/settings/_components/SprintList.tsx`: 파일 안에 있던 `inputClassName`과 인라인 클래스를 `_lib/styles.ts`의 상수로 교체 (겉모습은 그대로)
+- [x] `src/app/settings/teams/page.tsx`: `max-w-3xl` 가운데 정렬과 설명 문구를 걷어내고 스프린트 페이지와 같은 `flex-1 px-8 py-6` 본문에 같은 형태의 제목만 둔다
+- [x] `src/app/settings/teams/_components/TeamsManager.tsx`: 채워진 "팀 추가" 버튼과 `rounded-xl` 입력을 스프린트와 같은 정사각형 `+` 버튼과 입력으로 교체하고, 팀명이 비면 버튼을 비활성으로 둔다. 빈 목록 안내도 점선 상자에서 한 줄 문구로 바꾼다
+- [x] `src/app/settings/teams/_components/TeamCard.tsx`: 카드(`rounded-2xl`, `p-5`)를 스프린트 행(`rounded-lg`, `px-4 py-2.5`)으로 맞추고, 팀명 클릭 대신 오른쪽 연필/✕ 아이콘 버튼으로 수정·삭제를 시작하도록 바꾼다. 수정 중에는 행 테두리를 강조하고 삭제 확인은 행 전체를 "삭제할까요?"로 바꾸는 스프린트 방식을 따른다
+
+## 팀 관리 폼 순서와 목록 행 두 줄 구성
+
+- [x] `src/app/settings/_lib/styles.ts`: 정사각형 추가 버튼 전용이던 `settingsAddButtonClassName`을 크기를 뺀 `settingsFormButtonClassName`으로 일반화해 스프린트의 아이콘 버튼과 팀 관리의 글자 버튼이 같은 테두리와 배경을 쓰도록 한다
+- [x] `src/app/settings/teams/_components/TeamsManager.tsx`: `[+] 인풋` 순서를 `인풋 [생성]`으로 바꾼다. 스프린트 폼은 `[+]`가 앞에 오는 지금 순서를 그대로 둔다 (사용자 확인)
+- [x] `src/app/settings/teams/_components/TeamsManager.tsx`: 팀 목록을 한 열에서 넓은 화면(xl 이상) 두 열 그리드로 바꾼다. 태블릿과 모바일에서는 카드 안의 멤버 칩이 금방 줄바꿈되므로 한 열을 유지한다
+- [x] `src/app/settings/teams/_components/TeamCard.tsx`: 카드 안 내용을 두 줄로 나눴다가 원래의 한 줄 구성(색상 점, 팀명, 슬러그, 멤버 수, 수정/삭제 아이콘)으로 되돌린다. 목록을 두 열로 나누는 것이 요청이었고 카드 자체는 그대로여야 한다
+
+## 다크/라이트 모드 전환 애니메이션
+
+- [x] `src/app/globals.css`: `html.theme-transition` 아래에서만 배경, 테두리, 글자, 아이콘, 그림자, 투명도, 변형의 전환을 켜는 규칙 추가. 전환을 항상 켜두면 hover 등 다른 전환 시간이 함께 늘어나므로 테마를 바꾸는 순간에만 적용한다. `prefers-reduced-motion: reduce`에서는 전환을 끈다
+- [x] `src/components/ThemeToggle.tsx`: `setTheme` 직전에 `theme-transition` 클래스를 붙이고 전환 시간이 지나면 떼어낸다. 언마운트 시 타이머를 정리한다
+- [x] `src/components/ThemeToggle.tsx`: 해와 달 아이콘을 조건부 렌더링에서 겹쳐 두는 방식으로 바꿔 회전하며 교차 페이드되도록 한다
+
+## 테마 전환을 원형 확산으로 교체
+
+- [x] `src/components/ThemeToggle.tsx`: `document.startViewTransition`으로 클릭한 버튼 중심에서 원이 퍼지며 새 테마가 드러나도록 한다. 원의 반지름은 클릭 지점에서 화면의 가장 먼 모서리까지의 거리로 계산한다
+- [x] `src/app/globals.css`: `::view-transition-old/new(root)`의 기본 교차 페이드를 끄고, 토글 버튼에 `view-transition-name`을 주어 원이 퍼지는 동안 버튼이 그 위에 남도록 한다
+- [x] View Transitions를 지원하지 않는 브라우저와 `prefers-reduced-motion: reduce`에서는 기존 `.theme-transition` 색상 페이드로 대체한다
+- [x] 토글 버튼에 hover 확대와 클릭 축소를 더하고, 해와 달 아이콘 교차 페이드 시간을 원이 퍼지는 시간에 맞춘다
