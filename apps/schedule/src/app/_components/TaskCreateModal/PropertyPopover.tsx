@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useOutsideClose, usePopoverPosition } from "@/hooks";
 import { cn } from "@/utils";
-
-const GAP = 4;
 
 interface PropertyPopoverProps {
   label?: string;
@@ -24,45 +23,13 @@ const PropertyPopover = ({
   children,
 }: PropertyPopoverProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // 모달 컨테이너의 overflow-hidden에 잘리지 않도록 패널을 body에 Portal로 띄우고,
-  // 트리거 기준 좌표를 직접 계산한다. 아래쪽 공간이 부족하면 위쪽으로 뒤집는다.
-  useLayoutEffect(() => {
-    if (!isOpen || !triggerRef.current) return;
-
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const panelHeight = panelRef.current?.offsetHeight ?? 0;
-    const panelWidth = panelRef.current?.offsetWidth ?? 0;
-    const spaceBelow = window.innerHeight - triggerRect.bottom;
-    const showAbove = panelHeight > 0 && spaceBelow < panelHeight + GAP;
-    const left =
-      align === "center"
-        ? triggerRect.left + triggerRect.width / 2 - panelWidth / 2
-        : triggerRect.left;
-    const clampedLeft = Math.min(Math.max(GAP, left), window.innerWidth - panelWidth - GAP);
-
-    setPosition({
-      top: showAbove ? triggerRect.top - panelHeight - GAP : triggerRect.bottom + GAP,
-      left: clampedLeft,
-    });
-  }, [isOpen, align]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (!triggerRef.current?.contains(target) && !panelRef.current?.contains(target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+  // 트리거 기준 좌표를 직접 계산한다.
+  const position = usePopoverPosition({ isOpen, anchorRef: triggerRef, panelRef, align });
+  useOutsideClose(isOpen, [triggerRef, panelRef], () => setIsOpen(false));
 
   return (
     <>
