@@ -43,6 +43,7 @@ interface DatePickerPopoverProps {
   label: string;
   value: string;
   onChange: (date: string) => void;
+  labelClassName?: string;
   triggerClassName?: string;
 }
 
@@ -50,6 +51,7 @@ const DatePickerPopover = ({
   label,
   value,
   onChange,
+  labelClassName,
   triggerClassName,
 }: DatePickerPopoverProps) => {
   const selectedDate = new Date(value);
@@ -62,6 +64,7 @@ const DatePickerPopover = ({
   return (
     <PropertyPopover
       label={label}
+      labelClassName={labelClassName}
       panelClassName="w-64"
       trigger={
         <span className="whitespace-nowrap text-xs text-text-default">

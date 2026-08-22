@@ -91,6 +91,7 @@ const SprintList = ({ sprints }: SprintListProps) => {
         />
         <DatePickerPopover
           label="시작일"
+          labelClassName="w-auto"
           triggerClassName="w-auto gap-1"
           value={startDate}
           onChange={setStartDate}
@@ -98,6 +99,7 @@ const SprintList = ({ sprints }: SprintListProps) => {
         <span className="text-text-muted">~</span>
         <DatePickerPopover
           label="종료일"
+          labelClassName="w-auto"
           triggerClassName="w-auto gap-1"
           value={endDate}
           onChange={setEndDate}
@@ -123,6 +125,7 @@ const SprintList = ({ sprints }: SprintListProps) => {
                   />
                   <DatePickerPopover
                     label="시작일"
+                    labelClassName="w-auto"
                     triggerClassName="w-auto gap-1"
                     value={editStartDate}
                     onChange={setEditStartDate}
@@ -130,6 +133,7 @@ const SprintList = ({ sprints }: SprintListProps) => {
                   <span className="text-text-muted">~</span>
                   <DatePickerPopover
                     label="종료일"
+                    labelClassName="w-auto"
                     triggerClassName="w-auto gap-1"
                     value={editEndDate}
                     onChange={setEditEndDate}
