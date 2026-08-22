@@ -396,3 +396,19 @@
 - [x] `src/app/page.tsx`: develop의 `getSprintForWeek`와 이 브랜치의 `getRegisteredProfiles` import를 모두 남긴다
 - [x] `supabase/migrations/0008_teams.sql`을 `0009_teams.sql`로 변경: develop이 `0008_add_profile_slack_user_id.sql`을 먼저 가져갔다. SQL 본문은 그대로라 이미 적용한 Supabase 프로젝트에 다시 적용할 필요는 없다
 - [x] pnpm build / pnpm lint 검증
+
+## 일정 등록 모달 제목 변경 + 12/24시간 표시 전환
+
+모달 제목을 "가능 시간 등록"에서 "일정 등록"으로 바꾸고, 기존 오전/오후 휠은 그대로 두되 우상단 "24시간" 버튼으로 시 열을 00~23으로 바꿔 볼 수 있게 한다. 겸사겸사 ESC로 모달을 닫는 것도 함께 넣는다.
+
+- [x] `calendar/_hooks/useEscapeKey.ts` 신규 작성: document에 keydown을 붙여 ESC 입력 시 콜백 호출, `enabled`로 구독 여부 제어. `AvailabilityTimePicker`와 `CalendarGrid` 두 곳에서 쓰므로 페이지 전용 `_hooks/`로 분리하고 배럴(`_hooks/index.ts`)로 내보냄
+- [x] `_lib/time.ts`: 모달과 휠이 주고받는 값을 항상 24시간제(`TimeValue`)로 통일. `to24HourTime(period, hour12, minute)` → `toDbTime(time)`으로 교체하고, 12시간제 표시용 변환 `toPeriodHour`/`to24Hour` 추가 (12/24 전환 시 고른 시각이 유지되도록)
+- [x] `TimeWheelPicker.tsx`: `is24Hour` prop 추가 — false면 기존과 동일한 오전/오후 + 시(01~12) + 분, true면 오전/오후 열이 빠지고 시(00~23) + 분. 값은 `TimeValue` 하나로 받고 내부에서 표시 형식만 변환
+- [x] `TimeWheelPicker.tsx`: 초기 스크롤 위치만 맞추던 `useEffect`의 의존성을 `[value, values]`로 수정 — 12/24 전환으로 값과 후보 목록이 바뀌어도 휠이 따라 움직이도록 함(이미 그 위치면 스크롤하지 않아 사용자 조작을 방해하지 않음)
+- [x] `AvailabilityTimePicker.tsx`: 제목 "가능 시간 등록" → "일정 등록", 제목 우측에 "24시간" 토글 버튼 추가(`aria-pressed`로 상태 표시)
+- [x] `AvailabilityTimePicker.tsx`: 토글 상태를 `localStorage`(`schedule:availability-time-format`)에 저장해 다음 등록 때도 유지. 접근이 막힌 환경에서는 기본값 12시간제로 동작
+- [x] `AvailabilityTimePicker.tsx`: ESC로 모달 닫기
+- [x] `CalendarGrid.tsx`: 날짜 셀 버튼의 `aria-label`을 "가능 시간 추가"에서 "일정 등록"으로 통일
+- [x] `CalendarGrid.tsx`: 삭제 확인을 ESC로 취소, 확인이 떠 있는 동안 전체 화면 클릭 흡수 레이어를 깔아 바깥 클릭으로도 취소(뒤 날짜 셀의 등록 모달이 같이 열리지 않도록 클릭을 막음)
+- [x] pnpm build / pnpm lint 검증
+- [x] (PR #157 Codex 리뷰 반영) `CalendarGrid.tsx`: 클릭 흡수 레이어를 `z-30`에서 `z-[5]`로 낮춰 삭제 확인의 삭제/취소 버튼이 눌리지 않던 문제 수정 — 시간 블록 목록(`relative z-10`)이 스택 컨텍스트라 그 안의 확인 버튼이 레이어 위로 올라올 수 없었다
