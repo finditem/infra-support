@@ -23,11 +23,36 @@ export const getMentionKey = (target: MentionTarget) =>
   target.kind === "team" ? `team:${target.team.id}` : `profile:${target.profile.id}`;
 
 /**
- * "@" 바로 앞 글자가 언급의 시작으로 인정되는지 본다.
- * 앞이 글자나 숫자면 이메일 주소(sjk@example.com)처럼 언급이 아닌 것으로 본다.
+ * 언급 토큰의 앞뒤 경계로 인정되는 글자인지 본다. 문자열의 끝(빈 문자열)도 경계로 본다.
+ * 글자나 숫자가 붙어 있으면 언급이 아니라 다른 단어의 일부로 본다.
+ * 앞쪽은 이메일 주소(sjk@example.com), 뒤쪽은 "@민수님"처럼 슬러그에 조사가 붙은 경우를 걸러낸다.
  */
-const isMentionBoundary = (charBeforeAt: string) =>
-  !charBeforeAt || !/[\p{L}\p{N}]/u.test(charBeforeAt);
+const isMentionBoundaryChar = (char: string) => !char || !/[\p{L}\p{N}]/u.test(char);
+
+/**
+ * 슬러그별로 그 슬러그를 쓰는 언급 대상을 모은다.
+ * 동명이인이나 팀명과 이름이 같은 팀원처럼 한 슬러그를 여러 대상이 공유할 수 있다.
+ */
+const groupTargetsBySlug = (targets: MentionTarget[]) => {
+  const targetsBySlug = new Map<string, MentionTarget[]>();
+
+  targets.forEach((target) => {
+    const slug = getMentionSlug(target);
+    if (!slug) return;
+    targetsBySlug.set(slug, [...(targetsBySlug.get(slug) ?? []), target]);
+  });
+
+  return targetsBySlug;
+};
+
+/**
+ * 둘 이상의 대상이 공유해서 "@슬러그"만으로는 대상을 특정할 수 없는 슬러그를 돌려준다.
+ * 언급 입력 UI에서 이런 슬러그를 안내하거나 걸러내는 데 쓴다.
+ */
+export const getAmbiguousMentionSlugs = (targets: MentionTarget[]): string[] =>
+  [...groupTargetsBySlug(targets).entries()]
+    .filter(([, sharing]) => sharing.length > 1)
+    .map(([slug]) => slug);
 
 /** 팀과 개인을 하나의 언급 후보 목록으로 합친다. 팀을 먼저 보여준다. */
 export const buildMentionTargets = (
@@ -40,27 +65,39 @@ export const buildMentionTargets = (
 
 /**
  * 텍스트 안의 "@슬러그"를 찾아 매칭된 언급 대상을 순서대로 돌려준다.
- * 이메일 주소처럼 단어 중간에 있는 "@"는 건너뛴다.
- * 슬러그가 긴 후보부터 검사해서 "@프론트엔드"가 "@프론트"로 잘못 잡히지 않게 한다.
  * 같은 대상이 여러 번 언급되면 한 번만 담는다.
+ *
+ * 다음 경우는 언급으로 보지 않는다.
+ * - 이메일 주소처럼 "@" 앞에 글자나 숫자가 붙어 있는 경우
+ * - "@민수님"처럼 슬러그 뒤에 글자나 숫자가 이어져 다른 단어인 경우
+ * - 동명이인처럼 둘 이상의 대상이 같은 슬러그를 쓰는 경우. 텍스트만으로는 누구를 부른 것인지
+ *   알 수 없어서, 엉뚱한 대상(특히 개인 대신 팀 전체)으로 해석하는 대신 매칭하지 않는다.
+ *   어떤 슬러그가 이에 해당하는지는 getAmbiguousMentionSlugs로 확인할 수 있다.
+ *
+ * 슬러그가 긴 후보부터 검사해서 "@프론트엔드"가 "@프론트"로 잘못 잡히지 않게 한다.
  */
 export const parseMentions = (text: string, targets: MentionTarget[]): MentionTarget[] => {
-  const bySlugLengthDesc = [...targets].sort(
-    (a, b) => getMentionSlug(b).length - getMentionSlug(a).length
-  );
+  const targetsBySlug = groupTargetsBySlug(targets);
+  const unambiguousSlugsByLengthDesc = [...targetsBySlug.entries()]
+    .filter(([, sharing]) => sharing.length === 1)
+    .map(([slug]) => slug)
+    .sort((a, b) => b.length - a.length);
+
   const matched: MentionTarget[] = [];
   const matchedKeys = new Set<string>();
 
   for (let index = text.indexOf("@"); index !== -1; index = text.indexOf("@", index + 1)) {
-    if (!isMentionBoundary(index === 0 ? "" : text[index - 1])) continue;
+    if (!isMentionBoundaryChar(index === 0 ? "" : text[index - 1])) continue;
 
     const rest = text.slice(index + 1);
-    const target = bySlugLengthDesc.find((candidate) => {
-      const slug = getMentionSlug(candidate);
-      return slug.length > 0 && rest.startsWith(slug);
-    });
+    const slug = unambiguousSlugsByLengthDesc.find(
+      (candidate) =>
+        rest.startsWith(candidate) &&
+        isMentionBoundaryChar(rest.slice(candidate.length, candidate.length + 1))
+    );
+    const target = slug ? targetsBySlug.get(slug)?.[0] : undefined;
 
-    if (!target) continue;
+    if (!slug || !target) continue;
 
     const key = getMentionKey(target);
     if (!matchedKeys.has(key)) {
@@ -68,7 +105,7 @@ export const parseMentions = (text: string, targets: MentionTarget[]): MentionTa
       matched.push(target);
     }
 
-    index += getMentionSlug(target).length;
+    index += slug.length;
   }
 
   return matched;
@@ -119,7 +156,7 @@ export const getActiveMention = (text: string, caretIndex: number): ActiveMentio
   const query = beforeCaret.slice(startIndex + 1);
   if (/\s/.test(query)) return null;
 
-  if (!isMentionBoundary(startIndex === 0 ? "" : beforeCaret[startIndex - 1])) return null;
+  if (!isMentionBoundaryChar(startIndex === 0 ? "" : beforeCaret[startIndex - 1])) return null;
 
   return { query, startIndex };
 };
