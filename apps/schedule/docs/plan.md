@@ -246,13 +246,13 @@
 - [x] `layout.tsx`: 탭 타이틀 "팀 일정 관리" → "찾길 팀 일정"
 - [x] `public/logo.svg` 신규 작성 (icon.svg와 동일 내용) — 로그인 화면에서 `<img>`로 재사용
 - [x] `login/page.tsx` 디자인 개선: 로고 이미지 + 앱명/부제 헤더 추가, 카드 스타일을 `TaskCreateModal.tsx` 패턴(`rounded-2xl`, 그림자)로 통일, 배경에 로고 색상 기반 은은한 radial gradient 블롭 추가, 이메일/비밀번호 입력에 `lucide-react` Mail/Lock 아이콘 추가, 초대 만료 안내 문구를 박스 스타일로 개선
-- [ ] pnpm build / pnpm lint 검증
+- [x] pnpm build / pnpm lint 검증
 
 ## 초대 계정 설정 화면(/invite/setup) 디자인을 로그인 화면과 통일
 
 - [x] `invite/setup/page.tsx`: `login/page.tsx`와 동일한 배경 radial gradient 블롭, 카드 스타일(`rounded-2xl`, 그림자), 로고+타이틀 헤더 적용
 - [x] `invite/setup/page.tsx`: 이름/비밀번호/비밀번호 확인 입력에 `lucide-react` 아이콘(User/Lock) 추가, `rounded-xl` 입력 스타일로 통일
-- [ ] pnpm build / pnpm lint 검증
+- [x] pnpm build / pnpm lint 검증
 
 ## 팀원 색상 랜덤 파스텔 배정으로 변경
 
@@ -266,3 +266,22 @@
 - [x] `CalendarGrid.tsx`의 삭제 확인 오버레이(`bg-white/20` 등)를 어두운 오버레이로 교체
 - [x] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
+
+## 원격 스키마와 마이그레이션 파일 정합 (fix/schedule-schema-sync)
+
+`0001_init.sql`이 적용 기록이 아니라 사후에 손으로 작성한 문서라, 원격 Supabase 프로젝트와 이 디렉토리의 마이그레이션 파일이 처음부터 어긋나 있었다. 파일만 보고 새 프로젝트를 세팅하면 운영 중인 DB와 다른 스키마가 만들어지는 상태였고, `tasks.status_id`처럼 없으면 일정이 칸반에서 사라지는 NOT NULL 제약도 빠져 있었다. 원격 스키마 전체를 떠서 파일과 한 줄씩 대조한 뒤 정합용 마이그레이션 하나로 맞춘다.
+
+다른 브랜치가 각자 마이그레이션 파일과 함께 이미 원격에 적용한 것들(`feat/slack-notification`의 `profiles.slack_user_id`, `feat/teams`의 `teams`/`team_members`와 색상 배정 함수 일반화)은 해당 PR이 머지되면서 맞춰지므로 이 작업에서 다루지 않는다.
+
+- [x] 원격 스키마 전체 조회(컬럼, 제약, 인덱스, 트리거, RLS 정책, 함수 정의)해서 `0001`~`0005`와 대조
+- [x] `supabase/migrations/0009_schema_sync.sql` 신규 작성. 이미 적용된 원격에서도, 0001부터 새로 세팅하는 프로젝트에서도 같은 결과가 나오도록 전부 멱등하게 작성했다
+- [x] 되돌릴 수 없는 변경 전에 `tasks.status_id`와 `availability.user_id`의 null 행을 먼저 검사해 있으면 명확한 메시지와 함께 중단하도록 함
+- [x] `status_history` 폐기. 원격에 만들어진 적이 없고 코드도 쓰지 않으며, 같은 역할(상태 변경 사유 기록)을 컬럼 구성이 동일한 `task_reasons`가 대신하고 있다. `src/types/tables/status_history.ts`와 배럴 re-export도 제거
+- [x] `weeks.created_at` 컬럼 추가 (`0001`에는 있으나 원격에 없었음)
+- [x] NOT NULL 복원 7건: `tasks.status_id`/`created_at`/`updated_at`, `availability.user_id`/`created_at`, `profiles.created_at`, `task_statuses.created_at`. 시각 컬럼은 `now()`로 백필한 뒤 제약을 건다
+- [x] `tasks`의 updated_at 갱신 트리거 중복 정리. 원격에 있던 `tasks_updated_at`(`handle_updated_at()` 호출)과 나중에 만들어진 `tasks_set_updated_at`(`set_updated_at()` 호출)이 겹쳐 매 수정마다 두 번 실행되고 있었다. 파일에 있는 이름을 남기고 나머지 트리거와 함수를 제거
+- [x] 원격에만 있던 `sprints`, `task_reasons` 테이블을 원격 정의 그대로 파일로 남기고 `src/types/tables/`에 타입 추가. 아직 애플리케이션 코드에서 사용하지 않는다
+- [x] RLS 정책 이름과 정의 통일. `0001`이 만든 테이블은 `로그인한 사용자 전체 접근`(to public, `auth.uid() is not null`), 이후 추가된 테이블은 `authenticated_full_access`(to authenticated, true)로 두 방식이 섞여 있었다. 효과는 사실상 같으므로 파일이 쓰는 이름으로 맞춤
+- [x] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용
+- [x] 적용 후 항목별 검사 쿼리로 9개 항목 전부 OK 확인 (status_history 폐기, weeks.created_at, NOT NULL 7건, tasks 트리거 중복 정리, handle_updated_at 제거, sprints/task_reasons 존재, RLS 정책 이름 통일과 누락 없음)
+- [x] pnpm build / pnpm lint 검증
