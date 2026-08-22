@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
@@ -12,6 +12,7 @@ interface KanbanCardProps {
   assignee: ProfileWithColor | null;
   reporter: ProfileWithColor | null;
   subtaskCount: number;
+  commentCount: number;
   statuses: TaskStatusesRow[];
   onSelect: () => void;
 }
@@ -21,6 +22,7 @@ const KanbanCard = ({
   assignee,
   reporter,
   subtaskCount,
+  commentCount,
   statuses,
   onSelect,
 }: KanbanCardProps) => {
@@ -95,10 +97,17 @@ const KanbanCard = ({
         )}
       </div>
 
-      {subtaskCount > 0 && (
-        <p className="border-t border-border pt-2 text-xs text-text-muted">
-          하위 일정 {subtaskCount}개
-        </p>
+      {(subtaskCount > 0 || commentCount > 0) && (
+        <div className="flex items-center gap-3 border-t border-border pt-2 text-xs text-text-muted">
+          {subtaskCount > 0 && <span>하위 일정 {subtaskCount}개</span>}
+
+          {commentCount > 0 && (
+            <span className="flex items-center gap-1">
+              <MessageSquare aria-hidden className="size-3" />
+              {commentCount}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );

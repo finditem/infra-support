@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { ProfilesRow, TaskStatusesRow, TasksRow } from "@/types/tables";
+import type { ProfilesRow, TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
 import {
   buildProfileColorMap,
   calculateMemberProgress,
@@ -9,6 +9,7 @@ import {
   resolveEffectiveStatusId,
   sortByPriorityDesc,
 } from "../_lib/kanbanUtils";
+import type { MentionTarget } from "../_lib/mentions";
 import type { KanbanFilterState } from "../_types/kanban";
 import KanbanColumn from "./KanbanColumn";
 import KanbanFilters from "./KanbanFilters";
@@ -27,6 +28,10 @@ interface KanbanBoardProps {
   statuses: TaskStatusesRow[];
   profiles: ProfilesRow[];
   tasks: TasksRow[];
+  /** 이 보드가 다루는 일정들의 댓글 전부. 카드의 개수 배지와 편집 모달이 같은 배열을 본다. */
+  comments: TaskCommentsRow[];
+  /** 댓글에서 언급할 수 있는 팀과 팀원 목록. */
+  mentionTargets: MentionTarget[];
   currentProfileId: string | null;
   parentId?: string | null;
   parentTitle?: string | null;
@@ -37,11 +42,14 @@ const KanbanBoard = ({
   statuses,
   profiles,
   tasks: initialTasks,
+  comments: initialComments,
+  mentionTargets,
   currentProfileId,
   parentId = null,
   parentTitle = null,
 }: KanbanBoardProps) => {
   const [tasks, setTasks] = useState(initialTasks);
+  const [comments, setComments] = useState(initialComments);
   const [filter, setFilter] = useState<KanbanFilterState>(INITIAL_FILTER);
   const [creatingStatusId, setCreatingStatusId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<TasksRow | null>(null);
@@ -60,6 +68,19 @@ const KanbanBoard = ({
     });
     return counts;
   }, [tasks]);
+
+  const commentCountByTask = useMemo(() => {
+    const counts = new Map<string, number>();
+    comments.forEach((comment) => {
+      counts.set(comment.task_id, (counts.get(comment.task_id) ?? 0) + 1);
+    });
+    return counts;
+  }, [comments]);
+
+  const editingTaskComments = useMemo(
+    () => (editingTask ? comments.filter((comment) => comment.task_id === editingTask.id) : []),
+    [comments, editingTask]
+  );
 
   const childrenByParent = useMemo(() => {
     const map = new Map<string, TasksRow[]>();
@@ -95,6 +116,7 @@ const KanbanBoard = ({
           {statuses.map((status) => (
             <KanbanColumn
               key={status.id}
+              commentCountByTask={commentCountByTask}
               profileMap={profileMap}
               status={status}
               statuses={statuses}
@@ -111,8 +133,10 @@ const KanbanBoard = ({
 
       {(creatingStatusId || editingTask) && (
         <TaskCreateModal
+          comments={editingTaskComments}
           currentProfileId={currentProfileId}
           initialStatusId={creatingStatusId ?? ""}
+          mentionTargets={mentionTargets}
           parentId={parentId}
           parentTitle={parentTitle}
           profiles={Array.from(profileMap.values())}
@@ -122,6 +146,14 @@ const KanbanBoard = ({
           onClose={() => {
             setCreatingStatusId(null);
             setEditingTask(null);
+          }}
+          onCommentsChange={(next) => {
+            if (!editingTask) return;
+
+            setComments((prev) => [
+              ...prev.filter((comment) => comment.task_id !== editingTask.id),
+              ...next,
+            ]);
           }}
           onDeleted={(deletedIds) => {
             setTasks((prev) => prev.filter((row) => !deletedIds.includes(row.id)));

@@ -63,9 +63,13 @@ export const buildMentionTargets = (
   ...profiles.map((profile): MentionTarget => ({ kind: "profile", profile })),
 ];
 
+/** 언급을 강조해 그리기 위해 본문을 일반 텍스트와 언급 조각으로 번갈아 나눈 결과. */
+export type MentionSegment =
+  | { type: "text"; text: string }
+  | { type: "mention"; slug: string; target: MentionTarget };
+
 /**
- * 텍스트 안의 "@슬러그"를 찾아 매칭된 언급 대상을 순서대로 돌려준다.
- * 같은 대상이 여러 번 언급되면 한 번만 담는다.
+ * 텍스트를 일반 텍스트와 언급 조각으로 나눈다. 언급만 강조해서 그릴 때 쓴다.
  *
  * 다음 경우는 언급으로 보지 않는다.
  * - 이메일 주소처럼 "@" 앞에 글자나 숫자가 붙어 있는 경우
@@ -76,15 +80,15 @@ export const buildMentionTargets = (
  *
  * 슬러그가 긴 후보부터 검사해서 "@프론트엔드"가 "@프론트"로 잘못 잡히지 않게 한다.
  */
-export const parseMentions = (text: string, targets: MentionTarget[]): MentionTarget[] => {
+export const splitMentionSegments = (text: string, targets: MentionTarget[]): MentionSegment[] => {
   const targetsBySlug = groupTargetsBySlug(targets);
   const unambiguousSlugsByLengthDesc = [...targetsBySlug.entries()]
     .filter(([, sharing]) => sharing.length === 1)
     .map(([slug]) => slug)
     .sort((a, b) => b.length - a.length);
 
-  const matched: MentionTarget[] = [];
-  const matchedKeys = new Set<string>();
+  const segments: MentionSegment[] = [];
+  let lastIndex = 0;
 
   for (let index = text.indexOf("@"); index !== -1; index = text.indexOf("@", index + 1)) {
     if (!isMentionBoundaryChar(index === 0 ? "" : text[index - 1])) continue;
@@ -99,14 +103,35 @@ export const parseMentions = (text: string, targets: MentionTarget[]): MentionTa
 
     if (!slug || !target) continue;
 
-    const key = getMentionKey(target);
-    if (!matchedKeys.has(key)) {
-      matchedKeys.add(key);
-      matched.push(target);
-    }
+    if (index > lastIndex) segments.push({ type: "text", text: text.slice(lastIndex, index) });
+    segments.push({ type: "mention", slug, target });
 
     index += slug.length;
+    lastIndex = index + 1;
   }
+
+  if (lastIndex < text.length) segments.push({ type: "text", text: text.slice(lastIndex) });
+
+  return segments;
+};
+
+/**
+ * 텍스트 안의 "@슬러그"를 찾아 매칭된 언급 대상을 순서대로 돌려준다.
+ * 같은 대상이 여러 번 언급되면 한 번만 담는다. 매칭 규칙은 splitMentionSegments와 같다.
+ */
+export const parseMentions = (text: string, targets: MentionTarget[]): MentionTarget[] => {
+  const matched: MentionTarget[] = [];
+  const matchedKeys = new Set<string>();
+
+  splitMentionSegments(text, targets).forEach((segment) => {
+    if (segment.type !== "mention") return;
+
+    const key = getMentionKey(segment.target);
+    if (matchedKeys.has(key)) return;
+
+    matchedKeys.add(key);
+    matched.push(segment.target);
+  });
 
   return matched;
 };

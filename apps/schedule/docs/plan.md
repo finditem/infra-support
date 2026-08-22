@@ -471,3 +471,38 @@
 - [x] `src/app/globals.css`: `::view-transition-old/new(root)`의 기본 교차 페이드를 끄고, 토글 버튼에 `view-transition-name`을 주어 원이 퍼지는 동안 버튼이 그 위에 남도록 한다
 - [x] View Transitions를 지원하지 않는 브라우저와 `prefers-reduced-motion: reduce`에서는 기존 `.theme-transition` 색상 페이드로 대체한다
 - [x] 토글 버튼에 hover 확대와 클릭 축소를 더하고, 해와 달 아이콘 교차 페이드 시간을 원이 퍼지는 시간에 맞춘다
+
+## 일정별 댓글과 멘션 (feat/task-comments)
+
+보고자가 검토 의견을 남길 곳이 일정 본문(`tasks.body`) 하나뿐이라 일정마다 대화가 쌓이지 않던 문제를 해결한다. `docs/기능설계서.md`에는 댓글 기능이 아예 없어(6. 공통 컴포넌트 표에도 댓글 관련 항목이 없다) 이번 작업으로 새로 정의한다. 멘션은 이후 Slack 알림(기능설계서 9. 개발 일정의 5단계)이 발송 대상을 판단하는 근거로 쓰이므로, 이번 범위에서 알림 발송은 만들지 않되 누가 누구를 멘션했는지는 DB에 관계로 남긴다.
+
+- [x] `supabase/migrations/0010_add_task_comments.sql` 신규 작성: `task_comments`(task_id/author_id/body/created_at/updated_at), `task_comment_mentions`(comment_id/mentioned_profile_id, `(comment_id, mentioned_profile_id)` 유니크), 두 테이블 RLS 활성화 + 기존과 동일한 `authenticated_full_access` 단일 정책, 외래키 인덱스 2개, `task_comments`에 기존 `set_updated_at` 트리거 연결
+- [x] `src/types/tables/task_comments.ts`, `src/types/tables/task_comment_mentions.ts` 신규 작성 후 `src/types/tables/index.ts`에 re-export
+- [x] (폐기) 자체 멘션 유틸 `src/utils/mentionUtils.ts`를 만들었다가, develop이 팀 관리와 함께 도입한 언급 기반 코드로 갈아끼우면서 제거했다. 아래 통합 항목 참고
+- [x] (폐기) 입력창에 마커 원문이 보이던 문제를 표시 형식과 저장 형식 분리로 고쳤으나, 저장 형식이 평문 `@슬러그`로 바뀌면서 이 구분 자체가 필요 없어졌다
+- [x] 멘션 판정 기준을 "자동완성으로 고른 팀원"에서 "후보 목록과 일치하는 `@슬러그`"로 변경. 붙여넣거나 직접 친 것이 멘션으로 잡히지 않아 입력 방법에 따라 결과가 갈리던 문제를 고친 것이고, develop의 `parseMentions`도 같은 방식이라 통합 후에도 유지된다
+- [x] 1분이 안 된 댓글의 시각 표기를 date-fns 기본값 "1분 미만 전" 대신 "1분 전"으로 통일 (`CommentItem`의 `formatCommentTime`)
+- [x] `src/app/_lib/commentActions.ts` 신규 작성: `createComment`/`updateComment`/`deleteComment`. RLS가 로그인 사용자 전체 접근이라 작성자 본인 제약은 쿼리의 `author_id` 조건으로 강제한다. 멘션은 `syncCommentMentions`가 삭제 후 재삽입으로 동기화하고, 실패해도 댓글 저장은 성공 처리하고 로그만 남긴다
+- [x] `src/app/_lib/kanban.ts`에 `getCommentsForTasks` 추가: 화면에 필요한 일정 전체의 댓글을 `in(task_id, ...)` 한 번으로 조회해 카드별 개수 조회가 N+1이 되는 것을 막는다
+- [x] `src/app/_components/ProfileAvatar.tsx` 신규 작성: 팀원 색상 배경 + 이니셜 원형 아바타 (댓글 목록과 멘션 자동완성 두 곳에서 쓰므로 분리)
+- [x] `src/app/_components/TaskComments/` 신규 작성: `TaskComments`(목록 + 입력창 조립, 댓글 배열은 상위가 소유), `CommentItem`(아바타/이름/상대 시간/멘션 강조, 본인 댓글 수정·삭제), `CommentEditor`(textarea + 커맨드+엔터 등록, 새 댓글과 수정에 공용), `MentionAutocomplete`(입력창 아래 흐름에 펼쳐지는 후보 목록, 키보드 위아래·엔터 선택)
+- [x] `TaskCreateModal.tsx`: 편집 모드에서만 스크롤되는 본문 하단에 댓글 섹션 렌더링. 생성 모드에는 표시하지 않는다
+- [x] `KanbanBoard.tsx`: 댓글 배열을 상태로 소유하고 `commentCountByTask`를 계산해 컬럼으로 내려보냄. 편집 중인 일정의 댓글만 잘라 모달에 전달하고 변경분을 되돌려받는다
+- [x] `KanbanColumn.tsx`, `KanbanCard.tsx`: 카드 하단에 댓글 개수 배지 표시 (하위 일정 개수와 같은 줄)
+- [x] `src/app/page.tsx`, `src/app/task/[id]/page.tsx`: 서버 컴포넌트에서 댓글을 한 번에 조회해 전달
+- [x] `src/app/task/[id]/_components/TaskCommentsPanel.tsx` 신규 작성: 상세 페이지에서 상위 일정의 댓글 카드
+- [x] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용. 적용 과정에서 원격 DB에 `0001_init.sql`의 `set_updated_at()` 함수가 없다는 것이 드러나 마이그레이션이 그 함수를 `create or replace`로 직접 선언하도록 수정했다. `tasks` 테이블에는 이름이 다른 `tasks_updated_at` 트리거가 이미 걸려 있어 `updated_at` 갱신 자체는 동작하고 있다. 원격 스키마가 마이그레이션 파일과 여러 곳에서 어긋나 있으므로(파일에 없는 `task_reasons` 테이블도 존재) 언젠가 전체 대조가 필요하다
+- [x] 마이그레이션 번호를 `0010`으로 조정했다. develop이 스프린트 작업(`0006`, `0007`), Slack 알림(`0008`), 팀 관리(`0009`)로 앞 번호를 모두 가져가서 develop을 머지할 때마다 내렸다
+- [x] develop이 도입한 `ProfileAvatar`(size 변형과 `profile` 객체를 받는 상위 호환)로 교체. 댓글 목록과 멘션 자동완성에서 쓰던 자체 아바타를 걷어내고, 작성자 프로필을 찾지 못한 경우만 회색 폴백을 남겼다
+- [x] 멘션 구현을 develop의 언급 기반 코드로 통합. `feat/teams`가 `_lib/mentions.ts`, `_components/MentionPicker.tsx`, `usePopoverPosition`/`useOutsideClose` 훅을 만들어 뒀으나 아직 쓰이는 곳이 없었고, 제 자체 구현과 역할이 정확히 겹쳐 한 앱에 멘션 처리가 두 벌 있는 상태였다. 자체 `mentionUtils.ts`와 `MentionAutocomplete.tsx`를 제거하고 develop 것으로 갈아끼웠다
+- [x] 저장 형식을 `@[이름](profile_id)` 마커에서 `@슬러그` 평문으로 변경. 이에 따라 댓글에서도 팀 언급(`@프론트엔드`)이 되고, 팀을 언급하면 `resolveMentionProfiles`가 소속 팀원까지 펼쳐 `task_comment_mentions`에 남긴다. 반대로 팀원이 개명하면 기존 댓글의 언급 강조가 끊기고 동명이인은 아예 언급으로 잡히지 않는데, 이는 develop이 택한 규칙을 그대로 따른 결과다. 알림 대상 기록은 저장 시점에 관계 테이블로 남으므로 영향받지 않는다
+- [x] 본문 강조용 `splitMentionSegments`를 `_lib/mentions.ts`에 추가하고 기존 `parseMentions`를 그 위에 다시 얹었다. 언급 판정 규칙(경계 문자, 긴 슬러그 우선, 동명이인 제외)이 두 벌로 갈라지지 않도록 한 것이다
+- [x] 언급 후보를 만들기 위해 `page.tsx`와 `task/[id]/page.tsx`에서 `getTeamsWithMembers`로 팀을 함께 조회하고 `buildMentionTargets`로 합쳐 내려보낸다. 이미 조회한 profiles를 넘겨 중복 조회를 피한다
+- [x] `MentionPicker`는 Escape를 window에서 가로채 스스로 닫지만 전파까지 막지는 않아, 그대로 두면 자동완성을 닫으려던 Escape가 모달까지 올라가 모달이 함께 닫힌다. `CommentEditor`에서 언급 입력 중일 때만 전파를 막아 해결했다
+- [x] (PR #160 Codex 리뷰 반영, P2) 언급 자동완성이 열린 상태에서 커맨드+엔터를 누르면 잘린 본문이 저장되던 버그 수정. 팝오버가 window 캡처 단계에서 Enter를 먼저 받아 언급을 삽입하지만 전파는 막지 않아, 삽입이 반영되기 전의 `@검색어` 상태로 저장되고 입력창까지 비워지고 있었다. 언급 입력 중에는 제출을 건너뛴다
+- [x] (PR #160 Codex 리뷰 반영, P1) `task_comments`와 `task_comment_mentions`의 RLS를 작성자 소유권 기준으로 나눔. 이 앱은 별도 백엔드 없이 클라이언트가 anon key로 PostgREST에 직접 접근해서, 정책이 `using (true)`이면 서버 액션의 `author_id` 조건만으로는 작성자 제한이 강제되지 않고 로그인한 팀원이 남의 댓글을 고치거나 지울 수 있었다. 읽기는 팀 전체에 열고 쓰기만 본인으로 제한했다. 다른 테이블의 `authenticated_full_access` 단일 정책 방침에서 벗어나는 부분이라 마이그레이션 주석에 이유를 남겼다
+- [ ] 바뀐 RLS 정책을 원격에 적용 (마이그레이션의 정책 블록만 재실행하면 되도록 `drop policy if exists`를 앞에 뒀다)
+- [x] pnpm build / pnpm lint 검증 (검증 중 발견한 `perfectionist/sort-jsx-props` 경고 2건 수정). dev 서버와 `next build`가 같은 `.next` 디렉토리를 공유하므로, 검증 전에 dev 서버를 내리고 `.next`를 지운 뒤 빌드한다
+- [x] 실제 화면에서 댓글 생성/수정/삭제, 멘션 자동완성과 강조, 라이트/다크 모드 확인
+- [x] 멘션 자동완성 목록을 키보드로 이동할 때 활성 항목이 목록 밖으로 밀려나도 스크롤되지 않던 버그 수정 (`MentionAutocomplete`에서 활성 항목을 `scrollIntoView({ block: "nearest" })`로 끌어온다)
+- [x] 모바일 폭에서 모달 안 댓글 섹션까지 스크롤되는지 확인

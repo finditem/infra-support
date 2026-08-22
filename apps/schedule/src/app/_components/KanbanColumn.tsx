@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   tasks: TasksRow[];
   profileMap: Map<string, ProfileWithColor>;
   subtaskCountByParent: Map<string, number>;
+  commentCountByTask: Map<string, number>;
   onAddTask: (statusId: string) => void;
   onSelectTask: (task: TasksRow) => void;
 }
@@ -23,6 +24,7 @@ const KanbanColumn = ({
   tasks,
   profileMap,
   subtaskCountByParent,
+  commentCountByTask,
   onAddTask,
   onSelectTask,
 }: KanbanColumnProps) => {
@@ -54,6 +56,7 @@ const KanbanColumn = ({
           <KanbanCard
             key={task.id}
             assignee={task.assignee_id ? (profileMap.get(task.assignee_id) ?? null) : null}
+            commentCount={commentCountByTask.get(task.id) ?? 0}
             reporter={task.reporter_id ? (profileMap.get(task.reporter_id) ?? null) : null}
             statuses={statuses}
             subtaskCount={subtaskCountByParent.get(task.id) ?? 0}
