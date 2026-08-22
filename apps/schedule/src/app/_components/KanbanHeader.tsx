@@ -5,14 +5,20 @@ import Link from "next/link";
 interface KanbanHeaderProps {
   weekLabel: string;
   weekStart: Date;
+  sprintName: string | null;
 }
 
-const KanbanHeader = ({ weekLabel, weekStart }: KanbanHeaderProps) => {
+const KanbanHeader = ({ weekLabel, weekStart, sprintName }: KanbanHeaderProps) => {
   const prevWeekParam = format(addWeeks(weekStart, -1), "yyyy-MM-dd");
   const nextWeekParam = format(addWeeks(weekStart, 1), "yyyy-MM-dd");
 
   return (
-    <header className="flex items-center justify-end border-b border-border bg-surface-elevated px-4 py-5 sm:px-8">
+    <header className="flex items-center justify-between border-b border-border bg-surface-elevated px-4 py-5 sm:px-8">
+      <div>
+        {sprintName && (
+          <span className="text-lg font-semibold text-text-default">{sprintName}</span>
+        )}
+      </div>
       <div className="flex items-center gap-2">
         <Link
           aria-label="이전 주"

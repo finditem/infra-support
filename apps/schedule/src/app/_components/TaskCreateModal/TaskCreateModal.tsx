@@ -4,13 +4,15 @@ import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
 import { CornerDownLeft } from "lucide-react";
-import { createTask, updateTask } from "../../_lib/actions";
+import { createTask, deleteTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
-import type { TaskStatusesRow, TasksRow } from "@/types/tables";
+import type { TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
+import ProfilePickerPopover from "../ProfilePickerPopover";
+import type { MentionTarget } from "../../_lib/mentions";
+import TaskComments from "../TaskComments/TaskComments";
 import DatePickerPopover from "./DatePickerPopover";
 import PriorityPickerPopover from "./PriorityPickerPopover";
-import ProfilePickerPopover from "./ProfilePickerPopover";
 import StatusPickerPopover from "./StatusPickerPopover";
 
 interface SubtaskDraft {
@@ -28,8 +30,15 @@ interface TaskCreateModalProps {
   parentId?: string | null;
   parentTitle?: string | null;
   task?: TasksRow | null;
+  /** 편집 모드에서만 쓰는 이 일정의 댓글 목록. 생성 모드에서는 아직 일정이 없어 댓글도 없다. */
+  comments?: TaskCommentsRow[];
+  /** 댓글에서 언급할 수 있는 팀과 팀원 목록. */
+  mentionTargets?: MentionTarget[];
   onClose: () => void;
   onSaved: (tasks: TasksRow[]) => void;
+  onCommentsChange?: (comments: TaskCommentsRow[]) => void;
+  /** 삭제된 일정 id 목록(하위 일정 포함)을 전달한다. */
+  onDeleted: (taskIds: string[]) => void;
 }
 
 const TaskCreateModal = ({
@@ -41,8 +50,12 @@ const TaskCreateModal = ({
   parentId = null,
   parentTitle = null,
   task = null,
+  comments = [],
+  mentionTargets = [],
   onClose,
   onSaved,
+  onCommentsChange,
+  onDeleted,
 }: TaskCreateModalProps) => {
   const [title, setTitle] = useState(task?.title ?? "");
   const [body, setBody] = useState(task?.body ?? "");
@@ -58,6 +71,7 @@ const TaskCreateModal = ({
   );
   const [statusId, setStatusId] = useState(task?.status_id ?? initialStatusId);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [subtaskDrafts, setSubtaskDrafts] = useState<SubtaskDraft[]>([]);
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
@@ -155,6 +169,29 @@ const TaskCreateModal = ({
     }
   };
 
+  const handleDelete = async () => {
+    if (!task || isDeleting) return;
+
+    const confirmed = window.confirm(
+      "이 일정을 삭제할까요? 하위 일정이 있으면 함께 삭제되며 되돌릴 수 없습니다."
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+
+    const deletedIds = await deleteTask(task.id);
+
+    setIsDeleting(false);
+
+    if (!deletedIds) {
+      window.alert("일정 삭제에 실패했습니다.");
+      return;
+    }
+
+    onDeleted(deletedIds);
+  };
+
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
       onClose();
@@ -190,7 +227,7 @@ const TaskCreateModal = ({
         <div className="overflow-y-auto">
           <div className="px-5 pt-[18px]">
             <input
-              className="placeholder:text-text-muted/50 w-full border-none text-[17px] font-semibold text-text-default outline-none"
+              className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[17px] font-semibold text-text-default outline-none"
               autoFocus
               placeholder="작업 제목을 입력하세요"
               type="text"
@@ -234,7 +271,7 @@ const TaskCreateModal = ({
           <div className="px-[46px] py-3">
             <textarea
               ref={bodyRef}
-              className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none text-[13px] leading-[1.75] text-text-muted outline-none"
+              className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none bg-transparent text-[13px] leading-[1.75] text-text-muted outline-none"
               placeholder="설명을 추가하세요..."
               value={body}
               onChange={(event) => setBody(event.target.value)}
@@ -252,7 +289,7 @@ const TaskCreateModal = ({
                 >
                   <div className="flex items-center gap-1.5">
                     <input
-                      className="placeholder:text-text-muted/50 w-full border-none text-[13px] font-medium text-text-default outline-none"
+                      className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[13px] font-medium text-text-default outline-none"
                       placeholder="하위 일정 제목"
                       type="text"
                       value={draft.title}
@@ -270,7 +307,7 @@ const TaskCreateModal = ({
                     </button>
                   </div>
                   <textarea
-                    className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none text-xs leading-[1.6] text-text-muted outline-none"
+                    className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none bg-transparent text-xs leading-[1.6] text-text-muted outline-none"
                     placeholder="설명을 추가하세요..."
                     value={draft.body}
                     onChange={(event) => updateSubtaskDraft(draft.id, { body: event.target.value })}
@@ -287,6 +324,18 @@ const TaskCreateModal = ({
               </button>
             </div>
           )}
+
+          {isEditing && task && onCommentsChange && (
+            <TaskComments
+              className="border-t border-border px-5 py-4"
+              comments={comments}
+              currentProfileId={currentProfileId}
+              mentionTargets={mentionTargets}
+              profiles={profiles}
+              taskId={task.id}
+              onCommentsChange={onCommentsChange}
+            />
+          )}
         </div>
 
         <div className="flex shrink-0 items-center justify-between border-t border-border px-[18px] py-3.5">
@@ -301,6 +350,16 @@ const TaskCreateModal = ({
           </span>
 
           <div className="flex gap-1.5">
+            {isEditing && (
+              <button
+                className="rounded-[7px] px-3.5 py-1.5 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+                disabled={isDeleting || isSubmitting}
+                type="button"
+                onClick={() => void handleDelete()}
+              >
+                삭제
+              </button>
+            )}
             <button
               className="rounded-[7px] border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
               type="button"
@@ -310,7 +369,7 @@ const TaskCreateModal = ({
             </button>
             <button
               className="flex items-center gap-1 rounded-[7px] bg-primary px-4 py-1.5 text-xs font-semibold text-text-inverse hover:bg-primary-hover disabled:opacity-50"
-              disabled={!title.trim() || isSubmitting}
+              disabled={!title.trim() || isSubmitting || isDeleting}
               type="button"
               onClick={() => void handleSubmit()}
             >

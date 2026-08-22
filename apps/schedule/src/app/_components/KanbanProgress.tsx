@@ -1,5 +1,5 @@
-import { getInitial } from "../_lib/kanbanUtils";
 import type { KanbanProgressEntry } from "../_types/kanban";
+import ProfileAvatar from "./ProfileAvatar";
 
 interface KanbanProgressProps {
   progress: KanbanProgressEntry[];
@@ -14,12 +14,7 @@ const KanbanProgress = ({ progress }: KanbanProgressProps) => {
     <div className="flex flex-wrap gap-6">
       {progress.map(({ profile, percent }) => (
         <div key={profile.id} className="flex min-w-[180px] items-center gap-2">
-          <span
-            className="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-slate-800"
-            style={{ backgroundColor: profile.color }}
-          >
-            {getInitial(profile.name)}
-          </span>
+          <ProfileAvatar profile={profile} size="lg" />
           <span className="shrink-0 text-xs font-medium text-text-default">{profile.name}</span>
           <div className="h-[6px] flex-1 overflow-hidden rounded-full bg-fill-neutural-subtle-default">
             <div

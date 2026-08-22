@@ -3,6 +3,8 @@
 import type { KeyboardEvent } from "react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/utils";
+import type { TimeValue } from "../_lib/time";
+import { to24Hour, toPeriodHour } from "../_lib/time";
 
 const ITEM_HEIGHT = 32;
 const VISIBLE_COUNT = 3;
@@ -11,6 +13,7 @@ const SCROLL_END_DELAY = 120;
 
 const PERIODS = ["오전", "오후"];
 const HOURS_12 = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
+const HOURS_24 = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
 const MINUTES = ["00", "10", "20", "30", "40", "50"];
 
 interface WheelColumnProps {
@@ -23,12 +26,22 @@ interface WheelColumnProps {
 const WheelColumn = ({ label, values, value, onChange }: WheelColumnProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollEndTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const hasMounted = useRef(false);
 
+  // 12/24시간 전환처럼 값이나 후보 목록이 바깥에서 바뀌는 경우가 있어 마운트 시점뿐 아니라 매번 위치를 맞춘다.
+  // 이미 그 위치면 스크롤하지 않으므로 사용자가 굴리는 중에 끼어들지 않는다.
   useEffect(() => {
     const index = values.indexOf(value);
-    if (index === -1 || !containerRef.current) return;
-    containerRef.current.scrollTo({ top: index * ITEM_HEIGHT });
-  }, []);
+    const container = containerRef.current;
+    if (index === -1 || !container) return;
+
+    const top = index * ITEM_HEIGHT;
+    if (Math.abs(container.scrollTop - top) > 1) {
+      container.scrollTo({ top, behavior: hasMounted.current ? "smooth" : "auto" });
+    }
+
+    hasMounted.current = true;
+  }, [value, values]);
 
   const commitIndex = (index: number, behavior: ScrollBehavior = "smooth") => {
     const clamped = Math.min(Math.max(index, 0), values.length - 1);
@@ -89,28 +102,54 @@ const WheelColumn = ({ label, values, value, onChange }: WheelColumnProps) => {
 };
 
 interface TimeWheelPickerProps {
-  period: string;
-  hour: string;
-  minute: string;
-  onChangePeriod: (value: string) => void;
-  onChangeHour: (value: string) => void;
-  onChangeMinute: (value: string) => void;
+  /** 표시 형식과 무관하게 항상 24시간제 값이다. */
+  value: TimeValue;
+  /** true면 오전/오후 열이 사라지고 시 열이 00~23으로 바뀐다. */
+  is24Hour: boolean;
+  onChange: (value: TimeValue) => void;
 }
 
-const TimeWheelPicker = ({
-  period,
-  hour,
-  minute,
-  onChangePeriod,
-  onChangeHour,
-  onChangeMinute,
-}: TimeWheelPickerProps) => {
+const TimeWheelPicker = ({ value, is24Hour, onChange }: TimeWheelPickerProps) => {
+  const { period, hour12 } = toPeriodHour(value.hour);
+
   return (
     <div className="relative flex justify-center gap-2 rounded-xl bg-surface py-1">
       <div className="pointer-events-none absolute inset-x-2 top-1/2 h-8 -translate-y-1/2 border-y border-border" />
-      <WheelColumn label="오전/오후" value={period} values={PERIODS} onChange={onChangePeriod} />
-      <WheelColumn label="시" value={hour} values={HOURS_12} onChange={onChangeHour} />
-      <WheelColumn label="분" value={minute} values={MINUTES} onChange={onChangeMinute} />
+
+      {is24Hour ? (
+        <WheelColumn
+          key="hour"
+          label="시"
+          value={value.hour}
+          values={HOURS_24}
+          onChange={(hour) => onChange({ ...value, hour })}
+        />
+      ) : (
+        <>
+          <WheelColumn
+            key="period"
+            label="오전/오후"
+            value={period}
+            values={PERIODS}
+            onChange={(next) => onChange({ ...value, hour: to24Hour(next, hour12) })}
+          />
+          <WheelColumn
+            key="hour"
+            label="시"
+            value={hour12}
+            values={HOURS_12}
+            onChange={(next) => onChange({ ...value, hour: to24Hour(period, next) })}
+          />
+        </>
+      )}
+
+      <WheelColumn
+        key="minute"
+        label="분"
+        value={value.minute}
+        values={MINUTES}
+        onChange={(minute) => onChange({ ...value, minute })}
+      />
     </div>
   );
 };

@@ -1,16 +1,18 @@
 import { format } from "date-fns";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
-import { getInitial, isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
+import { isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
+import ProfileAvatar from "./ProfileAvatar";
 
 interface KanbanCardProps {
   task: TasksRow;
   assignee: ProfileWithColor | null;
   reporter: ProfileWithColor | null;
   subtaskCount: number;
+  commentCount: number;
   statuses: TaskStatusesRow[];
   onSelect: () => void;
 }
@@ -20,6 +22,7 @@ const KanbanCard = ({
   assignee,
   reporter,
   subtaskCount,
+  commentCount,
   statuses,
   onSelect,
 }: KanbanCardProps) => {
@@ -73,24 +76,14 @@ const KanbanCard = ({
         <div className="flex items-center gap-3">
           {assignee && (
             <span className="flex items-center gap-1">
-              <span
-                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-slate-800"
-                style={{ backgroundColor: assignee.color }}
-              >
-                {getInitial(assignee.name)}
-              </span>
+              <ProfileAvatar profile={assignee} />
               {assignee.name}
             </span>
           )}
 
           {reporter && (
             <span className="flex items-center gap-1">
-              <span
-                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-slate-800"
-                style={{ backgroundColor: reporter.color }}
-              >
-                {getInitial(reporter.name)}
-              </span>
+              <ProfileAvatar profile={reporter} />
               {reporter.name}
             </span>
           )}
@@ -104,10 +97,17 @@ const KanbanCard = ({
         )}
       </div>
 
-      {subtaskCount > 0 && (
-        <p className="border-t border-border pt-2 text-xs text-text-muted">
-          하위 일정 {subtaskCount}개
-        </p>
+      {(subtaskCount > 0 || commentCount > 0) && (
+        <div className="flex items-center gap-3 border-t border-border pt-2 text-xs text-text-muted">
+          {subtaskCount > 0 && <span>하위 일정 {subtaskCount}개</span>}
+
+          {commentCount > 0 && (
+            <span className="flex items-center gap-1">
+              <MessageSquare aria-hidden className="size-3" />
+              {commentCount}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );

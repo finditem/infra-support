@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { getStatusColor } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
@@ -12,6 +13,7 @@ interface KanbanColumnProps {
   tasks: TasksRow[];
   profileMap: Map<string, ProfileWithColor>;
   subtaskCountByParent: Map<string, number>;
+  commentCountByTask: Map<string, number>;
   onAddTask: (statusId: string) => void;
   onSelectTask: (task: TasksRow) => void;
 }
@@ -22,10 +24,16 @@ const KanbanColumn = ({
   tasks,
   profileMap,
   subtaskCountByParent,
+  commentCountByTask,
   onAddTask,
   onSelectTask,
 }: KanbanColumnProps) => {
   const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="w-[260px] shrink-0">
@@ -34,7 +42,7 @@ const KanbanColumn = ({
           <span
             aria-hidden
             className="size-2 rounded-full"
-            style={{ backgroundColor: getStatusColor(status, resolvedTheme === "dark") }}
+            style={{ backgroundColor: getStatusColor(status, mounted && resolvedTheme === "dark") }}
           />
           <span className="text-sm font-semibold text-text-default">{status.name}</span>
         </div>
@@ -48,6 +56,7 @@ const KanbanColumn = ({
           <KanbanCard
             key={task.id}
             assignee={task.assignee_id ? (profileMap.get(task.assignee_id) ?? null) : null}
+            commentCount={commentCountByTask.get(task.id) ?? 0}
             reporter={task.reporter_id ? (profileMap.get(task.reporter_id) ?? null) : null}
             statuses={statuses}
             subtaskCount={subtaskCountByParent.get(task.id) ?? 0}

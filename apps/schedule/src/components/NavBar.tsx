@@ -2,12 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/utils";
 import { SignOutButton } from "./SignOutButton";
 
 const NAV_ITEMS = [
   { href: "/", label: "일정" },
   { href: "/calendar", label: "캘린더" },
+  { href: "/settings", label: "설정" },
 ];
+
+/**
+ * 설정처럼 하위 경로를 가진 메뉴도 활성으로 보이도록 접두어로 판정한다.
+ * "/"는 모든 경로의 접두어라서 정확히 일치할 때만 활성으로 본다.
+ */
+const isNavItemActive = (pathname: string, href: string) =>
+  href === "/" ? pathname === "/" : pathname.startsWith(href);
 
 export const NavBar = () => {
   const pathname = usePathname();
@@ -21,11 +30,12 @@ export const NavBar = () => {
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
-              className={`rounded-md px-3 py-[6px] text-sm ${
-                pathname === item.href
+              className={cn(
+                "rounded-md px-3 py-[6px] text-sm",
+                isNavItemActive(pathname, item.href)
                   ? "font-semibold text-text-default"
                   : "text-text-muted hover:text-text-default"
-              }`}
+              )}
               href={item.href}
             >
               {item.label}
