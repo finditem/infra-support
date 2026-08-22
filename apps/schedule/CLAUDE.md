@@ -93,6 +93,8 @@ pnpm lint    # next lint
 
 `.env.example` 참고. `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`는 이 앱 전용 Supabase 프로젝트(모니터링 프로젝트와 별개)의 값을 사용한다. 서버 전용 키(service role)는 쓰지 않는다 — 별도 백엔드 앱이 없고 클라이언트에서 anon key + RLS로 접근하는 구조이기 때문이다.
 
+Slack 알림용 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL`은 서버 전용 값이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다. 서버 액션(`src/app/_lib/actions.ts`)에서만 읽으므로 클라이언트 번들에 포함되지 않는다. 세 값이 없으면 알림만 건너뛰고 일정 저장은 정상 동작한다.
+
 ## 기획 문서 및 작업 계획
 
 `docs/기획안.md`, `docs/기능설계서.md`에 원본 스펙 문서가 저장되어 있다 (기능설계서.md가 더 나중에 작성된 확장 버전이라 내용이 겹치면 그쪽을 우선한다). apps/schedule 관련 작업을 시작하기 전에는 `schedule-plan` 스킬(`.claude/skills/schedule-plan/SKILL.md`)을 먼저 실행해 이 문서들을 확인하고 `docs/plan.md`에 작업 체크리스트를 기록한다.

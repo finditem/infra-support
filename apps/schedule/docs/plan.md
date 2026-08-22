@@ -319,3 +319,40 @@
 - [x] `SprintList.tsx`: `createSprint`/`updateSprint`/`deleteSprint` 실패 시 입력값을 초기화하거나 새로고침하지 않고 에러 메시지를 표시하며 상태 유지
 - [x] `SprintList.tsx`: 추가 폼/수정 행에 `flex-wrap` 적용해 좁은 화면에서 줄바꿈되도록 수정
 - [x] pnpm build / pnpm lint 검증
+
+## Slack 알림 연동 (일정 생성/수정/삭제)
+
+- [x] `profiles.slack_user_id` 컬럼 추가 마이그레이션 — `supabase/migrations/0008_add_profile_slack_user_id.sql`
+- [x] `src/types/tables/profiles.ts`에 `slack_user_id` 반영
+- [x] Slack 전송 모듈 (`chat.postMessage` 호출, 토큰 없으면 조용히 건너뜀) — `src/lib/slack/postSlackMessage.ts`
+- [x] 이벤트별 메시지 본문 생성 (생성/수정/삭제, 멘션과 mrkdwn 이스케이프) — `src/lib/slack/buildTaskEventMessage.ts`
+- [x] 채널 + 담당자/보고자 DM 전송 (행위자 본인과 Slack 계정 미연결 팀원 제외) — `src/lib/slack/notifyTaskEvent.ts`
+- [x] DB 조회로 알림 payload 조립 (상태명, 담당자/보고자/행위자, 상위 일정 제목, 링크) — `src/app/_lib/taskNotification.ts`
+- [x] `createTask`에 생성 알림 연결
+- [x] `updateTask`에 수정 전 행 조회 + 변경 필드 diff 알림 연결
+- [x] `deleteTask` 서버 액션 추가 (삭제 전 하위 일정 조회 후 물리 삭제, 삭제 알림 전송)
+- [x] 일정 수정 모달에 삭제 버튼 + 확인 다이얼로그 추가
+- [x] KanbanBoard에서 삭제된 일정(하위 포함) 목록에서 제거
+- [x] `.env.example`에 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL` 추가
+- [x] 마이그레이션 `0008`(develop 병합 시 0006에서 번호 변경) SQL을 사용자가 Supabase SQL 에디터에서 직접 적용
+- [x] Flow Bot 앱 확인: `chat:write`가 이미 부여되어 있어 스코프 추가와 재설치 불필요. 토큰/채널 ID/`SITE_URL`을 `.env`에 등록 완료
+- [x] `profiles.slack_user_id`에 팀원 7명의 Slack 멤버 ID 입력
+- [x] pnpm build / pnpm lint 검증
+
+## Slack 알림을 DM 없이 채널 멘션으로 변경
+
+- [x] `notifyTaskEvent`에서 DM 전송 제거, 팀 채널 한 곳으로만 전송
+- [x] 담당자/보고자 멘션 줄을 생성/수정/삭제 모든 이벤트에 표시 (수정 알림에도 멘션이 들어가야 당사자에게 알림이 간다)
+- [ ] 담당자/보고자가 알림 채널에 참여해 있는지 확인 (채널 밖 사용자를 멘션하면 Slack이 초대 안내를 띄운다)
+
+## Slack 알림 동작 확인 (남은 작업)
+
+- [ ] 워크트리 브랜치로 dev 서버를 띄워 일정 생성/수정/삭제 시 채널 메시지가 올라오는지 확인 (메인 워킹 디렉토리의 dev 서버는 develop 브랜치라 이 코드가 없다)
+- [ ] `select name, slack_user_id from public.profiles order by name;`으로 `slack_user_id`가 null인 팀원이 없는지 확인
+- [ ] Vercel 환경 변수에 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL` 등록 (배포 시점)
+
+## PR #154 리뷰 반영 (Slack 전송과 저장 응답 분리)
+
+- [x] `postSlackMessage`의 `fetch`에 `AbortSignal.timeout` 5초 상한 추가 (Slack이 응답하지 않을 때 서버리스 함수가 매달리지 않도록)
+- [x] `createTask`/`updateTask`/`deleteTask`에서 알림 호출을 `next/server`의 `after()`로 감싸 저장 성공 응답을 지연시키지 않도록 변경
+- [x] pnpm build / pnpm lint 검증
