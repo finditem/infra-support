@@ -58,7 +58,7 @@ const DatePickerPopover = ({ label, value, onChange }: DatePickerPopoverProps) =
       label={label}
       panelClassName="w-64"
       trigger={
-        <span className="text-xs text-text-default">
+        <span className="whitespace-nowrap text-xs text-text-default">
           📅 {format(selectedDate, "M월 d일 (EEEEEE)", { locale: ko })}
         </span>
       }

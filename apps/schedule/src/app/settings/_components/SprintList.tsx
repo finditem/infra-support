@@ -57,11 +57,11 @@ const SprintList = ({ sprints }: SprintListProps) => {
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
-        <div className="w-36">
+        <div className="w-44">
           <DatePickerPopover label="시작일" value={startDate} onChange={setStartDate} />
         </div>
         <span className="text-text-muted">~</span>
-        <div className="w-36">
+        <div className="w-44">
           <DatePickerPopover label="종료일" value={endDate} onChange={setEndDate} />
         </div>
       </form>
