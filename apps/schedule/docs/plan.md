@@ -523,6 +523,27 @@
 - [x] pnpm build / pnpm lint 검증 (경고 없이 통과)
 - [ ] 실제 화면에서 ESC, 딤 클릭, 스크롤 잠금 동작과 팝오버가 열린 상태의 ESC 확인
 
+## 댓글 언급 Slack DM (feat/comment-mention-notify)
+
+`feat/task-comments`가 누가 누구를 언급했는지 `task_comment_mentions`에 남겨 두기만 하고 발송은 범위 밖으로 미뤄 뒀다. 그 마지막 조각을 붙인다. `docs/기능설계서.md`에는 댓글 기능 자체가 없어 이번에도 새로 정의한다.
+
+일정 변경 알림은 위 "Slack 알림을 DM 없이 채널 멘션으로 변경"에 따라 팀 채널 한 곳으로만 가지만, 댓글 언급은 그 방침을 따르지 않고 언급된 사람 개인 DM으로 보낸다. 일정 변경은 팀 전체가 알아야 하는 내용인 반면 댓글 언급은 당사자에게만 필요한 내용이고, 댓글이 오갈 때마다 채널에 쌓이면 소음이 되기 때문이다.
+
+- [x] `src/lib/slack/escapeSlackText.ts` 분리: `buildTaskEventMessage`가 안에 두고 쓰던 이스케이프 함수를 댓글 메시지에서도 쓰게 되어 파일로 뺀다
+- [x] `src/lib/slack/formatSlackProfile.ts` 분리: Slack 계정이 연결된 팀원은 언급으로, 아니면 이름으로 표기하는 규칙도 두 메시지가 공유한다
+- [x] `src/lib/slack/types.ts`에 `CommentMentionNotificationPayload` 추가
+- [x] `src/lib/slack/buildCommentMentionMessage.ts` 신규 작성: 작성자, 일정 제목, 댓글 본문 인용, 상세 링크. 본인에게만 가는 DM이라 받는 사람 이름은 적지 않고, 언급된 사람이 여럿이어도 본문이 같아 한 번만 만든다
+- [x] `src/lib/slack/notifyCommentMention.ts` 신규 작성: 언급된 사람의 `slack_user_id`를 채널로 넘겨 개인 DM 전송. `SLACK_CHANNEL_ID`는 쓰지 않으므로 Slack 계정이 연결되지 않은 팀원은 보낼 곳이 없어 건너뛴다
+- [x] `src/app/_lib/notificationProfiles.ts` 분리: `taskNotification.ts`의 `loadProfileMap`/`toNotificationProfile`을 댓글 알림과 공유
+- [x] `src/app/_lib/taskUrl.ts` 분리: `buildTaskUrl`도 두 알림이 공유한다 (하위 일정은 상세 페이지가 없어 상위 일정으로 보낸다)
+- [x] `src/app/_lib/parentTaskTitle.ts` 분리: 상위 일정 제목을 읽는 `loadParentTitle`도 두 알림이 공유한다
+- [x] `src/app/_lib/commentNotification.ts` 신규 작성: 언급 대상과 작성자 프로필, 일정 제목, 상위 일정 제목을 모아 payload를 만든다. 작성자 본인은 DM 대상에서 제외한다
+- [x] `src/app/_lib/commentActions.ts` 수정: `syncCommentMentions`가 이번에 새로 추가된 언급만 돌려주도록 바꾸고(수정할 때마다 기존 언급 대상에게 DM이 다시 가는 것을 막는다), `after()`로 DM을 응답 뒤에 보낸다
+- [x] 전송 실패가 댓글 저장을 막지 않는지 확인 (기존 일정 알림과 동일하게 `try/catch`로 흡수)
+- [x] (PR #163 Codex 리뷰 반영, P2) 언급 대상 판정을 클라이언트에서 서버로 옮김. `createComment`/`updateComment`가 받던 `mentionedProfileIds`를 없애고 서버 액션이 저장할 본문을 직접 파싱한다. 이 값을 클라이언트가 정하면 로그인한 팀원이 서버 액션을 직접 호출해 본문에 언급하지도 않은 사람에게 DM을 보낼 수 있었다. `feat/task-comments` 때부터 있던 구조지만 그때는 결과가 관계 행 오염에 그쳤고, 발송이 붙으면서 실제 피해로 이어질 수 있게 되어 이번에 닫았다. 판정 함수는 클라이언트와 동일한 `parseMentions`/`resolveMentionProfiles`라 결과는 달라지지 않고, 댓글 저장마다 조회 3건(profiles, teams, team_members)이 는다
+- [ ] 실제 화면에서 댓글로 팀원/팀을 언급했을 때 당사자에게 DM이 오는지 확인 (수정 시 기존 언급 대상에게 다시 가지 않는지, 봇이 DM을 열 수 있는지 포함)
+- [x] pnpm build / pnpm lint 검증 (워크트리에서 실행, 경고 없음)
+
 ## 캘린더 반복 일정과 등록 대상 선택 (feat/calendar-recurring)
 
 가능 시간을 날짜 하나에 본인 몫으로만 등록할 수 있어서, 매주 같은 시간에 열리는 회의처럼 되풀이되는 일정은 날짜 수만큼 모달을 반복해서 열어야 했다. `docs/기능설계서.md` 10. 미구현 표의 "반복 일정"은 칸반의 업무 자동 생성을 가리키지만, 이번 요청은 캘린더의 가능 시간 반복 등록이라 이 작업에서 새로 정의한다. 반복 주기는 없음/매일/매주/매월, 종료는 날짜 지정, 대상은 팀원과 팀을 함께 고르는 방식으로 사용자와 확정했다.
