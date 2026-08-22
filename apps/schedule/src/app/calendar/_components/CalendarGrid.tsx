@@ -73,9 +73,13 @@ const CalendarGrid = ({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface-elevated">
-      {/* 삭제 확인이 떠 있는 동안 바깥 클릭을 이 레이어가 받아 확인만 닫는다. 뒤 날짜 셀의 등록 모달이 함께 열리지 않도록 클릭을 흡수한다. */}
+      {/*
+        삭제 확인이 떠 있는 동안 바깥 클릭을 이 레이어가 받아 확인만 닫는다. 뒤 날짜 셀의 등록 모달이 함께 열리지 않도록 클릭을 흡수한다.
+        z-index는 날짜 셀 버튼(z-0)보다 위, 시간 블록 목록(z-10)보다 아래여야 한다. 목록이 스택 컨텍스트를 만들기 때문에
+        그 안의 삭제/취소 버튼은 z-index를 아무리 올려도 이 레이어 위로 올라오지 못한다.
+      */}
       {pendingDeleteId && (
-        <div aria-hidden className="fixed inset-0 z-30" onClick={() => setPendingDeleteId(null)} />
+        <div aria-hidden className="fixed inset-0 z-[5]" onClick={() => setPendingDeleteId(null)} />
       )}
 
       <div className="grid grid-cols-7 border-b border-border">
@@ -148,7 +152,7 @@ const CalendarGrid = ({
                       <span
                         key={block.id}
                         className={cn(
-                          "pointer-events-auto relative z-[35] flex items-center gap-1",
+                          "pointer-events-auto flex items-center gap-1",
                           blockClassName
                         )}
                         style={blockStyle}
