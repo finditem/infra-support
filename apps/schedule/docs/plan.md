@@ -266,3 +266,56 @@
 - [x] `CalendarGrid.tsx`의 삭제 확인 오버레이(`bg-white/20` 등)를 어두운 오버레이로 교체
 - [x] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
+
+## 주차 헤더에 스프린트/주제 라벨 표시
+
+메인 칸반보드 상단 `KanbanHeader`가 "2026년 8월 3주차" 텍스트만 보여주던 것에, 그 주가 속한 작업의 큰 주제(예: "1차 스프린트")를 함께 표시한다. 별도 sprints 테이블 대신 `weeks.sprint_name` 텍스트 컬럼을 추가하는 경량 방식으로 가고, 입력은 헤더 인라인 편집이 아니라 이미 계획만 되어 있던 `/settings` 라우트를 재활용한 관리 화면에서 한다. 캘린더 화면은 주 단위 개념이 없어 범위 밖.
+
+- [x] `supabase/migrations/0006_add_week_sprint_name.sql` 신규 작성 (`weeks.sprint_name text` 컬럼 추가, RLS 정책 추가 불필요)
+- [x] `src/types/tables/weeks.ts`: `WeeksWritable`에 `sprint_name: string | null` 추가, `WeeksInsert`에서 `created_at`과 동일하게 옵셔널 처리
+- [x] `src/app/settings/_lib/actions.ts` 신규 작성: `updateWeekSprintName(weekId, sprintName)` 서버 액션 (`calendar/_lib/actions.ts` 패턴 재사용)
+- [x] `src/app/settings/page.tsx` 신규 작성: `weeks` 전체를 `start_date` 내림차순 조회, `NavBar` 렌더링, `SprintSettingsTable`로 전달
+- [x] `src/app/settings/_components/SprintSettingsTable.tsx` 신규 작성: 주차별 라벨(`getWeekLabel` 재사용)/기간/`sprint_name` 인라인 입력, blur 시 저장 후 `router.refresh()`
+- [x] `src/components/NavBar.tsx`: `NAV_ITEMS`에 `{ href: "/settings", label: "설정" }` 추가
+- [x] `src/app/_components/KanbanHeader.tsx`: `sprintName: string | null` prop 추가, 있을 때만 weekLabel 위에 배지로 표시
+- [x] `src/app/page.tsx`: `KanbanHeader`에 `sprintName={weekRow.sprint_name}` 전달
+- [x] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가) — 아래 재설계로 0006 대신 0007을 적용할 것
+
+## 스프린트를 주차 종속에서 기간 기반 독립 엔티티로 재설계
+
+위 방식은 주차(`weeks`)마다 스프린트 이름을 매번 입력해야 해서 번거롭다는 피드백을 받았다. `weeks.sprint_name` 텍스트 컬럼 대신, 자체 기간(시작일~종료일)을 갖는 `sprints` 테이블을 새로 둔다. 설정 화면은 주차 목록을 순회하며 입력받는 표 대신, "+" 버튼으로 이름과 기간을 입력하면 새 스프린트가 목록 아래로 쌓이는 UI로 바꾼다. 칸반 헤더는 현재 주의 시작일이 어느 스프린트의 기간에 속하는지 조회해서 표시하며, 헤더 UI 자체(배지 위치/스타일)는 이전 작업에서 이미 확정된 것을 그대로 쓴다.
+
+- [x] `supabase/migrations/0007_replace_week_sprint_name_with_sprints.sql` 신규 작성: `weeks.sprint_name` 컬럼 제거, `sprints(id, name, start_date, end_date, created_at)` 테이블 생성 및 `authenticated_full_access` RLS 정책 추가 (0006은 적용하지 않고 이 마이그레이션으로 대체)
+- [x] `src/types/tables/weeks.ts`에서 `sprint_name` 제거(원복), `src/types/tables/sprints.ts` 신규 작성, `src/types/tables/index.ts`에 re-export 추가
+- [x] `src/app/_lib/kanban.ts`: `getSprintForWeek(supabase, weekStart)` 추가 — 주어진 주 시작일이 `start_date`~`end_date` 범위에 포함되는 스프린트를 조회
+- [x] `src/app/page.tsx`: `weekRow.sprint_name` 대신 `getSprintForWeek` 조회 결과를 `KanbanHeader`의 `sprintName`으로 전달
+- [x] `src/app/settings/_lib/actions.ts`: `updateWeekSprintName`을 `createSprint({ name, startDate, endDate })`로 교체
+- [x] `src/app/settings/page.tsx`: `weeks` 대신 `sprints` 전체를 `created_at` 오름차순 조회
+- [x] `src/app/settings/_components/SprintSettingsTable.tsx` 삭제, `SprintList.tsx` 신규 작성: "+" 버튼 + 이름/기간(시작일~종료일) 입력 폼, 저장 시 입력값 초기화 후 목록 맨 아래에 추가
+- [x] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL(0007)을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
+
+## 스프린트 등록 폼 날짜 입력을 커스텀 캘린더 피커로 교체
+
+`SprintList.tsx`의 시작일/종료일이 네이티브 `<input type="date">`라 UI가 볼품없다는 피드백을 받았다. 새 컴포넌트를 만드는 대신 이미 존재하는 `TaskCreateModal/DatePickerPopover.tsx`(할 일 마감일 선택에 쓰이는 월별 그리드 팝오버, `PropertyPopover` 셸 기반)를 재사용한다. `/calendar`의 `CalendarGrid.tsx`가 이미 쓰고 있는 관례(일요일 `text-fg-state-error`, 토요일 `text-primary`)를 `DatePickerPopover`에도 적용해, 할 일 생성 모달의 마감일 선택에도 함께 개선 효과가 생기도록 했다.
+
+- [x] `DatePickerPopover.tsx`: `getDayClassName`/`getWeekdayHeaderClassName` 헬퍼(if-체인)를 추가해 그리드 내 일/토요일 텍스트와 요일 헤더에 각각 `text-fg-state-error`/`text-primary` 적용
+- [x] `SprintList.tsx`: `<input type="date">` 2개를 `DatePickerPopover`(라벨 "시작일"/"종료일") 2개로 교체, `startDate`/`endDate` 초기값을 오늘 날짜로 변경, `canSubmit`에서 날짜 빈 값 체크 제거
+- [x] pnpm build / pnpm lint 검증
+
+## 스프린트 수정/삭제 기능 추가
+
+목록에 추가만 가능하고 수정/삭제가 없어서 잘못 입력한 스프린트를 고칠 방법이 없었다. `CalendarGrid.tsx`의 가능 시간 삭제 확인 패턴("삭제할까요?" + 삭제/취소 인라인 전환)을 그대로 재사용해 삭제 시 확인 단계를 거치도록 하고, 수정은 행을 이름+기간 입력 폼으로 바꿔치기하는 인라인 편집 방식으로 구현한다.
+
+- [x] `settings/_lib/actions.ts`: `updateSprint({ id, name, startDate, endDate })`, `deleteSprint(id)` 서버 액션 추가
+- [x] `SprintList.tsx`: 각 행에 수정(연필 아이콘)/삭제(✕) 버튼 추가. 수정 클릭 시 해당 행이 이름 입력 + `DatePickerPopover` 2개 + 저장/취소 버튼으로 전환. 삭제 클릭 시 "삭제할까요?" 확인 상태로 전환 후 삭제/취소
+- [x] pnpm build / pnpm lint 검증
+
+## PR #156 자동 코드 리뷰 반영
+
+- [x] `0007_replace_week_sprint_name_with_sprints.sql`: `weeks.sprint_name` 삭제를 `drop column if exists`로 변경(0006 미적용 상태에서도 0007만으로 실행 가능하도록), `sprints` 테이블에 `end_date >= start_date` 체크 제약 추가
+- [x] `SprintList.tsx`: `canSubmit`/`canSaveEdit`에 `startDate <= endDate` 검증 추가
+- [x] `SprintList.tsx`: `createSprint`/`updateSprint`/`deleteSprint` 실패 시 입력값을 초기화하거나 새로고침하지 않고 에러 메시지를 표시하며 상태 유지
+- [x] `SprintList.tsx`: 추가 폼/수정 행에 `flex-wrap` 적용해 좁은 화면에서 줄바꿈되도록 수정
+- [x] pnpm build / pnpm lint 검증

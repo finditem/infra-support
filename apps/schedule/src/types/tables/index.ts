@@ -1,5 +1,6 @@
 export type { AvailabilityInsert, AvailabilityRow, AvailabilityUpdate } from "./availability";
 export type { ProfilesInsert, ProfilesRow, ProfilesUpdate } from "./profiles";
+export type { SprintsInsert, SprintsRow, SprintsUpdate } from "./sprints";
 export type { StatusHistoryInsert, StatusHistoryRow, StatusHistoryUpdate } from "./status_history";
 export type { TaskStatusesInsert, TaskStatusesRow, TaskStatusesUpdate } from "./task_statuses";
 export type { TasksInsert, TasksRow, TasksUpdate } from "./tasks";
