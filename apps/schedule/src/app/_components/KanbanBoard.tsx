@@ -9,6 +9,7 @@ import {
   resolveEffectiveStatusId,
   sortByPriorityDesc,
 } from "../_lib/kanbanUtils";
+import type { MentionTarget } from "../_lib/mentions";
 import type { KanbanFilterState } from "../_types/kanban";
 import KanbanColumn from "./KanbanColumn";
 import KanbanFilters from "./KanbanFilters";
@@ -29,6 +30,8 @@ interface KanbanBoardProps {
   tasks: TasksRow[];
   /** 이 보드가 다루는 일정들의 댓글 전부. 카드의 개수 배지와 편집 모달이 같은 배열을 본다. */
   comments: TaskCommentsRow[];
+  /** 댓글에서 언급할 수 있는 팀과 팀원 목록. */
+  mentionTargets: MentionTarget[];
   currentProfileId: string | null;
   parentId?: string | null;
   parentTitle?: string | null;
@@ -40,6 +43,7 @@ const KanbanBoard = ({
   profiles,
   tasks: initialTasks,
   comments: initialComments,
+  mentionTargets,
   currentProfileId,
   parentId = null,
   parentTitle = null,
@@ -132,6 +136,7 @@ const KanbanBoard = ({
           comments={editingTaskComments}
           currentProfileId={currentProfileId}
           initialStatusId={creatingStatusId ?? ""}
+          mentionTargets={mentionTargets}
           parentId={parentId}
           parentTitle={parentTitle}
           profiles={Array.from(profileMap.values())}

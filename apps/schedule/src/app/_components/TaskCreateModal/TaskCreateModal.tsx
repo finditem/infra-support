@@ -9,6 +9,7 @@ import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUti
 import type { ProfileWithColor } from "../../_types/kanban";
 import type { TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
 import ProfilePickerPopover from "../ProfilePickerPopover";
+import type { MentionTarget } from "../../_lib/mentions";
 import TaskComments from "../TaskComments/TaskComments";
 import DatePickerPopover from "./DatePickerPopover";
 import PriorityPickerPopover from "./PriorityPickerPopover";
@@ -31,6 +32,8 @@ interface TaskCreateModalProps {
   task?: TasksRow | null;
   /** 편집 모드에서만 쓰는 이 일정의 댓글 목록. 생성 모드에서는 아직 일정이 없어 댓글도 없다. */
   comments?: TaskCommentsRow[];
+  /** 댓글에서 언급할 수 있는 팀과 팀원 목록. */
+  mentionTargets?: MentionTarget[];
   onClose: () => void;
   onSaved: (tasks: TasksRow[]) => void;
   onCommentsChange?: (comments: TaskCommentsRow[]) => void;
@@ -48,6 +51,7 @@ const TaskCreateModal = ({
   parentTitle = null,
   task = null,
   comments = [],
+  mentionTargets = [],
   onClose,
   onSaved,
   onCommentsChange,
@@ -326,6 +330,7 @@ const TaskCreateModal = ({
               className="border-t border-border px-5 py-4"
               comments={comments}
               currentProfileId={currentProfileId}
+              mentionTargets={mentionTargets}
               profiles={profiles}
               taskId={task.id}
               onCommentsChange={onCommentsChange}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { TaskCommentsRow } from "@/types/tables";
+import type { MentionTarget } from "../../../_lib/mentions";
 import TaskComments from "../../../_components/TaskComments/TaskComments";
 import type { ProfileWithColor } from "../../../_types/kanban";
 
@@ -9,6 +10,7 @@ interface TaskCommentsPanelProps {
   taskId: string;
   initialComments: TaskCommentsRow[];
   profiles: ProfileWithColor[];
+  mentionTargets: MentionTarget[];
   currentProfileId: string | null;
 }
 
@@ -22,6 +24,7 @@ const TaskCommentsPanel = ({
   taskId,
   initialComments,
   profiles,
+  mentionTargets,
   currentProfileId,
 }: TaskCommentsPanelProps) => {
   const [comments, setComments] = useState(initialComments);
@@ -31,6 +34,7 @@ const TaskCommentsPanel = ({
       <TaskComments
         comments={comments}
         currentProfileId={currentProfileId}
+        mentionTargets={mentionTargets}
         profiles={profiles}
         taskId={taskId}
         onCommentsChange={setComments}

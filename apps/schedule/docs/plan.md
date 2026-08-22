@@ -403,9 +403,9 @@
 
 - [x] `supabase/migrations/0010_add_task_comments.sql` 신규 작성: `task_comments`(task_id/author_id/body/created_at/updated_at), `task_comment_mentions`(comment_id/mentioned_profile_id, `(comment_id, mentioned_profile_id)` 유니크), 두 테이블 RLS 활성화 + 기존과 동일한 `authenticated_full_access` 단일 정책, 외래키 인덱스 2개, `task_comments`에 기존 `set_updated_at` 트리거 연결
 - [x] `src/types/tables/task_comments.ts`, `src/types/tables/task_comment_mentions.ts` 신규 작성 후 `src/types/tables/index.ts`에 re-export
-- [x] `src/utils/mentionUtils.ts` 신규 작성: 멘션 마커 형식 `@[이름](profile_id)`의 직렬화(`buildMentionMarker`), 파싱(`parseMentionSegments`, `extractMentionedProfileIds`, `extractMentionTargets`), 입력 중 자동완성 판정과 삽입(`findActiveMentionQuery`, `replaceMentionQuery`), 입력창 표기와 저장 형식의 변환(`toMentionDisplayText`, `toMentionStoredBody`)을 한 파일에 모으고 `src/utils/index.ts` 배럴로 내보냄
-- [x] 입력창에는 식별자를 감추고 `@이름`만 노출하도록 수정. 입력창에 마커 원문이 그대로 보이던 문제를 고친 것으로, 저장 직전에만 마커로 직렬화한다
-- [x] 멘션 판정 기준을 "자동완성으로 고른 팀원"에서 "등록된 팀원 이름과 일치하는 `@이름`"으로 변경. 붙여넣거나 직접 친 `@이름`이 멘션으로 잡히지 않아 입력 방법에 따라 결과가 갈리던 문제를 고친 것이다. 등록되지 않은 이름은 그대로 텍스트로 남고, 이름이 다른 이름의 앞부분인 경우(`김민` / `김민호`)도 긴 이름부터 치환해 어긋나지 않는 것을 확인했다
+- [x] (폐기) 자체 멘션 유틸 `src/utils/mentionUtils.ts`를 만들었다가, develop이 팀 관리와 함께 도입한 언급 기반 코드로 갈아끼우면서 제거했다. 아래 통합 항목 참고
+- [x] (폐기) 입력창에 마커 원문이 보이던 문제를 표시 형식과 저장 형식 분리로 고쳤으나, 저장 형식이 평문 `@슬러그`로 바뀌면서 이 구분 자체가 필요 없어졌다
+- [x] 멘션 판정 기준을 "자동완성으로 고른 팀원"에서 "후보 목록과 일치하는 `@슬러그`"로 변경. 붙여넣거나 직접 친 것이 멘션으로 잡히지 않아 입력 방법에 따라 결과가 갈리던 문제를 고친 것이고, develop의 `parseMentions`도 같은 방식이라 통합 후에도 유지된다
 - [x] 1분이 안 된 댓글의 시각 표기를 date-fns 기본값 "1분 미만 전" 대신 "1분 전"으로 통일 (`CommentItem`의 `formatCommentTime`)
 - [x] `src/app/_lib/commentActions.ts` 신규 작성: `createComment`/`updateComment`/`deleteComment`. RLS가 로그인 사용자 전체 접근이라 작성자 본인 제약은 쿼리의 `author_id` 조건으로 강제한다. 멘션은 `syncCommentMentions`가 삭제 후 재삽입으로 동기화하고, 실패해도 댓글 저장은 성공 처리하고 로그만 남긴다
 - [x] `src/app/_lib/kanban.ts`에 `getCommentsForTasks` 추가: 화면에 필요한 일정 전체의 댓글을 `in(task_id, ...)` 한 번으로 조회해 카드별 개수 조회가 N+1이 되는 것을 막는다
@@ -419,6 +419,11 @@
 - [x] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용. 적용 과정에서 원격 DB에 `0001_init.sql`의 `set_updated_at()` 함수가 없다는 것이 드러나 마이그레이션이 그 함수를 `create or replace`로 직접 선언하도록 수정했다. `tasks` 테이블에는 이름이 다른 `tasks_updated_at` 트리거가 이미 걸려 있어 `updated_at` 갱신 자체는 동작하고 있다. 원격 스키마가 마이그레이션 파일과 여러 곳에서 어긋나 있으므로(파일에 없는 `task_reasons` 테이블도 존재) 언젠가 전체 대조가 필요하다
 - [x] 마이그레이션 번호를 `0010`으로 조정했다. develop이 스프린트 작업(`0006`, `0007`), Slack 알림(`0008`), 팀 관리(`0009`)로 앞 번호를 모두 가져가서 develop을 머지할 때마다 내렸다
 - [x] develop이 도입한 `ProfileAvatar`(size 변형과 `profile` 객체를 받는 상위 호환)로 교체. 댓글 목록과 멘션 자동완성에서 쓰던 자체 아바타를 걷어내고, 작성자 프로필을 찾지 못한 경우만 회색 폴백을 남겼다
+- [x] 멘션 구현을 develop의 언급 기반 코드로 통합. `feat/teams`가 `_lib/mentions.ts`, `_components/MentionPicker.tsx`, `usePopoverPosition`/`useOutsideClose` 훅을 만들어 뒀으나 아직 쓰이는 곳이 없었고, 제 자체 구현과 역할이 정확히 겹쳐 한 앱에 멘션 처리가 두 벌 있는 상태였다. 자체 `mentionUtils.ts`와 `MentionAutocomplete.tsx`를 제거하고 develop 것으로 갈아끼웠다
+- [x] 저장 형식을 `@[이름](profile_id)` 마커에서 `@슬러그` 평문으로 변경. 이에 따라 댓글에서도 팀 언급(`@프론트엔드`)이 되고, 팀을 언급하면 `resolveMentionProfiles`가 소속 팀원까지 펼쳐 `task_comment_mentions`에 남긴다. 반대로 팀원이 개명하면 기존 댓글의 언급 강조가 끊기고 동명이인은 아예 언급으로 잡히지 않는데, 이는 develop이 택한 규칙을 그대로 따른 결과다. 알림 대상 기록은 저장 시점에 관계 테이블로 남으므로 영향받지 않는다
+- [x] 본문 강조용 `splitMentionSegments`를 `_lib/mentions.ts`에 추가하고 기존 `parseMentions`를 그 위에 다시 얹었다. 언급 판정 규칙(경계 문자, 긴 슬러그 우선, 동명이인 제외)이 두 벌로 갈라지지 않도록 한 것이다
+- [x] 언급 후보를 만들기 위해 `page.tsx`와 `task/[id]/page.tsx`에서 `getTeamsWithMembers`로 팀을 함께 조회하고 `buildMentionTargets`로 합쳐 내려보낸다. 이미 조회한 profiles를 넘겨 중복 조회를 피한다
+- [x] `MentionPicker`는 Escape를 window에서 가로채 스스로 닫지만 전파까지 막지는 않아, 그대로 두면 자동완성을 닫으려던 Escape가 모달까지 올라가 모달이 함께 닫힌다. `CommentEditor`에서 언급 입력 중일 때만 전파를 막아 해결했다
 - [x] pnpm build / pnpm lint 검증 (검증 중 발견한 `perfectionist/sort-jsx-props` 경고 2건 수정). dev 서버와 `next build`가 같은 `.next` 디렉토리를 공유하므로, 검증 전에 dev 서버를 내리고 `.next`를 지운 뒤 빌드한다
 - [x] 실제 화면에서 댓글 생성/수정/삭제, 멘션 자동완성과 강조, 라이트/다크 모드 확인
 - [x] 멘션 자동완성 목록을 키보드로 이동할 때 활성 항목이 목록 밖으로 밀려나도 스크롤되지 않던 버그 수정 (`MentionAutocomplete`에서 활성 항목을 `scrollIntoView({ block: "nearest" })`로 끌어온다)

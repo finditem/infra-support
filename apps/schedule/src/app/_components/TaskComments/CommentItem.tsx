@@ -4,16 +4,16 @@ import { Fragment, useState } from "react";
 import { differenceInSeconds, format, formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { TaskCommentsRow } from "@/types/tables";
-import { parseMentionSegments } from "@/utils";
 import type { ProfileWithColor } from "../../_types/kanban";
+import { getMentionLabel, splitMentionSegments } from "../../_lib/mentions";
+import type { MentionTarget } from "../../_lib/mentions";
 import ProfileAvatar from "../ProfileAvatar";
 import CommentEditor from "./CommentEditor";
 
 interface CommentItemProps {
   comment: TaskCommentsRow;
   author: ProfileWithColor | null;
-  profileMap: Map<string, ProfileWithColor>;
-  profiles: ProfileWithColor[];
+  mentionTargets: MentionTarget[];
   isMine: boolean;
   onUpdate: (body: string) => Promise<boolean>;
   onDelete: () => Promise<void>;
@@ -36,8 +36,7 @@ const formatCommentTime = (date: Date) => {
 const CommentItem = ({
   comment,
   author,
-  profileMap,
-  profiles,
+  mentionTargets,
   isMine,
   onUpdate,
   onDelete,
@@ -113,8 +112,8 @@ const CommentItem = ({
           <CommentEditor
             autoFocus
             initialBody={comment.body}
+            mentionTargets={mentionTargets}
             placeholder="댓글을 수정하세요..."
-            profiles={profiles}
             submitLabel="수정"
             onCancel={() => setIsEditing(false)}
             onSubmit={async (body) => {
@@ -125,13 +124,14 @@ const CommentItem = ({
           />
         ) : (
           <p className="whitespace-pre-wrap break-words text-[13px] leading-[1.7] text-text-default">
-            {parseMentionSegments(comment.body).map((segment, index) =>
+            {splitMentionSegments(comment.body, mentionTargets).map((segment, index) =>
               segment.type === "mention" ? (
                 <span
                   key={index}
                   className="bg-primary/10 rounded px-1 py-px font-medium text-primary"
+                  title={getMentionLabel(segment.target)}
                 >
-                  @{profileMap.get(segment.profileId)?.name ?? segment.name}
+                  @{segment.slug}
                 </span>
               ) : (
                 <Fragment key={index}>{segment.text}</Fragment>

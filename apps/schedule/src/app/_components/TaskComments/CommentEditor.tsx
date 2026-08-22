@@ -3,40 +3,35 @@
 import { useRef, useState } from "react";
 import type { ChangeEvent, KeyboardEvent, SyntheticEvent } from "react";
 import { CornerDownLeft } from "lucide-react";
-import type { ActiveMentionQuery } from "@/utils";
-import {
-  findActiveMentionQuery,
-  replaceMentionQuery,
-  toMentionDisplayText,
-  toMentionStoredBody,
-} from "@/utils";
-import type { ProfileWithColor } from "../../_types/kanban";
-import MentionAutocomplete from "./MentionAutocomplete";
+import { getActiveMention, getMentionSlug, insertMention } from "../../_lib/mentions";
+import type { MentionTarget } from "../../_lib/mentions";
+import MentionPicker from "../MentionPicker";
 
 interface CommentEditorProps {
-  profiles: ProfileWithColor[];
+  /** 언급 후보(팀 + 가입한 팀원). buildMentionTargets로 만든 목록을 그대로 넘긴다. */
+  mentionTargets: MentionTarget[];
   placeholder: string;
   submitLabel: string;
   initialBody?: string;
   autoFocus?: boolean;
   /** 등록 성공 후 입력창을 비울지 여부. 새 댓글 작성에는 true, 기존 댓글 수정에는 false를 쓴다. */
   clearAfterSubmit?: boolean;
-  /** 마커로 직렬화한 본문을 넘긴다. 저장 성공 여부를 돌려받아, 실패 시 입력 내용을 유지한다. */
+  /** 저장 성공 여부를 돌려받아, 실패 시 입력 내용을 유지한다. */
   onSubmit: (body: string) => Promise<boolean>;
   onCancel?: () => void;
 }
 
 /**
- * 멘션 자동완성이 붙은 댓글 입력창. 새 댓글 작성과 기존 댓글 수정에 같은 컴포넌트를 쓴다.
+ * 언급 자동완성이 붙은 댓글 입력창. 새 댓글 작성과 기존 댓글 수정에 같은 컴포넌트를 쓴다.
  *
- * 입력창에는 식별자가 드러나지 않도록 `@이름`만 보여주고, 저장 직전에 등록된 팀원 이름과 대조해
- * `@[이름](profile_id)` 마커로 직렬화한다. 자동완성으로 고르든 직접 치든 붙여넣든 결과가 같다.
+ * 본문은 `@슬러그` 평문 그대로 저장하고, 누구를 부른 것인지는 저장 시점에 후보 목록과 대조해
+ * 판정한다. 언급 판정과 자동완성 팝오버는 `_lib/mentions.ts`와 `MentionPicker`를 그대로 쓴다.
  *
  * 일정 모달 안에서 쓰이므로 Escape와 커맨드+엔터는 입력창에서 처리한 뒤 전파를 막는다.
- * 그렇지 않으면 자동완성만 닫으려다 모달이 닫히거나, 댓글 대신 일정이 저장된다.
+ * 그렇지 않으면 자동완성만 닫으려다 모달이 함께 닫히거나, 댓글 대신 일정이 저장된다.
  */
 const CommentEditor = ({
-  profiles,
+  mentionTargets,
   placeholder,
   submitLabel,
   initialBody = "",
@@ -45,47 +40,38 @@ const CommentEditor = ({
   onSubmit,
   onCancel,
 }: CommentEditorProps) => {
-  const [body, setBody] = useState(() => toMentionDisplayText(initialBody));
-  const [mentionQuery, setMentionQuery] = useState<ActiveMentionQuery | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [body, setBody] = useState(initialBody);
+  const [caretIndex, setCaretIndex] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const candidates = mentionQuery
-    ? profiles.filter((profile) => profile.name.includes(mentionQuery.query.trim()))
-    : [];
-
-  const refreshMentionQuery = (value: string, caretIndex: number) => {
-    setMentionQuery(findActiveMentionQuery(value, caretIndex));
-    setActiveIndex(0);
-  };
+  const activeMention = caretIndex === null ? null : getActiveMention(body, caretIndex);
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setBody(event.target.value);
-    refreshMentionQuery(event.target.value, event.target.selectionStart);
+    setCaretIndex(event.target.selectionStart);
   };
 
   const handleCaretMove = (event: SyntheticEvent<HTMLTextAreaElement>) => {
-    refreshMentionQuery(event.currentTarget.value, event.currentTarget.selectionStart);
+    setCaretIndex(event.currentTarget.selectionStart);
   };
 
-  const insertMention = (profile: ProfileWithColor) => {
+  const handleSelectMention = (target: MentionTarget) => {
     const textarea = textareaRef.current;
-    if (!textarea || !mentionQuery) return;
+    if (!textarea || !activeMention) return;
 
-    const next = replaceMentionQuery(
+    const next = insertMention(
       body,
-      mentionQuery,
+      activeMention.startIndex,
       textarea.selectionStart,
-      `@${profile.name}`
+      getMentionSlug(target)
     );
 
-    setBody(next.value);
-    setMentionQuery(null);
-    setActiveIndex(0);
+    setBody(next.text);
+    setCaretIndex(next.caretIndex);
 
-    // setBody가 반영된 뒤에 커서를 옮겨야 마커 뒤가 아니라 예전 위치로 튀지 않는다.
+    // setBody가 반영된 뒤에 커서를 옮겨야 삽입한 언급 뒤가 아니라 예전 위치로 튀지 않는다.
     requestAnimationFrame(() => {
       textarea.focus();
       textarea.setSelectionRange(next.caretIndex, next.caretIndex);
@@ -97,42 +83,21 @@ const CommentEditor = ({
     if (!trimmed || isSubmitting) return;
 
     setIsSubmitting(true);
-    const succeeded = await onSubmit(toMentionStoredBody(trimmed, profiles));
+    const succeeded = await onSubmit(trimmed);
     setIsSubmitting(false);
 
     if (succeeded && clearAfterSubmit) {
       setBody("");
-      setMentionQuery(null);
+      setCaretIndex(null);
     }
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    const isMentionOpen = mentionQuery !== null;
-
-    if (isMentionOpen && candidates.length > 0) {
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        setActiveIndex((prev) => (prev + 1) % candidates.length);
-        return;
-      }
-
-      if (event.key === "ArrowUp") {
-        event.preventDefault();
-        setActiveIndex((prev) => (prev - 1 + candidates.length) % candidates.length);
-        return;
-      }
-
-      if (event.key === "Enter" && !event.metaKey && !event.ctrlKey) {
-        event.preventDefault();
-        insertMention(candidates[activeIndex]);
-        return;
-      }
-    }
-
-    if (isMentionOpen && event.key === "Escape") {
-      event.preventDefault();
+    // 팝오버는 window에서 키를 가로채 Escape를 스스로 처리하지만 전파까지 막지는 않는다.
+    // 여기서 막지 않으면 자동완성을 닫으려던 Escape가 모달까지 올라가 모달이 함께 닫힌다.
+    if (activeMention && event.key === "Escape") {
       event.stopPropagation();
-      setMentionQuery(null);
+      setCaretIndex(null);
       return;
     }
 
@@ -157,14 +122,14 @@ const CommentEditor = ({
         onSelect={handleCaretMove}
       />
 
-      {mentionQuery !== null && (
-        <MentionAutocomplete
-          activeIndex={activeIndex}
-          profiles={candidates}
-          onActiveIndexChange={setActiveIndex}
-          onSelect={insertMention}
-        />
-      )}
+      <MentionPicker
+        anchorRef={textareaRef}
+        isOpen={activeMention !== null}
+        query={activeMention?.query ?? ""}
+        targets={mentionTargets}
+        onClose={() => setCaretIndex(null)}
+        onSelect={handleSelectMention}
+      />
 
       <div className="mt-1.5 flex items-center justify-between gap-2">
         <span className="text-text-muted/60 flex items-center gap-1 text-[11px]">
@@ -174,7 +139,7 @@ const CommentEditor = ({
           <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
             <CornerDownLeft aria-hidden className="size-2.5" />
           </kbd>
-          으로 등록, @로 팀원 멘션
+          으로 등록, @로 팀이나 팀원 언급
         </span>
 
         <div className="flex shrink-0 gap-1.5">

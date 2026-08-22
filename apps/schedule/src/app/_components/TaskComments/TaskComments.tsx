@@ -3,8 +3,10 @@
 import { useMemo } from "react";
 import { MessageSquare } from "lucide-react";
 import type { TaskCommentsRow } from "@/types/tables";
-import { cn, extractMentionedProfileIds } from "@/utils";
+import { cn } from "@/utils";
 import { createComment, deleteComment, updateComment } from "../../_lib/commentActions";
+import { parseMentions, resolveMentionProfiles } from "../../_lib/mentions";
+import type { MentionTarget } from "../../_lib/mentions";
 import { buildProfileColorMap } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
 import CommentEditor from "./CommentEditor";
@@ -15,6 +17,8 @@ interface TaskCommentsProps {
   /** 이 일정의 댓글만, 작성 시각 오름차순. 상위에서 통째로 소유하고 변경분을 돌려받는다. */
   comments: TaskCommentsRow[];
   profiles: ProfileWithColor[];
+  /** 언급 후보(팀 + 가입한 팀원). 본문의 "@슬러그"를 누구로 볼지 판정하는 기준이기도 하다. */
+  mentionTargets: MentionTarget[];
   currentProfileId: string | null;
   onCommentsChange: (comments: TaskCommentsRow[]) => void;
   className?: string;
@@ -30,17 +34,25 @@ const TaskComments = ({
   taskId,
   comments,
   profiles,
+  mentionTargets,
   currentProfileId,
   onCommentsChange,
   className,
 }: TaskCommentsProps) => {
   const profileMap = useMemo(() => buildProfileColorMap(profiles), [profiles]);
 
+  /**
+   * 본문의 "@슬러그"를 언급 대상으로 풀고, 팀 언급은 소속 팀원까지 펼쳐 알림 대상 id를 뽑는다.
+   * 이후 알림이 본문을 다시 파싱하지 않아도 되도록 저장 시점 판정을 관계 테이블에 남긴다.
+   */
+  const toMentionedProfileIds = (body: string) =>
+    resolveMentionProfiles(parseMentions(body, mentionTargets)).map((profile) => profile.id);
+
   const handleCreate = async (body: string) => {
     const created = await createComment({
       taskId,
       body,
-      mentionedProfileIds: extractMentionedProfileIds(body),
+      mentionedProfileIds: toMentionedProfileIds(body),
     });
 
     if (!created) return false;
@@ -53,7 +65,7 @@ const TaskComments = ({
     const updated = await updateComment({
       id,
       body,
-      mentionedProfileIds: extractMentionedProfileIds(body),
+      mentionedProfileIds: toMentionedProfileIds(body),
     });
 
     if (!updated) return false;
@@ -86,8 +98,7 @@ const TaskComments = ({
               author={profileMap.get(comment.author_id) ?? null}
               comment={comment}
               isMine={comment.author_id === currentProfileId}
-              profileMap={profileMap}
-              profiles={profiles}
+              mentionTargets={mentionTargets}
               onDelete={() => handleDelete(comment.id)}
               onUpdate={(body) => handleUpdate(comment.id, body)}
             />
@@ -97,8 +108,8 @@ const TaskComments = ({
 
       <CommentEditor
         clearAfterSubmit
-        placeholder="댓글을 입력하세요. @로 팀원을 멘션할 수 있습니다."
-        profiles={profiles}
+        mentionTargets={mentionTargets}
+        placeholder="댓글을 입력하세요. @로 팀이나 팀원을 언급할 수 있습니다."
         submitLabel="등록"
         onSubmit={handleCreate}
       />
