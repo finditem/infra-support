@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { getStatusColor } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
@@ -28,6 +29,11 @@ const KanbanColumn = ({
   onSelectTask,
 }: KanbanColumnProps) => {
   const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="w-[260px] shrink-0">
@@ -36,7 +42,7 @@ const KanbanColumn = ({
           <span
             aria-hidden
             className="size-2 rounded-full"
-            style={{ backgroundColor: getStatusColor(status, resolvedTheme === "dark") }}
+            style={{ backgroundColor: getStatusColor(status, mounted && resolvedTheme === "dark") }}
           />
           <span className="text-sm font-semibold text-text-default">{status.name}</span>
         </div>

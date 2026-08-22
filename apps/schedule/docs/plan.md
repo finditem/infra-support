@@ -267,11 +267,101 @@
 - [x] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
 
+## 주차 헤더에 스프린트/주제 라벨 표시
+
+메인 칸반보드 상단 `KanbanHeader`가 "2026년 8월 3주차" 텍스트만 보여주던 것에, 그 주가 속한 작업의 큰 주제(예: "1차 스프린트")를 함께 표시한다. 별도 sprints 테이블 대신 `weeks.sprint_name` 텍스트 컬럼을 추가하는 경량 방식으로 가고, 입력은 헤더 인라인 편집이 아니라 이미 계획만 되어 있던 `/settings` 라우트를 재활용한 관리 화면에서 한다. 캘린더 화면은 주 단위 개념이 없어 범위 밖.
+
+- [x] `supabase/migrations/0006_add_week_sprint_name.sql` 신규 작성 (`weeks.sprint_name text` 컬럼 추가, RLS 정책 추가 불필요)
+- [x] `src/types/tables/weeks.ts`: `WeeksWritable`에 `sprint_name: string | null` 추가, `WeeksInsert`에서 `created_at`과 동일하게 옵셔널 처리
+- [x] `src/app/settings/_lib/actions.ts` 신규 작성: `updateWeekSprintName(weekId, sprintName)` 서버 액션 (`calendar/_lib/actions.ts` 패턴 재사용)
+- [x] `src/app/settings/page.tsx` 신규 작성: `weeks` 전체를 `start_date` 내림차순 조회, `NavBar` 렌더링, `SprintSettingsTable`로 전달
+- [x] `src/app/settings/_components/SprintSettingsTable.tsx` 신규 작성: 주차별 라벨(`getWeekLabel` 재사용)/기간/`sprint_name` 인라인 입력, blur 시 저장 후 `router.refresh()`
+- [x] `src/components/NavBar.tsx`: `NAV_ITEMS`에 `{ href: "/settings", label: "설정" }` 추가
+- [x] `src/app/_components/KanbanHeader.tsx`: `sprintName: string | null` prop 추가, 있을 때만 weekLabel 위에 배지로 표시
+- [x] `src/app/page.tsx`: `KanbanHeader`에 `sprintName={weekRow.sprint_name}` 전달
+- [x] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가) — 아래 재설계로 0006 대신 0007을 적용할 것
+
+## 스프린트를 주차 종속에서 기간 기반 독립 엔티티로 재설계
+
+위 방식은 주차(`weeks`)마다 스프린트 이름을 매번 입력해야 해서 번거롭다는 피드백을 받았다. `weeks.sprint_name` 텍스트 컬럼 대신, 자체 기간(시작일~종료일)을 갖는 `sprints` 테이블을 새로 둔다. 설정 화면은 주차 목록을 순회하며 입력받는 표 대신, "+" 버튼으로 이름과 기간을 입력하면 새 스프린트가 목록 아래로 쌓이는 UI로 바꾼다. 칸반 헤더는 현재 주의 시작일이 어느 스프린트의 기간에 속하는지 조회해서 표시하며, 헤더 UI 자체(배지 위치/스타일)는 이전 작업에서 이미 확정된 것을 그대로 쓴다.
+
+- [x] `supabase/migrations/0007_replace_week_sprint_name_with_sprints.sql` 신규 작성: `weeks.sprint_name` 컬럼 제거, `sprints(id, name, start_date, end_date, created_at)` 테이블 생성 및 `authenticated_full_access` RLS 정책 추가 (0006은 적용하지 않고 이 마이그레이션으로 대체)
+- [x] `src/types/tables/weeks.ts`에서 `sprint_name` 제거(원복), `src/types/tables/sprints.ts` 신규 작성, `src/types/tables/index.ts`에 re-export 추가
+- [x] `src/app/_lib/kanban.ts`: `getSprintForWeek(supabase, weekStart)` 추가 — 주어진 주 시작일이 `start_date`~`end_date` 범위에 포함되는 스프린트를 조회
+- [x] `src/app/page.tsx`: `weekRow.sprint_name` 대신 `getSprintForWeek` 조회 결과를 `KanbanHeader`의 `sprintName`으로 전달
+- [x] `src/app/settings/_lib/actions.ts`: `updateWeekSprintName`을 `createSprint({ name, startDate, endDate })`로 교체
+- [x] `src/app/settings/page.tsx`: `weeks` 대신 `sprints` 전체를 `created_at` 오름차순 조회
+- [x] `src/app/settings/_components/SprintSettingsTable.tsx` 삭제, `SprintList.tsx` 신규 작성: "+" 버튼 + 이름/기간(시작일~종료일) 입력 폼, 저장 시 입력값 초기화 후 목록 맨 아래에 추가
+- [x] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL(0007)을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
+
+## 스프린트 등록 폼 날짜 입력을 커스텀 캘린더 피커로 교체
+
+`SprintList.tsx`의 시작일/종료일이 네이티브 `<input type="date">`라 UI가 볼품없다는 피드백을 받았다. 새 컴포넌트를 만드는 대신 이미 존재하는 `TaskCreateModal/DatePickerPopover.tsx`(할 일 마감일 선택에 쓰이는 월별 그리드 팝오버, `PropertyPopover` 셸 기반)를 재사용한다. `/calendar`의 `CalendarGrid.tsx`가 이미 쓰고 있는 관례(일요일 `text-fg-state-error`, 토요일 `text-primary`)를 `DatePickerPopover`에도 적용해, 할 일 생성 모달의 마감일 선택에도 함께 개선 효과가 생기도록 했다.
+
+- [x] `DatePickerPopover.tsx`: `getDayClassName`/`getWeekdayHeaderClassName` 헬퍼(if-체인)를 추가해 그리드 내 일/토요일 텍스트와 요일 헤더에 각각 `text-fg-state-error`/`text-primary` 적용
+- [x] `SprintList.tsx`: `<input type="date">` 2개를 `DatePickerPopover`(라벨 "시작일"/"종료일") 2개로 교체, `startDate`/`endDate` 초기값을 오늘 날짜로 변경, `canSubmit`에서 날짜 빈 값 체크 제거
+- [x] pnpm build / pnpm lint 검증
+
+## 스프린트 수정/삭제 기능 추가
+
+목록에 추가만 가능하고 수정/삭제가 없어서 잘못 입력한 스프린트를 고칠 방법이 없었다. `CalendarGrid.tsx`의 가능 시간 삭제 확인 패턴("삭제할까요?" + 삭제/취소 인라인 전환)을 그대로 재사용해 삭제 시 확인 단계를 거치도록 하고, 수정은 행을 이름+기간 입력 폼으로 바꿔치기하는 인라인 편집 방식으로 구현한다.
+
+- [x] `settings/_lib/actions.ts`: `updateSprint({ id, name, startDate, endDate })`, `deleteSprint(id)` 서버 액션 추가
+- [x] `SprintList.tsx`: 각 행에 수정(연필 아이콘)/삭제(✕) 버튼 추가. 수정 클릭 시 해당 행이 이름 입력 + `DatePickerPopover` 2개 + 저장/취소 버튼으로 전환. 삭제 클릭 시 "삭제할까요?" 확인 상태로 전환 후 삭제/취소
+- [x] pnpm build / pnpm lint 검증
+
+## PR #156 자동 코드 리뷰 반영
+
+- [x] `0007_replace_week_sprint_name_with_sprints.sql`: `weeks.sprint_name` 삭제를 `drop column if exists`로 변경(0006 미적용 상태에서도 0007만으로 실행 가능하도록), `sprints` 테이블에 `end_date >= start_date` 체크 제약 추가
+- [x] `SprintList.tsx`: `canSubmit`/`canSaveEdit`에 `startDate <= endDate` 검증 추가
+- [x] `SprintList.tsx`: `createSprint`/`updateSprint`/`deleteSprint` 실패 시 입력값을 초기화하거나 새로고침하지 않고 에러 메시지를 표시하며 상태 유지
+- [x] `SprintList.tsx`: 추가 폼/수정 행에 `flex-wrap` 적용해 좁은 화면에서 줄바꿈되도록 수정
+- [x] pnpm build / pnpm lint 검증
+
+## Slack 알림 연동 (일정 생성/수정/삭제)
+
+- [x] `profiles.slack_user_id` 컬럼 추가 마이그레이션 — `supabase/migrations/0008_add_profile_slack_user_id.sql`
+- [x] `src/types/tables/profiles.ts`에 `slack_user_id` 반영
+- [x] Slack 전송 모듈 (`chat.postMessage` 호출, 토큰 없으면 조용히 건너뜀) — `src/lib/slack/postSlackMessage.ts`
+- [x] 이벤트별 메시지 본문 생성 (생성/수정/삭제, 멘션과 mrkdwn 이스케이프) — `src/lib/slack/buildTaskEventMessage.ts`
+- [x] 채널 + 담당자/보고자 DM 전송 (행위자 본인과 Slack 계정 미연결 팀원 제외) — `src/lib/slack/notifyTaskEvent.ts`
+- [x] DB 조회로 알림 payload 조립 (상태명, 담당자/보고자/행위자, 상위 일정 제목, 링크) — `src/app/_lib/taskNotification.ts`
+- [x] `createTask`에 생성 알림 연결
+- [x] `updateTask`에 수정 전 행 조회 + 변경 필드 diff 알림 연결
+- [x] `deleteTask` 서버 액션 추가 (삭제 전 하위 일정 조회 후 물리 삭제, 삭제 알림 전송)
+- [x] 일정 수정 모달에 삭제 버튼 + 확인 다이얼로그 추가
+- [x] KanbanBoard에서 삭제된 일정(하위 포함) 목록에서 제거
+- [x] `.env.example`에 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL` 추가
+- [x] 마이그레이션 `0008`(develop 병합 시 0006에서 번호 변경) SQL을 사용자가 Supabase SQL 에디터에서 직접 적용
+- [x] Flow Bot 앱 확인: `chat:write`가 이미 부여되어 있어 스코프 추가와 재설치 불필요. 토큰/채널 ID/`SITE_URL`을 `.env`에 등록 완료
+- [x] `profiles.slack_user_id`에 팀원 7명의 Slack 멤버 ID 입력
+- [x] pnpm build / pnpm lint 검증
+
+## Slack 알림을 DM 없이 채널 멘션으로 변경
+
+- [x] `notifyTaskEvent`에서 DM 전송 제거, 팀 채널 한 곳으로만 전송
+- [x] 담당자/보고자 멘션 줄을 생성/수정/삭제 모든 이벤트에 표시 (수정 알림에도 멘션이 들어가야 당사자에게 알림이 간다)
+- [ ] 담당자/보고자가 알림 채널에 참여해 있는지 확인 (채널 밖 사용자를 멘션하면 Slack이 초대 안내를 띄운다)
+
+## Slack 알림 동작 확인 (남은 작업)
+
+- [ ] 워크트리 브랜치로 dev 서버를 띄워 일정 생성/수정/삭제 시 채널 메시지가 올라오는지 확인 (메인 워킹 디렉토리의 dev 서버는 develop 브랜치라 이 코드가 없다)
+- [ ] `select name, slack_user_id from public.profiles order by name;`으로 `slack_user_id`가 null인 팀원이 없는지 확인
+- [ ] Vercel 환경 변수에 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL` 등록 (배포 시점)
+
+## PR #154 리뷰 반영 (Slack 전송과 저장 응답 분리)
+
+- [x] `postSlackMessage`의 `fetch`에 `AbortSignal.timeout` 5초 상한 추가 (Slack이 응답하지 않을 때 서버리스 함수가 매달리지 않도록)
+- [x] `createTask`/`updateTask`/`deleteTask`에서 알림 호출을 `next/server`의 `after()`로 감싸 저장 성공 응답을 지연시키지 않도록 변경
+- [x] pnpm build / pnpm lint 검증
+
 ## 일정별 댓글과 멘션 (feat/task-comments)
 
 보고자가 검토 의견을 남길 곳이 일정 본문(`tasks.body`) 하나뿐이라 일정마다 대화가 쌓이지 않던 문제를 해결한다. `docs/기능설계서.md`에는 댓글 기능이 아예 없어(6. 공통 컴포넌트 표에도 댓글 관련 항목이 없다) 이번 작업으로 새로 정의한다. 멘션은 이후 Slack 알림(기능설계서 9. 개발 일정의 5단계)이 발송 대상을 판단하는 근거로 쓰이므로, 이번 범위에서 알림 발송은 만들지 않되 누가 누구를 멘션했는지는 DB에 관계로 남긴다.
 
-- [x] `supabase/migrations/0007_add_task_comments.sql` 신규 작성: `task_comments`(task_id/author_id/body/created_at/updated_at), `task_comment_mentions`(comment_id/mentioned_profile_id, `(comment_id, mentioned_profile_id)` 유니크), 두 테이블 RLS 활성화 + 기존과 동일한 `authenticated_full_access` 단일 정책, 외래키 인덱스 2개, `task_comments`에 기존 `set_updated_at` 트리거 연결
+- [x] `supabase/migrations/0009_add_task_comments.sql` 신규 작성: `task_comments`(task_id/author_id/body/created_at/updated_at), `task_comment_mentions`(comment_id/mentioned_profile_id, `(comment_id, mentioned_profile_id)` 유니크), 두 테이블 RLS 활성화 + 기존과 동일한 `authenticated_full_access` 단일 정책, 외래키 인덱스 2개, `task_comments`에 기존 `set_updated_at` 트리거 연결
 - [x] `src/types/tables/task_comments.ts`, `src/types/tables/task_comment_mentions.ts` 신규 작성 후 `src/types/tables/index.ts`에 re-export
 - [x] `src/utils/mentionUtils.ts` 신규 작성: 멘션 마커 형식 `@[이름](profile_id)`의 직렬화(`buildMentionMarker`), 파싱(`parseMentionSegments`, `extractMentionedProfileIds`, `extractMentionTargets`), 입력 중 자동완성 판정과 삽입(`findActiveMentionQuery`, `replaceMentionQuery`), 입력창 표기와 저장 형식의 변환(`toMentionDisplayText`, `toMentionStoredBody`)을 한 파일에 모으고 `src/utils/index.ts` 배럴로 내보냄
 - [x] 입력창에는 식별자를 감추고 `@이름`만 노출하도록 수정. 입력창에 마커 원문이 그대로 보이던 문제를 고친 것으로, 저장 직전에만 마커로 직렬화한다
@@ -287,7 +377,7 @@
 - [x] `src/app/page.tsx`, `src/app/task/[id]/page.tsx`: 서버 컴포넌트에서 댓글을 한 번에 조회해 전달
 - [x] `src/app/task/[id]/_components/TaskCommentsPanel.tsx` 신규 작성: 상세 페이지에서 상위 일정의 댓글 카드
 - [x] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용. 적용 과정에서 원격 DB에 `0001_init.sql`의 `set_updated_at()` 함수가 없다는 것이 드러나 마이그레이션이 그 함수를 `create or replace`로 직접 선언하도록 수정했다. `tasks` 테이블에는 이름이 다른 `tasks_updated_at` 트리거가 이미 걸려 있어 `updated_at` 갱신 자체는 동작하고 있다. 원격 스키마가 마이그레이션 파일과 여러 곳에서 어긋나 있으므로(파일에 없는 `task_reasons` 테이블도 존재) 언젠가 전체 대조가 필요하다
-- [x] `feat/slack-notification`이 `0006_add_profile_slack_user_id.sql`을 쓰고 있어 이 작업의 마이그레이션 번호를 `0007`로 내렸다
+- [x] 마이그레이션 번호를 `0009`로 조정했다. develop이 스프린트 작업(`0006`, `0007`)과 Slack 알림(`0008`)으로 앞 번호를 모두 가져가서, develop을 머지하면서 다시 내렸다
 - [x] pnpm build / pnpm lint 검증 (검증 중 발견한 `perfectionist/sort-jsx-props` 경고 2건 수정). dev 서버와 `next build`가 같은 `.next` 디렉토리를 공유하므로, 검증 전에 dev 서버를 내리고 `.next`를 지운 뒤 빌드한다
 - [x] 실제 화면에서 댓글 생성/수정/삭제, 멘션 자동완성과 강조, 라이트/다크 모드 확인
 - [x] 멘션 자동완성 목록을 키보드로 이동할 때 활성 항목이 목록 밖으로 밀려나도 스크롤되지 않던 버그 수정 (`MentionAutocomplete`에서 활성 항목을 `scrollIntoView({ block: "nearest" })`로 끌어온다)

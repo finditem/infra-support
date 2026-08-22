@@ -8,6 +8,7 @@ const GAP = 4;
 
 interface PropertyPopoverProps {
   label?: string;
+  labelClassName?: string;
   trigger: React.ReactNode;
   triggerClassName?: string;
   panelClassName?: string;
@@ -17,6 +18,7 @@ interface PropertyPopoverProps {
 
 const PropertyPopover = ({
   label,
+  labelClassName,
   trigger,
   triggerClassName,
   panelClassName,
@@ -76,7 +78,11 @@ const PropertyPopover = ({
         onClick={() => setIsOpen((prev) => !prev)}
       >
         {label && (
-          <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">{label}</span>
+          <span
+            className={cn("w-11 shrink-0 text-[11px] font-medium text-text-muted", labelClassName)}
+          >
+            {label}
+          </span>
         )}
         {trigger}
       </button>

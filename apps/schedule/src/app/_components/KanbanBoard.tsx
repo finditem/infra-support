@@ -150,6 +150,11 @@ const KanbanBoard = ({
               ...next,
             ]);
           }}
+          onDeleted={(deletedIds) => {
+            setTasks((prev) => prev.filter((row) => !deletedIds.includes(row.id)));
+            setCreatingStatusId(null);
+            setEditingTask(null);
+          }}
           onSaved={(saved) => {
             setTasks((prev) =>
               saved.reduce(
