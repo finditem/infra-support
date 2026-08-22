@@ -1,19 +1,44 @@
 "use server";
 
+import { after } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type {
   TaskCommentMentionsInsert,
   TaskCommentsInsert,
   TaskCommentsRow,
 } from "@/types/tables";
+import { notifyCommentMentions } from "./commentNotification";
 
 /**
  * 멘션 관계 테이블을 본문 기준으로 맞춘다. 수정 시에는 기존 행을 지우고 다시 넣어 동기화한다.
  * 댓글 자체는 이미 저장된 상태이므로, 여기서 실패해도 댓글 저장은 성공으로 처리하고 로그만 남긴다.
+ *
+ * 이번에 새로 추가된 멘션의 profile id를 돌려준다. 알림 대상을 여기서 정하는 이유는,
+ * 삭제 후 재삽입이라 저장이 끝난 뒤에는 "원래 있던 멘션"과 "이번에 생긴 멘션"을 구분할 수 없기 때문이다.
+ * 이 구분이 없으면 댓글을 고칠 때마다 기존 멘션 대상 전원에게 DM이 다시 간다.
  */
-const syncCommentMentions = async (commentId: string, mentionedProfileIds: string[]) => {
-  const supabase = await createClient();
+const syncCommentMentions = async (
+  supabase: SupabaseClient,
+  commentId: string,
+  mentionedProfileIds: string[]
+): Promise<string[]> => {
   const uniqueIds = Array.from(new Set(mentionedProfileIds));
+
+  const { data: existing, error: selectError } = await supabase
+    .from("task_comment_mentions")
+    .select("mentioned_profile_id")
+    .eq("comment_id", commentId);
+
+  if (selectError) {
+    console.error(selectError);
+    return [];
+  }
+
+  const existingIds = new Set(
+    (existing ?? []).map((row: { mentioned_profile_id: string }) => row.mentioned_profile_id)
+  );
+  const addedIds = uniqueIds.filter((id) => !existingIds.has(id));
 
   const { error: deleteError } = await supabase
     .from("task_comment_mentions")
@@ -22,10 +47,10 @@ const syncCommentMentions = async (commentId: string, mentionedProfileIds: strin
 
   if (deleteError) {
     console.error(deleteError);
-    return;
+    return [];
   }
 
-  if (uniqueIds.length === 0) return;
+  if (uniqueIds.length === 0) return [];
 
   const insertPayload: TaskCommentMentionsInsert[] = uniqueIds.map((mentionedProfileId) => ({
     comment_id: commentId,
@@ -36,7 +61,10 @@ const syncCommentMentions = async (commentId: string, mentionedProfileIds: strin
 
   if (insertError) {
     console.error(insertError);
+    return [];
   }
+
+  return addedIds;
 };
 
 interface CreateCommentInput {
@@ -78,7 +106,10 @@ export const createComment = async ({
     return null;
   }
 
-  await syncCommentMentions(data.id, mentionedProfileIds);
+  const addedProfileIds = await syncCommentMentions(supabase, data.id, mentionedProfileIds);
+
+  // Slack DM은 응답을 반환한 뒤에 보낸다. 전송이 느려도 댓글 등록 응답이 지연되지 않는다.
+  after(() => notifyCommentMentions(supabase, data, addedProfileIds));
 
   return data;
 };
@@ -127,7 +158,10 @@ export const updateComment = async ({
     return null;
   }
 
-  await syncCommentMentions(data.id, mentionedProfileIds);
+  const addedProfileIds = await syncCommentMentions(supabase, data.id, mentionedProfileIds);
+
+  // 수정으로 새로 생긴 멘션만 대상이라, 원래 언급되어 있던 사람에게는 DM이 다시 가지 않는다.
+  after(() => notifyCommentMentions(supabase, data, addedProfileIds));
 
   return data;
 };
