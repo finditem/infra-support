@@ -266,3 +266,29 @@
 - [x] `CalendarGrid.tsx`의 삭제 확인 오버레이(`bg-white/20` 등)를 어두운 오버레이로 교체
 - [x] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
+
+## 일정별 댓글과 멘션 (feat/task-comments)
+
+보고자가 검토 의견을 남길 곳이 일정 본문(`tasks.body`) 하나뿐이라 일정마다 대화가 쌓이지 않던 문제를 해결한다. `docs/기능설계서.md`에는 댓글 기능이 아예 없어(6. 공통 컴포넌트 표에도 댓글 관련 항목이 없다) 이번 작업으로 새로 정의한다. 멘션은 이후 Slack 알림(기능설계서 9. 개발 일정의 5단계)이 발송 대상을 판단하는 근거로 쓰이므로, 이번 범위에서 알림 발송은 만들지 않되 누가 누구를 멘션했는지는 DB에 관계로 남긴다.
+
+- [x] `supabase/migrations/0007_add_task_comments.sql` 신규 작성: `task_comments`(task_id/author_id/body/created_at/updated_at), `task_comment_mentions`(comment_id/mentioned_profile_id, `(comment_id, mentioned_profile_id)` 유니크), 두 테이블 RLS 활성화 + 기존과 동일한 `authenticated_full_access` 단일 정책, 외래키 인덱스 2개, `task_comments`에 기존 `set_updated_at` 트리거 연결
+- [x] `src/types/tables/task_comments.ts`, `src/types/tables/task_comment_mentions.ts` 신규 작성 후 `src/types/tables/index.ts`에 re-export
+- [x] `src/utils/mentionUtils.ts` 신규 작성: 멘션 마커 형식 `@[이름](profile_id)`의 직렬화(`buildMentionMarker`), 파싱(`parseMentionSegments`, `extractMentionedProfileIds`, `extractMentionTargets`), 입력 중 자동완성 판정과 삽입(`findActiveMentionQuery`, `replaceMentionQuery`), 입력창 표기와 저장 형식의 변환(`toMentionDisplayText`, `toMentionStoredBody`)을 한 파일에 모으고 `src/utils/index.ts` 배럴로 내보냄
+- [x] 입력창에는 식별자를 감추고 `@이름`만 노출하도록 수정. 입력창에 마커 원문이 그대로 보이던 문제를 고친 것으로, 저장 직전에만 마커로 직렬화한다
+- [x] 멘션 판정 기준을 "자동완성으로 고른 팀원"에서 "등록된 팀원 이름과 일치하는 `@이름`"으로 변경. 붙여넣거나 직접 친 `@이름`이 멘션으로 잡히지 않아 입력 방법에 따라 결과가 갈리던 문제를 고친 것이다. 등록되지 않은 이름은 그대로 텍스트로 남고, 이름이 다른 이름의 앞부분인 경우(`김민` / `김민호`)도 긴 이름부터 치환해 어긋나지 않는 것을 확인했다
+- [x] 1분이 안 된 댓글의 시각 표기를 date-fns 기본값 "1분 미만 전" 대신 "1분 전"으로 통일 (`CommentItem`의 `formatCommentTime`)
+- [x] `src/app/_lib/commentActions.ts` 신규 작성: `createComment`/`updateComment`/`deleteComment`. RLS가 로그인 사용자 전체 접근이라 작성자 본인 제약은 쿼리의 `author_id` 조건으로 강제한다. 멘션은 `syncCommentMentions`가 삭제 후 재삽입으로 동기화하고, 실패해도 댓글 저장은 성공 처리하고 로그만 남긴다
+- [x] `src/app/_lib/kanban.ts`에 `getCommentsForTasks` 추가: 화면에 필요한 일정 전체의 댓글을 `in(task_id, ...)` 한 번으로 조회해 카드별 개수 조회가 N+1이 되는 것을 막는다
+- [x] `src/app/_components/ProfileAvatar.tsx` 신규 작성: 팀원 색상 배경 + 이니셜 원형 아바타 (댓글 목록과 멘션 자동완성 두 곳에서 쓰므로 분리)
+- [x] `src/app/_components/TaskComments/` 신규 작성: `TaskComments`(목록 + 입력창 조립, 댓글 배열은 상위가 소유), `CommentItem`(아바타/이름/상대 시간/멘션 강조, 본인 댓글 수정·삭제), `CommentEditor`(textarea + 커맨드+엔터 등록, 새 댓글과 수정에 공용), `MentionAutocomplete`(입력창 아래 흐름에 펼쳐지는 후보 목록, 키보드 위아래·엔터 선택)
+- [x] `TaskCreateModal.tsx`: 편집 모드에서만 스크롤되는 본문 하단에 댓글 섹션 렌더링. 생성 모드에는 표시하지 않는다
+- [x] `KanbanBoard.tsx`: 댓글 배열을 상태로 소유하고 `commentCountByTask`를 계산해 컬럼으로 내려보냄. 편집 중인 일정의 댓글만 잘라 모달에 전달하고 변경분을 되돌려받는다
+- [x] `KanbanColumn.tsx`, `KanbanCard.tsx`: 카드 하단에 댓글 개수 배지 표시 (하위 일정 개수와 같은 줄)
+- [x] `src/app/page.tsx`, `src/app/task/[id]/page.tsx`: 서버 컴포넌트에서 댓글을 한 번에 조회해 전달
+- [x] `src/app/task/[id]/_components/TaskCommentsPanel.tsx` 신규 작성: 상세 페이지에서 상위 일정의 댓글 카드
+- [x] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용. 적용 과정에서 원격 DB에 `0001_init.sql`의 `set_updated_at()` 함수가 없다는 것이 드러나 마이그레이션이 그 함수를 `create or replace`로 직접 선언하도록 수정했다. `tasks` 테이블에는 이름이 다른 `tasks_updated_at` 트리거가 이미 걸려 있어 `updated_at` 갱신 자체는 동작하고 있다. 원격 스키마가 마이그레이션 파일과 여러 곳에서 어긋나 있으므로(파일에 없는 `task_reasons` 테이블도 존재) 언젠가 전체 대조가 필요하다
+- [x] `feat/slack-notification`이 `0006_add_profile_slack_user_id.sql`을 쓰고 있어 이 작업의 마이그레이션 번호를 `0007`로 내렸다
+- [x] pnpm build / pnpm lint 검증 (검증 중 발견한 `perfectionist/sort-jsx-props` 경고 2건 수정). dev 서버와 `next build`가 같은 `.next` 디렉토리를 공유하므로, 검증 전에 dev 서버를 내리고 `.next`를 지운 뒤 빌드한다
+- [x] 실제 화면에서 댓글 생성/수정/삭제, 멘션 자동완성과 강조, 라이트/다크 모드 확인
+- [x] 멘션 자동완성 목록을 키보드로 이동할 때 활성 항목이 목록 밖으로 밀려나도 스크롤되지 않던 버그 수정 (`MentionAutocomplete`에서 활성 항목을 `scrollIntoView({ block: "nearest" })`로 끌어온다)
+- [x] 모바일 폭에서 모달 안 댓글 섹션까지 스크롤되는지 확인

@@ -7,7 +7,8 @@ import { CornerDownLeft } from "lucide-react";
 import { createTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
-import type { TaskStatusesRow, TasksRow } from "@/types/tables";
+import type { TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
+import TaskComments from "../TaskComments/TaskComments";
 import DatePickerPopover from "./DatePickerPopover";
 import PriorityPickerPopover from "./PriorityPickerPopover";
 import ProfilePickerPopover from "./ProfilePickerPopover";
@@ -28,8 +29,11 @@ interface TaskCreateModalProps {
   parentId?: string | null;
   parentTitle?: string | null;
   task?: TasksRow | null;
+  /** 편집 모드에서만 쓰는 이 일정의 댓글 목록. 생성 모드에서는 아직 일정이 없어 댓글도 없다. */
+  comments?: TaskCommentsRow[];
   onClose: () => void;
   onSaved: (tasks: TasksRow[]) => void;
+  onCommentsChange?: (comments: TaskCommentsRow[]) => void;
 }
 
 const TaskCreateModal = ({
@@ -41,8 +45,10 @@ const TaskCreateModal = ({
   parentId = null,
   parentTitle = null,
   task = null,
+  comments = [],
   onClose,
   onSaved,
+  onCommentsChange,
 }: TaskCreateModalProps) => {
   const [title, setTitle] = useState(task?.title ?? "");
   const [body, setBody] = useState(task?.body ?? "");
@@ -286,6 +292,17 @@ const TaskCreateModal = ({
                 + 하위 일정 추가
               </button>
             </div>
+          )}
+
+          {isEditing && task && onCommentsChange && (
+            <TaskComments
+              className="border-t border-border px-5 py-4"
+              comments={comments}
+              currentProfileId={currentProfileId}
+              profiles={profiles}
+              taskId={task.id}
+              onCommentsChange={onCommentsChange}
+            />
           )}
         </div>
 

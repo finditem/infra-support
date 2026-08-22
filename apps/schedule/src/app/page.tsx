@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import type { TasksRow } from "@/types/tables";
 import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "./_components/KanbanBoard";
 import KanbanHeader from "./_components/KanbanHeader";
-import { getOrCreateWeek } from "./_lib/kanban";
+import { getCommentsForTasks, getOrCreateWeek } from "./_lib/kanban";
 import { getMonday, getWeekLabel } from "./_lib/kanbanUtils";
 
 interface HomePageProps {
@@ -32,6 +33,13 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
         : Promise.resolve({ data: null }),
     ]);
 
+  // 주차 일정 전체의 댓글을 여기서 한 번에 가져와, 카드마다 개수를 조회하는 N+1을 피한다.
+  const weekTasks: TasksRow[] = tasks ?? [];
+  const comments = await getCommentsForTasks(
+    supabase,
+    weekTasks.map((task) => task.id)
+  );
+
   return (
     <main className="flex min-h-screen flex-col bg-surface">
       <NavBar />
@@ -40,10 +48,11 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
       <div className="flex-1 px-4 py-6 sm:px-8">
         {weekRow ? (
           <KanbanBoard
+            comments={comments}
             currentProfileId={currentProfile?.id ?? null}
             profiles={profiles ?? []}
             statuses={statuses ?? []}
-            tasks={tasks ?? []}
+            tasks={weekTasks}
             weekId={weekRow.id}
           />
         ) : (

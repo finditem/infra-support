@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { TasksRow } from "@/types/tables";
 import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "../../_components/KanbanBoard";
+import { getCommentsForTasks } from "../../_lib/kanban";
+import TaskCommentsPanel from "./_components/TaskCommentsPanel";
 import TaskDetailHeader from "./_components/TaskDetailHeader";
 
 interface TaskDetailPageProps {
@@ -32,20 +35,36 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
         : Promise.resolve({ data: null }),
     ]);
 
+  // 상위 일정과 하위 일정의 댓글을 한 번에 가져온다. 상위 일정 것은 아래 댓글 카드가,
+  // 하위 일정 것은 칸반 카드의 개수 배지가 사용한다.
+  const childTasks: TasksRow[] = subtasks ?? [];
+  const comments = await getCommentsForTasks(supabase, [
+    parentTask.id,
+    ...childTasks.map((task) => task.id),
+  ]);
+
   return (
     <main className="flex min-h-screen flex-col bg-surface">
       <NavBar />
       <TaskDetailHeader title={parentTask.title} />
 
-      <div className="flex-1 px-4 py-6 sm:px-8">
+      <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-8">
         <KanbanBoard
+          comments={comments.filter((comment) => comment.task_id !== parentTask.id)}
           currentProfileId={currentProfile?.id ?? null}
           parentId={parentTask.id}
           parentTitle={parentTask.title}
           profiles={profiles ?? []}
           statuses={statuses ?? []}
-          tasks={subtasks ?? []}
+          tasks={childTasks}
           weekId={parentTask.week_id}
+        />
+
+        <TaskCommentsPanel
+          currentProfileId={currentProfile?.id ?? null}
+          initialComments={comments.filter((comment) => comment.task_id === parentTask.id)}
+          profiles={profiles ?? []}
+          taskId={parentTask.id}
         />
       </div>
     </main>
