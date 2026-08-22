@@ -81,5 +81,4 @@ PR을 생성한 뒤에는 변경 내용에 맞는 라벨을 `gh pr edit <번호>
 
 ## 기타 도구
 
-- `.gemini/`: Gemini Code Assist의 PR 자동 리뷰 설정. CLAUDE.md와 별도로 유지되며 PR 리뷰 시점에만 관여한다.
 - CI(`.github/workflows/develop-to-main-pr.yml`)는 lint/build/test 검증 없이 develop→main PR만 자동 생성한다. 즉 로컬에서의 검증(위 3번)이 사실상 유일한 안전망이므로, 사용자가 검증을 생략하자고 하지 않는 한 매번 물어본다.
