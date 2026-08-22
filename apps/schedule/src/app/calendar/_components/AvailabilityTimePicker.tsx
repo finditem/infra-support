@@ -148,7 +148,7 @@ const AvailabilityTimePicker = ({
 
   return (
     <ModalOverlay className="z-[100]" onClose={onCancel}>
-      <div className="w-[300px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]">
+      <div className="max-h-[85vh] w-[300px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]">
         <div className="mb-1 flex items-start justify-between gap-2">
           <p className="text-sm font-semibold text-text-default">일정 등록</p>
           <button

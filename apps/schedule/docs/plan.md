@@ -538,4 +538,7 @@
 - [x] `src/app/calendar/_components/CalendarView.tsx`: 등록/삭제가 여러 행을 한 번에 다루도록 상태 갱신 방식 변경
 - [x] `src/app/calendar/page.tsx`: 대상 선택 후보를 만들기 위해 팀 목록을 함께 조회한다
 - [x] develop의 모달 공통 동작(`ModalOverlay`, `src/hooks/useEscapeKey`)을 머지하면서 이번 작업의 모달 두 개를 그 구조에 맞췄다. 시간 등록 모달과 반복 삭제 확인 창이 딤 레이어를 직접 그리는 대신 `ModalOverlay`를 쓴다
-- [ ] 마이그레이션 SQL을 Supabase SQL 에디터에 적용 (사용자 작업)
+- [x] `AvailabilityTimePicker.tsx`: 대상과 반복 입력이 붙어 모달이 길어졌으므로 높이를 화면의 85%로 제한하고 넘치면 모달 안에서 스크롤되게 했다. 딤 레이어가 뒤 화면 스크롤을 잠그고 있어 이 제한이 없으면 짧은 화면에서 아래쪽 버튼에 닿을 수 없다
+- [x] 마이그레이션 SQL을 Supabase SQL 에디터에 적용 (사용자가 직접 적용)
+- [x] 실제 화면에서 반복 등록, 팀 단위 대상 등록, 겹침 건너뛰기 안내, 반복 삭제 확인 창 동작 확인 (사용자 확인)
+- [x] pnpm build / pnpm lint 검증 (경고 없이 통과)
