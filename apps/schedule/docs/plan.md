@@ -507,6 +507,22 @@
 - [x] 멘션 자동완성 목록을 키보드로 이동할 때 활성 항목이 목록 밖으로 밀려나도 스크롤되지 않던 버그 수정 (`MentionAutocomplete`에서 활성 항목을 `scrollIntoView({ block: "nearest" })`로 끌어온다)
 - [x] 모바일 폭에서 모달 안 댓글 섹션까지 스크롤되는지 확인
 
+## 모달 공통 동작 (feat/schedule-modal-behavior)
+
+모달마다 닫는 방법이 제각각이었다. 일정 생성/수정 모달은 포커스가 모달 안에 있을 때만 ESC가 먹고 딤 레이어를 눌러도 닫히지 않았으며, 캘린더의 시간 등록 모달은 반대로 딤 클릭은 되지만 뒤 화면이 그대로 스크롤됐다. 세 가지 동작(ESC 닫기, 바깥 클릭 닫기, 뒤 화면 스크롤 잠금)을 딤 레이어 컴포넌트 한 곳에 모아 모달마다 다시 구현하지 않도록 했다.
+
+- [x] `src/hooks/useBodyScrollLock.ts` 신규 작성: 모달이 떠 있는 동안 body 스크롤을 잠근다. 겹쳐 열릴 때를 대비해 잠금 수를 세고 마지막 하나가 닫힐 때만 원래 인라인 스타일로 되돌린다. 스크롤바가 사라지며 본문이 밀리지 않도록 사라진 폭만큼 padding으로 채우고, 스크롤바를 화면 위에 겹쳐 그리는 환경에서는 폭이 0이라 건드리지 않는다
+- [x] `src/app/calendar/_hooks/useEscapeKey.ts`를 `src/hooks/`로 이동. 캘린더 전용이었으나 칸반 쪽 모달에서도 쓰게 되어 앱 전역으로 올렸고, 비게 된 `calendar/_hooks/` 디렉토리는 제거했다
+- [x] `useEscapeKey`가 `event.defaultPrevented`인 ESC는 건너뛰도록 수정. 모달 안 팝오버가 window 캡처 단계에서 먼저 처리한 ESC까지 모달이 받아 함께 닫히는 것을 막는다
+- [x] `src/components/ModalOverlay.tsx` 신규 작성: 딤 레이어 + ESC 닫기 + 바깥 클릭 닫기 + 스크롤 잠금. 바깥 클릭은 이벤트가 시작된 요소가 레이어 자신일 때만으로 판정한다. 모달 안에서 Portal로 body에 띄운 팝오버는 DOM 상 레이어 밖이지만 React 이벤트는 레이어까지 올라오기 때문이다. click이 아니라 mousedown을 보는 이유는 모달 안에서 시작한 드래그가 레이어 위에서 끝났을 때 닫히지 않게 하기 위해서다
+- [x] `TaskCreateModal.tsx`: 딤 레이어를 `ModalOverlay`로 교체. 포커스 위치에 따라 동작이 갈리던 자체 ESC 처리를 걷어내고, 커맨드+엔터 제출만 남겨 모달 본체로 옮겼다
+- [x] `AvailabilityTimePicker.tsx`: 딤 레이어를 `ModalOverlay`로 교체. 자체 `useEscapeKey` 호출과 본체의 `stopPropagation`은 레이어가 대신 처리하므로 제거했다
+- [x] `MemberSidebar.tsx`: 모바일 서랍도 딤 레이어를 깔고 화면을 덮으므로 열려 있는 동안 ESC 닫기와 스크롤 잠금을 적용했다. 마크업이 중앙 정렬 모달과 달라 `ModalOverlay` 대신 훅을 직접 쓴다
+- [x] `PropertyPopover.tsx`: 담당자/보고자/마감일/우선순위/상태 팝오버가 열려 있을 때의 ESC를 팝오버가 먼저 받도록 했다. 그전에는 팝오버만 닫으려던 ESC에 모달이 통째로 닫혀 작성 중이던 내용이 사라졌다
+- [x] `TaskCreateModal.tsx`: 삭제 버튼에 취소 버튼과 같은 테두리와 배경을 넣어 나란히 놓인 버튼들과 형태를 맞췄다. 글자색은 기존대로 오류 색을 유지한다
+- [x] pnpm build / pnpm lint 검증 (경고 없이 통과)
+- [ ] 실제 화면에서 ESC, 딤 클릭, 스크롤 잠금 동작과 팝오버가 열린 상태의 ESC 확인
+
 ## 캘린더 반복 일정과 등록 대상 선택 (feat/calendar-recurring)
 
 가능 시간을 날짜 하나에 본인 몫으로만 등록할 수 있어서, 매주 같은 시간에 열리는 회의처럼 되풀이되는 일정은 날짜 수만큼 모달을 반복해서 열어야 했다. `docs/기능설계서.md` 10. 미구현 표의 "반복 일정"은 칸반의 업무 자동 생성을 가리키지만, 이번 요청은 캘린더의 가능 시간 반복 등록이라 이 작업에서 새로 정의한다. 반복 주기는 없음/매일/매주/매월, 종료는 날짜 지정, 대상은 팀원과 팀을 함께 고르는 방식으로 사용자와 확정했다.
@@ -521,4 +537,5 @@
 - [x] `src/app/calendar/_components/CalendarGrid.tsx`: 모든 블록을 삭제 대상으로 열고(등록 대상 선택이 생겨 본인 것만 지울 수 있으면 대신 등록해 준 일정을 정정할 수 없다), 반복 블록은 확인 창을 띄운다
 - [x] `src/app/calendar/_components/CalendarView.tsx`: 등록/삭제가 여러 행을 한 번에 다루도록 상태 갱신 방식 변경
 - [x] `src/app/calendar/page.tsx`: 대상 선택 후보를 만들기 위해 팀 목록을 함께 조회한다
+- [x] develop의 모달 공통 동작(`ModalOverlay`, `src/hooks/useEscapeKey`)을 머지하면서 이번 작업의 모달 두 개를 그 구조에 맞췄다. 시간 등록 모달과 반복 삭제 확인 창이 딤 레이어를 직접 그리는 대신 `ModalOverlay`를 쓴다
 - [ ] 마이그레이션 SQL을 Supabase SQL 에디터에 적용 (사용자 작업)

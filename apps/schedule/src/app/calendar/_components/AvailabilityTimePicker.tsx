@@ -3,11 +3,11 @@
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useState } from "react";
+import { ModalOverlay } from "@/components/ModalOverlay";
 import type { AvailabilityRow } from "@/types/tables";
 import { cn } from "@/utils";
 import { resolveMentionProfiles } from "../../_lib/mentions";
 import type { MentionTarget } from "../../_lib/mentions";
-import { useEscapeKey } from "../_hooks";
 import { createAvailability } from "../_lib/actions";
 import type { RecurrenceFrequency } from "../_lib/recurrence";
 import {
@@ -71,8 +71,6 @@ const AvailabilityTimePicker = ({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEscapeKey(onCancel);
 
   const targetProfiles = resolveMentionProfiles(selectedTargets);
   const isEndDateValid = frequency === "none" || endDate >= date;
@@ -149,14 +147,8 @@ const AvailabilityTimePicker = ({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
-      onClick={onCancel}
-    >
-      <div
-        className="w-[300px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
-        onClick={(event) => event.stopPropagation()}
-      >
+    <ModalOverlay className="z-[100]" onClose={onCancel}>
+      <div className="w-[300px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-surface-elevated p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]">
         <div className="mb-1 flex items-start justify-between gap-2">
           <p className="text-sm font-semibold text-text-default">일정 등록</p>
           <button
@@ -266,7 +258,7 @@ const AvailabilityTimePicker = ({
           </div>
         )}
       </div>
-    </div>
+    </ModalOverlay>
   );
 };
 

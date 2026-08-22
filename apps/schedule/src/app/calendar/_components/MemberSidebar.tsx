@@ -1,5 +1,6 @@
 "use client";
 
+import { useBodyScrollLock, useEscapeKey } from "@/hooks";
 import { cn } from "@/utils";
 import type { ProfileWithColor } from "../../_types/kanban";
 
@@ -18,6 +19,10 @@ const MemberSidebar = ({
   isOpen,
   onClose,
 }: MemberSidebarProps) => {
+  // 모바일에서만 딤 레이어를 깔고 서랍처럼 덮으므로, 열려 있는 동안만 모달과 같은 규칙을 적용한다.
+  useEscapeKey(onClose, isOpen);
+  useBodyScrollLock(isOpen);
+
   return (
     <>
       {isOpen && (
