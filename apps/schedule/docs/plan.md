@@ -540,5 +540,6 @@
 - [x] `src/app/_lib/commentNotification.ts` 신규 작성: 언급 대상과 작성자 프로필, 일정 제목, 상위 일정 제목을 모아 payload를 만든다. 작성자 본인은 DM 대상에서 제외한다
 - [x] `src/app/_lib/commentActions.ts` 수정: `syncCommentMentions`가 이번에 새로 추가된 언급만 돌려주도록 바꾸고(수정할 때마다 기존 언급 대상에게 DM이 다시 가는 것을 막는다), `after()`로 DM을 응답 뒤에 보낸다
 - [x] 전송 실패가 댓글 저장을 막지 않는지 확인 (기존 일정 알림과 동일하게 `try/catch`로 흡수)
+- [x] (PR #163 Codex 리뷰 반영, P2) 언급 대상 판정을 클라이언트에서 서버로 옮김. `createComment`/`updateComment`가 받던 `mentionedProfileIds`를 없애고 서버 액션이 저장할 본문을 직접 파싱한다. 이 값을 클라이언트가 정하면 로그인한 팀원이 서버 액션을 직접 호출해 본문에 언급하지도 않은 사람에게 DM을 보낼 수 있었다. `feat/task-comments` 때부터 있던 구조지만 그때는 결과가 관계 행 오염에 그쳤고, 발송이 붙으면서 실제 피해로 이어질 수 있게 되어 이번에 닫았다. 판정 함수는 클라이언트와 동일한 `parseMentions`/`resolveMentionProfiles`라 결과는 달라지지 않고, 댓글 저장마다 조회 3건(profiles, teams, team_members)이 는다
 - [ ] 실제 화면에서 댓글로 팀원/팀을 언급했을 때 당사자에게 DM이 오는지 확인 (수정 시 기존 언급 대상에게 다시 가지 않는지, 봇이 DM을 열 수 있는지 포함)
 - [x] pnpm build / pnpm lint 검증 (워크트리에서 실행, 경고 없음)

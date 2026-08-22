@@ -5,7 +5,6 @@ import { MessageSquare } from "lucide-react";
 import type { TaskCommentsRow } from "@/types/tables";
 import { cn } from "@/utils";
 import { createComment, deleteComment, updateComment } from "../../_lib/commentActions";
-import { parseMentions, resolveMentionProfiles } from "../../_lib/mentions";
 import type { MentionTarget } from "../../_lib/mentions";
 import { buildProfileColorMap } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
@@ -41,19 +40,9 @@ const TaskComments = ({
 }: TaskCommentsProps) => {
   const profileMap = useMemo(() => buildProfileColorMap(profiles), [profiles]);
 
-  /**
-   * 본문의 "@슬러그"를 언급 대상으로 풀고, 팀 언급은 소속 팀원까지 펼쳐 알림 대상 id를 뽑는다.
-   * 이후 알림이 본문을 다시 파싱하지 않아도 되도록 저장 시점 판정을 관계 테이블에 남긴다.
-   */
-  const toMentionedProfileIds = (body: string) =>
-    resolveMentionProfiles(parseMentions(body, mentionTargets)).map((profile) => profile.id);
-
+  // 누가 언급되었는지는 서버 액션이 본문을 파싱해 정한다. DM 발송 대상이라 클라이언트 판정을 믿지 않는다.
   const handleCreate = async (body: string) => {
-    const created = await createComment({
-      taskId,
-      body,
-      mentionedProfileIds: toMentionedProfileIds(body),
-    });
+    const created = await createComment({ taskId, body });
 
     if (!created) return false;
 
@@ -62,11 +51,7 @@ const TaskComments = ({
   };
 
   const handleUpdate = async (id: string, body: string) => {
-    const updated = await updateComment({
-      id,
-      body,
-      mentionedProfileIds: toMentionedProfileIds(body),
-    });
+    const updated = await updateComment({ id, body });
 
     if (!updated) return false;
 

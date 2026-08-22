@@ -9,6 +9,25 @@ import type {
   TaskCommentsRow,
 } from "@/types/tables";
 import { notifyCommentMentions } from "./commentNotification";
+import { buildMentionTargets, parseMentions, resolveMentionProfiles } from "./mentions";
+import { getRegisteredProfiles } from "./profiles";
+import { getTeamsWithMembers } from "./teams";
+
+/**
+ * 본문의 "@슬러그"를 언급 대상으로 풀어 profile id를 뽑는다. 팀 언급은 소속 팀원까지 펼친다.
+ *
+ * 판정을 클라이언트가 아니라 서버에서 하는 이유는, 이 값이 DM 발송 대상이 되기 때문이다.
+ * 클라이언트가 보낸 id를 그대로 믿으면 로그인한 팀원이 서버 액션을 직접 호출해
+ * 본문에 언급하지도 않은 사람에게 DM을 보낼 수 있다.
+ * 자동완성과 본문 강조는 클라이언트가 같은 함수로 따로 계산하며, 판정 규칙이 동일해 결과도 같다.
+ */
+const resolveMentionedProfileIds = async (supabase: SupabaseClient, body: string) => {
+  const profiles = await getRegisteredProfiles(supabase);
+  const teams = await getTeamsWithMembers(supabase, profiles);
+  const targets = buildMentionTargets(teams, profiles);
+
+  return resolveMentionProfiles(parseMentions(body, targets)).map((profile) => profile.id);
+};
 
 /**
  * 멘션 관계 테이블을 본문 기준으로 맞춘다. 수정 시에는 기존 행을 지우고 다시 넣어 동기화한다.
@@ -70,13 +89,11 @@ const syncCommentMentions = async (
 interface CreateCommentInput {
   taskId: string;
   body: string;
-  mentionedProfileIds: string[];
 }
 
 export const createComment = async ({
   taskId,
   body,
-  mentionedProfileIds,
 }: CreateCommentInput): Promise<TaskCommentsRow | null> => {
   const supabase = await createClient();
 
@@ -106,7 +123,11 @@ export const createComment = async ({
     return null;
   }
 
-  const addedProfileIds = await syncCommentMentions(supabase, data.id, mentionedProfileIds);
+  const addedProfileIds = await syncCommentMentions(
+    supabase,
+    data.id,
+    await resolveMentionedProfileIds(supabase, body)
+  );
 
   // Slack DM은 응답을 반환한 뒤에 보낸다. 전송이 느려도 댓글 등록 응답이 지연되지 않는다.
   after(() => notifyCommentMentions(supabase, data, addedProfileIds));
@@ -117,7 +138,6 @@ export const createComment = async ({
 interface UpdateCommentInput {
   id: string;
   body: string;
-  mentionedProfileIds: string[];
 }
 
 /**
@@ -127,7 +147,6 @@ interface UpdateCommentInput {
 export const updateComment = async ({
   id,
   body,
-  mentionedProfileIds,
 }: UpdateCommentInput): Promise<TaskCommentsRow | null> => {
   const supabase = await createClient();
 
@@ -158,7 +177,11 @@ export const updateComment = async ({
     return null;
   }
 
-  const addedProfileIds = await syncCommentMentions(supabase, data.id, mentionedProfileIds);
+  const addedProfileIds = await syncCommentMentions(
+    supabase,
+    data.id,
+    await resolveMentionedProfileIds(supabase, body)
+  );
 
   // 수정으로 새로 생긴 멘션만 대상이라, 원래 언급되어 있던 사람에게는 DM이 다시 가지 않는다.
   after(() => notifyCommentMentions(supabase, data, addedProfileIds));
