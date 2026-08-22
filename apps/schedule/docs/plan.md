@@ -303,3 +303,11 @@
 - [x] `DatePickerPopover.tsx`: `getDayClassName`/`getWeekdayHeaderClassName` 헬퍼(if-체인)를 추가해 그리드 내 일/토요일 텍스트와 요일 헤더에 각각 `text-fg-state-error`/`text-primary` 적용
 - [x] `SprintList.tsx`: `<input type="date">` 2개를 `DatePickerPopover`(라벨 "시작일"/"종료일") 2개로 교체, `startDate`/`endDate` 초기값을 오늘 날짜로 변경, `canSubmit`에서 날짜 빈 값 체크 제거
 - [x] pnpm build / pnpm lint 검증
+
+## 스프린트 수정/삭제 기능 추가
+
+목록에 추가만 가능하고 수정/삭제가 없어서 잘못 입력한 스프린트를 고칠 방법이 없었다. `CalendarGrid.tsx`의 가능 시간 삭제 확인 패턴("삭제할까요?" + 삭제/취소 인라인 전환)을 그대로 재사용해 삭제 시 확인 단계를 거치도록 하고, 수정은 행을 이름+기간 입력 폼으로 바꿔치기하는 인라인 편집 방식으로 구현한다.
+
+- [x] `settings/_lib/actions.ts`: `updateSprint({ id, name, startDate, endDate })`, `deleteSprint(id)` 서버 액션 추가
+- [x] `SprintList.tsx`: 각 행에 수정(연필 아이콘)/삭제(✕) 버튼 추가. 수정 클릭 시 해당 행이 이름 입력 + `DatePickerPopover` 2개 + 저장/취소 버튼으로 전환. 삭제 클릭 시 "삭제할까요?" 확인 상태로 전환 후 삭제/취소
+- [x] pnpm build / pnpm lint 검증
