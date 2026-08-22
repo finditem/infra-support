@@ -3,4 +3,6 @@ export type { ProfilesInsert, ProfilesRow, ProfilesUpdate } from "./profiles";
 export type { StatusHistoryInsert, StatusHistoryRow, StatusHistoryUpdate } from "./status_history";
 export type { TaskStatusesInsert, TaskStatusesRow, TaskStatusesUpdate } from "./task_statuses";
 export type { TasksInsert, TasksRow, TasksUpdate } from "./tasks";
+export type { TeamMembersInsert, TeamMembersRow, TeamMembersUpdate } from "./team_members";
+export type { TeamsInsert, TeamsRow, TeamsUpdate } from "./teams";
 export type { WeeksInsert, WeeksRow, WeeksUpdate } from "./weeks";
