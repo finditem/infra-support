@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { TasksInsert, TasksRow, TasksUpdate } from "@/types/tables";
 import { notifyTaskCreated, notifyTaskDeleted, notifyTaskUpdated } from "./taskNotification";
@@ -51,7 +52,8 @@ export const createTask = async ({
     return null;
   }
 
-  await notifyTaskCreated(supabase, data);
+  // Slack 전송은 응답을 반환한 뒤에 실행한다. 알림이 느려도 저장 성공 응답이 지연되지 않는다.
+  after(() => notifyTaskCreated(supabase, data));
 
   return data;
 };
@@ -107,7 +109,7 @@ export const updateTask = async ({
   }
 
   if (before) {
-    await notifyTaskUpdated(supabase, before, data);
+    after(() => notifyTaskUpdated(supabase, before, data));
   }
 
   return data;
@@ -134,10 +136,12 @@ export const deleteTask = async (id: string): Promise<string[] | null> => {
     return null;
   }
 
-  await notifyTaskDeleted(
-    supabase,
-    task,
-    subtaskRows.map((subtask) => subtask.title)
+  after(() =>
+    notifyTaskDeleted(
+      supabase,
+      task,
+      subtaskRows.map((subtask) => subtask.title)
+    )
   );
 
   return [id, ...subtaskRows.map((subtask) => subtask.id)];
