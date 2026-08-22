@@ -506,3 +506,60 @@
 - [x] 실제 화면에서 댓글 생성/수정/삭제, 멘션 자동완성과 강조, 라이트/다크 모드 확인
 - [x] 멘션 자동완성 목록을 키보드로 이동할 때 활성 항목이 목록 밖으로 밀려나도 스크롤되지 않던 버그 수정 (`MentionAutocomplete`에서 활성 항목을 `scrollIntoView({ block: "nearest" })`로 끌어온다)
 - [x] 모바일 폭에서 모달 안 댓글 섹션까지 스크롤되는지 확인
+
+## 모달 공통 동작 (feat/schedule-modal-behavior)
+
+모달마다 닫는 방법이 제각각이었다. 일정 생성/수정 모달은 포커스가 모달 안에 있을 때만 ESC가 먹고 딤 레이어를 눌러도 닫히지 않았으며, 캘린더의 시간 등록 모달은 반대로 딤 클릭은 되지만 뒤 화면이 그대로 스크롤됐다. 세 가지 동작(ESC 닫기, 바깥 클릭 닫기, 뒤 화면 스크롤 잠금)을 딤 레이어 컴포넌트 한 곳에 모아 모달마다 다시 구현하지 않도록 했다.
+
+- [x] `src/hooks/useBodyScrollLock.ts` 신규 작성: 모달이 떠 있는 동안 body 스크롤을 잠근다. 겹쳐 열릴 때를 대비해 잠금 수를 세고 마지막 하나가 닫힐 때만 원래 인라인 스타일로 되돌린다. 스크롤바가 사라지며 본문이 밀리지 않도록 사라진 폭만큼 padding으로 채우고, 스크롤바를 화면 위에 겹쳐 그리는 환경에서는 폭이 0이라 건드리지 않는다
+- [x] `src/app/calendar/_hooks/useEscapeKey.ts`를 `src/hooks/`로 이동. 캘린더 전용이었으나 칸반 쪽 모달에서도 쓰게 되어 앱 전역으로 올렸고, 비게 된 `calendar/_hooks/` 디렉토리는 제거했다
+- [x] `useEscapeKey`가 `event.defaultPrevented`인 ESC는 건너뛰도록 수정. 모달 안 팝오버가 window 캡처 단계에서 먼저 처리한 ESC까지 모달이 받아 함께 닫히는 것을 막는다
+- [x] `src/components/ModalOverlay.tsx` 신규 작성: 딤 레이어 + ESC 닫기 + 바깥 클릭 닫기 + 스크롤 잠금. 바깥 클릭은 이벤트가 시작된 요소가 레이어 자신일 때만으로 판정한다. 모달 안에서 Portal로 body에 띄운 팝오버는 DOM 상 레이어 밖이지만 React 이벤트는 레이어까지 올라오기 때문이다. click이 아니라 mousedown을 보는 이유는 모달 안에서 시작한 드래그가 레이어 위에서 끝났을 때 닫히지 않게 하기 위해서다
+- [x] `TaskCreateModal.tsx`: 딤 레이어를 `ModalOverlay`로 교체. 포커스 위치에 따라 동작이 갈리던 자체 ESC 처리를 걷어내고, 커맨드+엔터 제출만 남겨 모달 본체로 옮겼다
+- [x] `AvailabilityTimePicker.tsx`: 딤 레이어를 `ModalOverlay`로 교체. 자체 `useEscapeKey` 호출과 본체의 `stopPropagation`은 레이어가 대신 처리하므로 제거했다
+- [x] `MemberSidebar.tsx`: 모바일 서랍도 딤 레이어를 깔고 화면을 덮으므로 열려 있는 동안 ESC 닫기와 스크롤 잠금을 적용했다. 마크업이 중앙 정렬 모달과 달라 `ModalOverlay` 대신 훅을 직접 쓴다
+- [x] `PropertyPopover.tsx`: 담당자/보고자/마감일/우선순위/상태 팝오버가 열려 있을 때의 ESC를 팝오버가 먼저 받도록 했다. 그전에는 팝오버만 닫으려던 ESC에 모달이 통째로 닫혀 작성 중이던 내용이 사라졌다
+- [x] `TaskCreateModal.tsx`: 삭제 버튼에 취소 버튼과 같은 테두리와 배경을 넣어 나란히 놓인 버튼들과 형태를 맞췄다. 글자색은 기존대로 오류 색을 유지한다
+- [x] pnpm build / pnpm lint 검증 (경고 없이 통과)
+- [ ] 실제 화면에서 ESC, 딤 클릭, 스크롤 잠금 동작과 팝오버가 열린 상태의 ESC 확인
+
+## 댓글 언급 Slack DM (feat/comment-mention-notify)
+
+`feat/task-comments`가 누가 누구를 언급했는지 `task_comment_mentions`에 남겨 두기만 하고 발송은 범위 밖으로 미뤄 뒀다. 그 마지막 조각을 붙인다. `docs/기능설계서.md`에는 댓글 기능 자체가 없어 이번에도 새로 정의한다.
+
+일정 변경 알림은 위 "Slack 알림을 DM 없이 채널 멘션으로 변경"에 따라 팀 채널 한 곳으로만 가지만, 댓글 언급은 그 방침을 따르지 않고 언급된 사람 개인 DM으로 보낸다. 일정 변경은 팀 전체가 알아야 하는 내용인 반면 댓글 언급은 당사자에게만 필요한 내용이고, 댓글이 오갈 때마다 채널에 쌓이면 소음이 되기 때문이다.
+
+- [x] `src/lib/slack/escapeSlackText.ts` 분리: `buildTaskEventMessage`가 안에 두고 쓰던 이스케이프 함수를 댓글 메시지에서도 쓰게 되어 파일로 뺀다
+- [x] `src/lib/slack/formatSlackProfile.ts` 분리: Slack 계정이 연결된 팀원은 언급으로, 아니면 이름으로 표기하는 규칙도 두 메시지가 공유한다
+- [x] `src/lib/slack/types.ts`에 `CommentMentionNotificationPayload` 추가
+- [x] `src/lib/slack/buildCommentMentionMessage.ts` 신규 작성: 작성자, 일정 제목, 댓글 본문 인용, 상세 링크. 본인에게만 가는 DM이라 받는 사람 이름은 적지 않고, 언급된 사람이 여럿이어도 본문이 같아 한 번만 만든다
+- [x] `src/lib/slack/notifyCommentMention.ts` 신규 작성: 언급된 사람의 `slack_user_id`를 채널로 넘겨 개인 DM 전송. `SLACK_CHANNEL_ID`는 쓰지 않으므로 Slack 계정이 연결되지 않은 팀원은 보낼 곳이 없어 건너뛴다
+- [x] `src/app/_lib/notificationProfiles.ts` 분리: `taskNotification.ts`의 `loadProfileMap`/`toNotificationProfile`을 댓글 알림과 공유
+- [x] `src/app/_lib/taskUrl.ts` 분리: `buildTaskUrl`도 두 알림이 공유한다 (하위 일정은 상세 페이지가 없어 상위 일정으로 보낸다)
+- [x] `src/app/_lib/parentTaskTitle.ts` 분리: 상위 일정 제목을 읽는 `loadParentTitle`도 두 알림이 공유한다
+- [x] `src/app/_lib/commentNotification.ts` 신규 작성: 언급 대상과 작성자 프로필, 일정 제목, 상위 일정 제목을 모아 payload를 만든다. 작성자 본인은 DM 대상에서 제외한다
+- [x] `src/app/_lib/commentActions.ts` 수정: `syncCommentMentions`가 이번에 새로 추가된 언급만 돌려주도록 바꾸고(수정할 때마다 기존 언급 대상에게 DM이 다시 가는 것을 막는다), `after()`로 DM을 응답 뒤에 보낸다
+- [x] 전송 실패가 댓글 저장을 막지 않는지 확인 (기존 일정 알림과 동일하게 `try/catch`로 흡수)
+- [x] (PR #163 Codex 리뷰 반영, P2) 언급 대상 판정을 클라이언트에서 서버로 옮김. `createComment`/`updateComment`가 받던 `mentionedProfileIds`를 없애고 서버 액션이 저장할 본문을 직접 파싱한다. 이 값을 클라이언트가 정하면 로그인한 팀원이 서버 액션을 직접 호출해 본문에 언급하지도 않은 사람에게 DM을 보낼 수 있었다. `feat/task-comments` 때부터 있던 구조지만 그때는 결과가 관계 행 오염에 그쳤고, 발송이 붙으면서 실제 피해로 이어질 수 있게 되어 이번에 닫았다. 판정 함수는 클라이언트와 동일한 `parseMentions`/`resolveMentionProfiles`라 결과는 달라지지 않고, 댓글 저장마다 조회 3건(profiles, teams, team_members)이 는다
+- [ ] 실제 화면에서 댓글로 팀원/팀을 언급했을 때 당사자에게 DM이 오는지 확인 (수정 시 기존 언급 대상에게 다시 가지 않는지, 봇이 DM을 열 수 있는지 포함)
+- [x] pnpm build / pnpm lint 검증 (워크트리에서 실행, 경고 없음)
+
+## 캘린더 반복 일정과 등록 대상 선택 (feat/calendar-recurring)
+
+가능 시간을 날짜 하나에 본인 몫으로만 등록할 수 있어서, 매주 같은 시간에 열리는 회의처럼 되풀이되는 일정은 날짜 수만큼 모달을 반복해서 열어야 했다. `docs/기능설계서.md` 10. 미구현 표의 "반복 일정"은 칸반의 업무 자동 생성을 가리키지만, 이번 요청은 캘린더의 가능 시간 반복 등록이라 이 작업에서 새로 정의한다. 반복 주기는 없음/매일/매주/매월, 종료는 날짜 지정, 대상은 팀원과 팀을 함께 고르는 방식으로 사용자와 확정했다.
+
+- [x] `supabase/migrations/0012_add_availability_recurrence.sql` 신규 작성: `availability`에 `recurrence_group_id uuid` 컬럼과 부분 인덱스 추가. 한 번의 반복 등록으로 만들어진 행을 하나의 묶음으로 묶어 "이후 반복 전체 삭제"의 근거로 쓴다
+- [x] `src/types/tables/availability.ts`: `recurrence_group_id` 추가. Insert에서는 선택 항목으로 둔다 (반복 없이 등록하면 null)
+- [x] `src/app/calendar/_lib/recurrence.ts` 신규 작성: 반복 주기 타입과 선택지, 종료일 기본값, 시작일과 종료일 사이의 반복 날짜 전개. 매월은 시작일의 일자를 유지하고 그 일자가 없는 달(31일 → 2월)은 건너뛴다
+- [x] `src/app/calendar/_lib/actions.ts`: 단건 등록을 대상 여러 명 × 날짜 여러 개의 일괄 등록으로 확장. 겹치는 시간대는 서버에서 미리 걸러 건너뛴 개수를 돌려준다. 묶음 단위 삭제 액션 추가
+- [x] `src/app/calendar/_components/AvailabilityTargetPicker.tsx` 신규 작성: 팀과 팀원을 함께 고르는 다중 선택 팝오버. 팀을 고르면 소속 팀원으로 펼쳐 등록한다
+- [x] `src/app/calendar/_components/AvailabilityTimePicker.tsx`: 대상 선택, 반복 주기, 종료일 입력과 등록될 개수 요약 추가
+- [x] `src/app/calendar/_components/RecurringDeleteDialog.tsx` 신규 작성: 반복으로 만든 블록을 지울 때 이 일정만 지울지 이후 반복까지 지울지 고르는 확인 창
+- [x] `src/app/calendar/_components/CalendarGrid.tsx`: 모든 블록을 삭제 대상으로 열고(등록 대상 선택이 생겨 본인 것만 지울 수 있으면 대신 등록해 준 일정을 정정할 수 없다), 반복 블록은 확인 창을 띄운다
+- [x] `src/app/calendar/_components/CalendarView.tsx`: 등록/삭제가 여러 행을 한 번에 다루도록 상태 갱신 방식 변경
+- [x] `src/app/calendar/page.tsx`: 대상 선택 후보를 만들기 위해 팀 목록을 함께 조회한다
+- [x] develop의 모달 공통 동작(`ModalOverlay`, `src/hooks/useEscapeKey`)을 머지하면서 이번 작업의 모달 두 개를 그 구조에 맞췄다. 시간 등록 모달과 반복 삭제 확인 창이 딤 레이어를 직접 그리는 대신 `ModalOverlay`를 쓴다
+- [x] `AvailabilityTimePicker.tsx`: 대상과 반복 입력이 붙어 모달이 길어졌으므로 높이를 화면의 85%로 제한하고 넘치면 모달 안에서 스크롤되게 했다. 딤 레이어가 뒤 화면 스크롤을 잠그고 있어 이 제한이 없으면 짧은 화면에서 아래쪽 버튼에 닿을 수 없다
+- [x] 마이그레이션 SQL을 Supabase SQL 에디터에 적용 (사용자가 직접 적용)
+- [x] 실제 화면에서 반복 등록, 팀 단위 대상 등록, 겹침 건너뛰기 안내, 반복 삭제 확인 창 동작 확인 (사용자 확인)
+- [x] pnpm build / pnpm lint 검증 (경고 없이 통과)
