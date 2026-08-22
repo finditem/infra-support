@@ -2,6 +2,7 @@ import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from "date-f
 import { createClient } from "@/lib/supabase/server";
 import { NavBar } from "@/components/NavBar";
 import { buildProfileColorMap } from "../_lib/kanbanUtils";
+import { getRegisteredProfiles } from "../_lib/profiles";
 import type { ProfileWithColor } from "../_types/kanban";
 import CalendarHeader from "./_components/CalendarHeader";
 import CalendarView from "./_components/CalendarView";
@@ -22,13 +23,13 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
   const supabase = await createClient();
 
   const [
-    { data: profiles },
+    profiles,
     { data: availability },
     {
       data: { user },
     },
   ] = await Promise.all([
-    supabase.from("profiles").select("*").not("registered_at", "is", null).order("name"),
+    getRegisteredProfiles(supabase),
     supabase
       .from("availability")
       .select("*")
@@ -37,11 +38,11 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
     supabase.auth.getUser(),
   ]);
 
-  const profileColorMap = buildProfileColorMap(profiles ?? []);
-  const profilesWithColor: ProfileWithColor[] = (profiles ?? []).map(
+  const profileColorMap = buildProfileColorMap(profiles);
+  const profilesWithColor: ProfileWithColor[] = profiles.map(
     (profile) => profileColorMap.get(profile.id) as ProfileWithColor
   );
-  const currentProfileId = profiles?.find((profile) => profile.id === user?.id)?.id ?? null;
+  const currentProfileId = profiles.find((profile) => profile.id === user?.id)?.id ?? null;
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
