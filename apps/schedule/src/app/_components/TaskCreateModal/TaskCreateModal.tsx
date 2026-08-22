@@ -351,7 +351,7 @@ const TaskCreateModal = ({
           <div className="flex gap-1.5">
             {isEditing && (
               <button
-                className="rounded-[7px] px-3.5 py-1.5 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+                className="rounded-[7px] border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
                 disabled={isDeleting || isSubmitting}
                 type="button"
                 onClick={() => void handleDelete()}

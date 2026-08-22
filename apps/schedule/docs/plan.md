@@ -519,5 +519,6 @@
 - [x] `AvailabilityTimePicker.tsx`: 딤 레이어를 `ModalOverlay`로 교체. 자체 `useEscapeKey` 호출과 본체의 `stopPropagation`은 레이어가 대신 처리하므로 제거했다
 - [x] `MemberSidebar.tsx`: 모바일 서랍도 딤 레이어를 깔고 화면을 덮으므로 열려 있는 동안 ESC 닫기와 스크롤 잠금을 적용했다. 마크업이 중앙 정렬 모달과 달라 `ModalOverlay` 대신 훅을 직접 쓴다
 - [x] `PropertyPopover.tsx`: 담당자/보고자/마감일/우선순위/상태 팝오버가 열려 있을 때의 ESC를 팝오버가 먼저 받도록 했다. 그전에는 팝오버만 닫으려던 ESC에 모달이 통째로 닫혀 작성 중이던 내용이 사라졌다
+- [x] `TaskCreateModal.tsx`: 삭제 버튼에 취소 버튼과 같은 테두리와 배경을 넣어 나란히 놓인 버튼들과 형태를 맞췄다. 글자색은 기존대로 오류 색을 유지한다
 - [x] pnpm build / pnpm lint 검증 (경고 없이 통과)
 - [ ] 실제 화면에서 ESC, 딤 클릭, 스크롤 잠금 동작과 팝오버가 열린 상태의 ESC 확인
