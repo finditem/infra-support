@@ -62,11 +62,7 @@ const MentionAutocomplete = ({
             onMouseDown={(event) => event.preventDefault()}
             onMouseEnter={() => onActiveIndexChange(index)}
           >
-            <ProfileAvatar
-              className="size-4 text-[8px]"
-              color={profile.color}
-              name={profile.name}
-            />
+            <ProfileAvatar profile={profile} size="sm" />
             {profile.name}
           </button>
         </li>

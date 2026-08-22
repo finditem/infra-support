@@ -10,4 +10,6 @@ export type {
 export type { TaskCommentsInsert, TaskCommentsRow, TaskCommentsUpdate } from "./task_comments";
 export type { TaskStatusesInsert, TaskStatusesRow, TaskStatusesUpdate } from "./task_statuses";
 export type { TasksInsert, TasksRow, TasksUpdate } from "./tasks";
+export type { TeamMembersInsert, TeamMembersRow, TeamMembersUpdate } from "./team_members";
+export type { TeamsInsert, TeamsRow, TeamsUpdate } from "./teams";
 export type { WeeksInsert, WeeksRow, WeeksUpdate } from "./weeks";

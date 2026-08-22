@@ -355,13 +355,53 @@
 
 - [x] `postSlackMessage`의 `fetch`에 `AbortSignal.timeout` 5초 상한 추가 (Slack이 응답하지 않을 때 서버리스 함수가 매달리지 않도록)
 - [x] `createTask`/`updateTask`/`deleteTask`에서 알림 호출을 `next/server`의 `after()`로 감싸 저장 성공 응답을 지연시키지 않도록 변경
+
+## 팀(그룹) 관리 기능 추가
+
+팀원을 프론트엔드/백엔드/기획처럼 그룹으로 묶어 관리한다. 한 사람이 여러 팀에 속할 수 있다. 이후 캘린더/칸반에서 "@프론트엔드"처럼 팀 단위로 언급해 일정을 추가하는 기능의 기반이 되며, 이번 작업에서는 설정 페이지까지만 만들고 언급 연동은 다음 단계로 미룬다.
+
+- [x] `supabase/migrations/0009_teams.sql` 신규 작성: `teams`(name unique, 언급용 slug unique, color, created_by, created_at/updated_at), `team_members`(team_id/profile_id 복합 기본키, 팀 삭제 시 cascade), 두 테이블 모두 기존과 동일한 `authenticated_full_access` RLS 정책
+- [x] `0005_add_profile_color.sql`의 `assign_profile_color()`를 대상 테이블만 파라미터로 받는 `assign_pastel_color(regclass)`로 일반화하고, `assign_profile_color()`/`assign_team_color()`는 그 함수를 호출하는 얇은 래퍼로 둠 (`handle_new_user()`가 부르는 이름과 시그니처가 그대로라 기존 profiles 동작은 변하지 않는다)
+- [x] `prepare_team()` 트리거 함수: insert/update 전에 팀명을 trim하고, 공백을 제거한 언급 슬러그를 만들고, insert 시 색상을 배정한다. `set_updated_at` 트리거도 함께 연결
+- [x] 마이그레이션 안에서 `set_updated_at()`을 `create or replace`로 함께 정의: `0001_init.sql`에는 있지만 실제 Supabase 프로젝트에는 없고 같은 본문의 `handle_updated_at()`이 대신 쓰이고 있어, 트리거 생성이 `42883`으로 실패했다
+- [x] 마이그레이션 번호를 `0006`에서 `0009`까지 두 차례 변경: `0006`/`0007`은 스프린트 재설계, `0008`은 `feat/slack-notification`이 develop에 먼저 병합되며 가져갔다
+- [x] `src/types/tables/teams.ts`, `src/types/tables/team_members.ts` 신규 작성 및 `src/types/tables/index.ts`에 re-export 추가 (team_members는 복합 기본키라 Row에 id가 없다)
+- [x] `src/app/_types/teams.ts` 신규 작성: `TeamWithMembers = TeamsRow & { members: ProfileWithColor[] }`
+- [x] `src/app/_lib/profiles.ts` 신규 작성: `getRegisteredProfiles(supabase)` — 칸반/캘린더/팀 관리 세 페이지에 같은 조회가 중복돼 있어서 분리하고 기존 두 페이지도 이 함수를 쓰도록 교체
+- [x] `src/app/_lib/teams.ts` 신규 작성: `getTeamsWithMembers(supabase, profiles?)` — 팀 목록에 멤버를 붙여 반환. 이후 캘린더/칸반에서도 그대로 쓴다
+- [x] `src/app/settings/teams/_lib/actions.ts` 신규 작성: `createTeam`/`updateTeam`/`deleteTeam`/`addTeamMember`/`removeTeamMember`. 팀명 중복은 unique 위반(`23505`)을 받아 호출부에 알리고, 변경 후 `revalidatePath("/settings/teams")` 호출
+- [x] `src/app/settings/teams/page.tsx` 신규 작성 (Server Component에서 팀/멤버/팀원 조회), `src/app/settings/page.tsx`는 `/settings/teams`로 redirect
+- [x] `src/app/settings/teams/_components/TeamsManager.tsx`: 팀 추가 폼과 팀 목록. 중복 팀명은 "이미 있는 팀명입니다"로 안내
+- [x] `src/app/settings/teams/_components/TeamCard.tsx`: 팀 색상 점, 팀명 인라인 수정, 언급 슬러그 표시, 멤버 아바타와 제거 버튼, 멤버 추가 팝오버, 인라인 삭제 확인(`confirm()` 미사용)
+- [x] `src/components/NavBar.tsx`에 "설정" 링크 추가. 하위 경로에서도 활성으로 보이도록 접두어 판정 함수 분리, 조건부 className을 `cn()`으로 교체
+- [x] `src/app/_components/ProfileAvatar.tsx` 신규 작성: 이니셜 아바타 마크업이 네 군데에 복사돼 있어서 크기 prop을 가진 공용 컴포넌트로 분리하고 `KanbanCard`/`KanbanProgress`/`ProfilePickerPopover`를 교체
+- [x] `src/hooks/usePopoverPosition.ts`, `src/hooks/useOutsideClose.ts` 신규 작성: `PropertyPopover`의 위치 계산과 바깥 클릭 닫힘 로직을 훅으로 분리해 `MentionPicker`와 함께 쓰도록 함
+- [x] `ProfilePickerPopover`를 `TaskCreateModal/`에서 `src/app/_components/`로 올리고 `label` 옵셔널, `allowClear`, `triggerClassName` prop 추가 (기본값은 기존 동작과 동일)
+
+### 다음 단계에서 연결 (이번에는 사용처 없음)
+
+아래 두 파일은 캘린더/칸반의 언급 기반 일정 추가에서 쓸 부품이라 이번 작업에서는 어디에서도 import하지 않는다.
+
+- [x] `src/app/_lib/mentions.ts`: `MentionTarget`, `buildMentionTargets`, `parseMentions`(슬러그가 긴 후보부터 매칭), `resolveMentionProfiles`, 그리고 입력 필드 연결에 필요한 `getActiveMention`/`insertMention`/`filterMentionTargets`
+- [x] `src/app/_components/MentionPicker.tsx`: "@" 입력 시 뜨는 언급 대상 팝오버. 팀은 색상 점과 멤버 수, 개인은 아바타로 구분하고 위/아래/Enter/Esc로 선택 가능
+- [ ] 캘린더의 개인 일정 추가와 칸반의 일정 추가 입력에 `MentionPicker`를 연결하고, 저장 시 `parseMentions` + `resolveMentionProfiles`로 대상 팀원을 확정하는 작업
+- [x] `supabase/migrations/0009_teams.sql`을 사용자가 Supabase SQL 에디터에서 직접 적용 (적용 후 teams_prepare/teams_set_updated_at 트리거 동작 확인 완료)
+
+## develop 병합 충돌 해결 (PR #155)
+
+- [x] `src/components/NavBar.tsx`: "설정" 링크를 `/settings/teams`가 아니라 develop이 만든 `/settings`로 되돌린다. 하위 경로 접두어 판정은 그대로 두어 팀 관리에서도 "설정"이 활성으로 남는다
+- [x] `src/app/settings/_components/SettingsTabs.tsx` 신규 작성: 스프린트(`/settings`)와 팀 관리(`/settings/teams`)를 오가는 탭. 두 페이지에서 함께 쓰므로 별도 파일로 둔다
+- [x] `src/app/settings/page.tsx`: `/settings/teams`로 보내던 redirect를 없애고 develop의 스프린트 목록 페이지를 그대로 쓰되 상단에 탭을 붙인다
+- [x] `src/app/settings/teams/page.tsx`: 같은 탭을 상단에 붙인다
+- [x] `src/app/page.tsx`: develop의 `getSprintForWeek`와 이 브랜치의 `getRegisteredProfiles` import를 모두 남긴다
+- [x] `supabase/migrations/0008_teams.sql`을 `0009_teams.sql`로 변경: develop이 `0008_add_profile_slack_user_id.sql`을 먼저 가져갔다. SQL 본문은 그대로라 이미 적용한 Supabase 프로젝트에 다시 적용할 필요는 없다
 - [x] pnpm build / pnpm lint 검증
 
 ## 일정별 댓글과 멘션 (feat/task-comments)
 
 보고자가 검토 의견을 남길 곳이 일정 본문(`tasks.body`) 하나뿐이라 일정마다 대화가 쌓이지 않던 문제를 해결한다. `docs/기능설계서.md`에는 댓글 기능이 아예 없어(6. 공통 컴포넌트 표에도 댓글 관련 항목이 없다) 이번 작업으로 새로 정의한다. 멘션은 이후 Slack 알림(기능설계서 9. 개발 일정의 5단계)이 발송 대상을 판단하는 근거로 쓰이므로, 이번 범위에서 알림 발송은 만들지 않되 누가 누구를 멘션했는지는 DB에 관계로 남긴다.
 
-- [x] `supabase/migrations/0009_add_task_comments.sql` 신규 작성: `task_comments`(task_id/author_id/body/created_at/updated_at), `task_comment_mentions`(comment_id/mentioned_profile_id, `(comment_id, mentioned_profile_id)` 유니크), 두 테이블 RLS 활성화 + 기존과 동일한 `authenticated_full_access` 단일 정책, 외래키 인덱스 2개, `task_comments`에 기존 `set_updated_at` 트리거 연결
+- [x] `supabase/migrations/0010_add_task_comments.sql` 신규 작성: `task_comments`(task_id/author_id/body/created_at/updated_at), `task_comment_mentions`(comment_id/mentioned_profile_id, `(comment_id, mentioned_profile_id)` 유니크), 두 테이블 RLS 활성화 + 기존과 동일한 `authenticated_full_access` 단일 정책, 외래키 인덱스 2개, `task_comments`에 기존 `set_updated_at` 트리거 연결
 - [x] `src/types/tables/task_comments.ts`, `src/types/tables/task_comment_mentions.ts` 신규 작성 후 `src/types/tables/index.ts`에 re-export
 - [x] `src/utils/mentionUtils.ts` 신규 작성: 멘션 마커 형식 `@[이름](profile_id)`의 직렬화(`buildMentionMarker`), 파싱(`parseMentionSegments`, `extractMentionedProfileIds`, `extractMentionTargets`), 입력 중 자동완성 판정과 삽입(`findActiveMentionQuery`, `replaceMentionQuery`), 입력창 표기와 저장 형식의 변환(`toMentionDisplayText`, `toMentionStoredBody`)을 한 파일에 모으고 `src/utils/index.ts` 배럴로 내보냄
 - [x] 입력창에는 식별자를 감추고 `@이름`만 노출하도록 수정. 입력창에 마커 원문이 그대로 보이던 문제를 고친 것으로, 저장 직전에만 마커로 직렬화한다
@@ -377,7 +417,8 @@
 - [x] `src/app/page.tsx`, `src/app/task/[id]/page.tsx`: 서버 컴포넌트에서 댓글을 한 번에 조회해 전달
 - [x] `src/app/task/[id]/_components/TaskCommentsPanel.tsx` 신규 작성: 상세 페이지에서 상위 일정의 댓글 카드
 - [x] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용. 적용 과정에서 원격 DB에 `0001_init.sql`의 `set_updated_at()` 함수가 없다는 것이 드러나 마이그레이션이 그 함수를 `create or replace`로 직접 선언하도록 수정했다. `tasks` 테이블에는 이름이 다른 `tasks_updated_at` 트리거가 이미 걸려 있어 `updated_at` 갱신 자체는 동작하고 있다. 원격 스키마가 마이그레이션 파일과 여러 곳에서 어긋나 있으므로(파일에 없는 `task_reasons` 테이블도 존재) 언젠가 전체 대조가 필요하다
-- [x] 마이그레이션 번호를 `0009`로 조정했다. develop이 스프린트 작업(`0006`, `0007`)과 Slack 알림(`0008`)으로 앞 번호를 모두 가져가서, develop을 머지하면서 다시 내렸다
+- [x] 마이그레이션 번호를 `0010`으로 조정했다. develop이 스프린트 작업(`0006`, `0007`), Slack 알림(`0008`), 팀 관리(`0009`)로 앞 번호를 모두 가져가서 develop을 머지할 때마다 내렸다
+- [x] develop이 도입한 `ProfileAvatar`(size 변형과 `profile` 객체를 받는 상위 호환)로 교체. 댓글 목록과 멘션 자동완성에서 쓰던 자체 아바타를 걷어내고, 작성자 프로필을 찾지 못한 경우만 회색 폴백을 남겼다
 - [x] pnpm build / pnpm lint 검증 (검증 중 발견한 `perfectionist/sort-jsx-props` 경고 2건 수정). dev 서버와 `next build`가 같은 `.next` 디렉토리를 공유하므로, 검증 전에 dev 서버를 내리고 `.next`를 지운 뒤 빌드한다
 - [x] 실제 화면에서 댓글 생성/수정/삭제, 멘션 자동완성과 강조, 라이트/다크 모드 확인
 - [x] 멘션 자동완성 목록을 키보드로 이동할 때 활성 항목이 목록 밖으로 밀려나도 스크롤되지 않던 버그 수정 (`MentionAutocomplete`에서 활성 항목을 `scrollIntoView({ block: "nearest" })`로 끌어온다)

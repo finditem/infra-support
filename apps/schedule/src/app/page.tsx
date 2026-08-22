@@ -4,6 +4,7 @@ import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "./_components/KanbanBoard";
 import KanbanHeader from "./_components/KanbanHeader";
 import { getCommentsForTasks, getOrCreateWeek, getSprintForWeek } from "./_lib/kanban";
+import { getRegisteredProfiles } from "./_lib/profiles";
 import { getMonday, getWeekLabel } from "./_lib/kanbanUtils";
 
 interface HomePageProps {
@@ -24,10 +25,10 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
     getSprintForWeek(supabase, weekStart),
   ]);
 
-  const [{ data: statuses }, { data: profiles }, { data: tasks }, { data: currentProfile }] =
+  const [{ data: statuses }, profiles, { data: tasks }, { data: currentProfile }] =
     await Promise.all([
       supabase.from("task_statuses").select("*").order("order_index"),
-      supabase.from("profiles").select("*").not("registered_at", "is", null).order("name"),
+      getRegisteredProfiles(supabase),
       weekRow
         ? supabase.from("tasks").select("*").eq("week_id", weekRow.id).order("created_at")
         : Promise.resolve({ data: [] }),
@@ -57,7 +58,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
           <KanbanBoard
             comments={comments}
             currentProfileId={currentProfile?.id ?? null}
-            profiles={profiles ?? []}
+            profiles={profiles}
             statuses={statuses ?? []}
             tasks={weekTasks}
             weekId={weekRow.id}

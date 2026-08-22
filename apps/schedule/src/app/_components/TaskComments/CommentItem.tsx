@@ -19,7 +19,9 @@ interface CommentItemProps {
   onDelete: () => Promise<void>;
 }
 
-const UNKNOWN_AUTHOR = { name: "알 수 없음", color: "#d4d4d8" };
+/** 작성자 프로필을 찾지 못했을 때 쓰는 표시용 이름과 아바타 색. */
+const UNKNOWN_AUTHOR_NAME = "알 수 없음";
+const UNKNOWN_AUTHOR_COLOR = "#d4d4d8";
 
 /**
  * date-fns의 한국어 출력은 1분이 안 된 시각을 "1분 미만 전"으로 적는데, 다른 항목이 모두
@@ -43,7 +45,6 @@ const CommentItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const displayAuthor = author ?? UNKNOWN_AUTHOR;
   const createdAt = comment.created_at ? new Date(comment.created_at) : null;
 
   const handleDelete = async () => {
@@ -57,11 +58,23 @@ const CommentItem = ({
 
   return (
     <div className="flex gap-2">
-      <ProfileAvatar color={displayAuthor.color} name={displayAuthor.name} />
+      {author ? (
+        <ProfileAvatar profile={author} />
+      ) : (
+        <span
+          aria-hidden
+          className="flex size-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-slate-800"
+          style={{ backgroundColor: UNKNOWN_AUTHOR_COLOR }}
+        >
+          ?
+        </span>
+      )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <span className="text-xs font-semibold text-text-default">{displayAuthor.name}</span>
+          <span className="text-xs font-semibold text-text-default">
+            {author?.name ?? UNKNOWN_AUTHOR_NAME}
+          </span>
 
           {createdAt && (
             <time

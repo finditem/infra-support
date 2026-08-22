@@ -8,10 +8,10 @@ import { createTask, deleteTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
 import type { TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
+import ProfilePickerPopover from "../ProfilePickerPopover";
 import TaskComments from "../TaskComments/TaskComments";
 import DatePickerPopover from "./DatePickerPopover";
 import PriorityPickerPopover from "./PriorityPickerPopover";
-import ProfilePickerPopover from "./ProfilePickerPopover";
 import StatusPickerPopover from "./StatusPickerPopover";
 
 interface SubtaskDraft {

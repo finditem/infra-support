@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { getInitial } from "../../_lib/kanbanUtils";
-import type { ProfileWithColor } from "../../_types/kanban";
-import PropertyPopover from "./PropertyPopover";
+import type { ProfileWithColor } from "../_types/kanban";
+import ProfileAvatar from "./ProfileAvatar";
+import PropertyPopover from "./TaskCreateModal/PropertyPopover";
 
 interface ProfilePickerPopoverProps {
-  label: string;
+  label?: string;
   placeholder: string;
   profiles: ProfileWithColor[];
   selectedId: string | null;
+  /** false면 "선택 안 함" 항목을 감춘다. 팀 멤버 추가처럼 해제가 필요 없는 곳에서 쓴다. */
+  allowClear?: boolean;
+  triggerClassName?: string;
   onSelect: (profileId: string | null) => void;
 }
 
@@ -18,6 +21,8 @@ const ProfilePickerPopover = ({
   placeholder,
   profiles,
   selectedId,
+  allowClear = true,
+  triggerClassName,
   onSelect,
 }: ProfilePickerPopoverProps) => {
   const [query, setQuery] = useState("");
@@ -30,18 +35,14 @@ const ProfilePickerPopover = ({
       trigger={
         selected ? (
           <span className="flex items-center gap-1 text-xs text-text-default">
-            <span
-              className="flex size-4 items-center justify-center rounded-full text-[8px] font-bold text-slate-800"
-              style={{ backgroundColor: selected.color }}
-            >
-              {getInitial(selected.name)}
-            </span>
+            <ProfileAvatar profile={selected} size="sm" />
             {selected.name}
           </span>
         ) : (
           <span className="text-xs text-text-muted">{placeholder}</span>
         )
       }
+      triggerClassName={triggerClassName}
     >
       {(close) => (
         <div className="flex flex-col gap-1">
@@ -54,16 +55,22 @@ const ProfilePickerPopover = ({
             onChange={(event) => setQuery(event.target.value)}
           />
 
-          <button
-            className="rounded-md px-2 py-1.5 text-left text-xs text-text-muted hover:bg-fill-neutural-subtle-hover"
-            type="button"
-            onClick={() => {
-              onSelect(null);
-              close();
-            }}
-          >
-            선택 안 함
-          </button>
+          {allowClear && (
+            <button
+              className="rounded-md px-2 py-1.5 text-left text-xs text-text-muted hover:bg-fill-neutural-subtle-hover"
+              type="button"
+              onClick={() => {
+                onSelect(null);
+                close();
+              }}
+            >
+              선택 안 함
+            </button>
+          )}
+
+          {filtered.length === 0 && (
+            <p className="px-2 py-1.5 text-xs text-text-muted">해당하는 팀원이 없습니다.</p>
+          )}
 
           {filtered.map((profile) => (
             <button
@@ -75,12 +82,7 @@ const ProfilePickerPopover = ({
                 close();
               }}
             >
-              <span
-                className="flex size-4 items-center justify-center rounded-full text-[8px] font-bold text-slate-800"
-                style={{ backgroundColor: profile.color }}
-              >
-                {getInitial(profile.name)}
-              </span>
+              <ProfileAvatar profile={profile} size="sm" />
               {profile.name}
               {profile.id === selectedId && <span className="ml-auto text-primary">✓</span>}
             </button>

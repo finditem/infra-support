@@ -3,8 +3,9 @@ import { ExternalLink, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
-import { getInitial, isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
+import { isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
+import ProfileAvatar from "./ProfileAvatar";
 
 interface KanbanCardProps {
   task: TasksRow;
@@ -75,24 +76,14 @@ const KanbanCard = ({
         <div className="flex items-center gap-3">
           {assignee && (
             <span className="flex items-center gap-1">
-              <span
-                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-slate-800"
-                style={{ backgroundColor: assignee.color }}
-              >
-                {getInitial(assignee.name)}
-              </span>
+              <ProfileAvatar profile={assignee} />
               {assignee.name}
             </span>
           )}
 
           {reporter && (
             <span className="flex items-center gap-1">
-              <span
-                className="flex size-5 items-center justify-center rounded-full text-[9px] font-bold text-slate-800"
-                style={{ backgroundColor: reporter.color }}
-              >
-                {getInitial(reporter.name)}
-              </span>
+              <ProfileAvatar profile={reporter} />
               {reporter.name}
             </span>
           )}
