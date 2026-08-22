@@ -3,6 +3,7 @@
 import { Users } from "lucide-react";
 import { useState } from "react";
 import type { AvailabilityRow } from "@/types/tables";
+import type { MentionTarget } from "../../_lib/mentions";
 import type { ProfileWithColor } from "../../_types/kanban";
 import AvailabilityTimePicker from "./AvailabilityTimePicker";
 import CalendarGrid from "./CalendarGrid";
@@ -14,6 +15,8 @@ interface CalendarViewProps {
   profileColorMap: Map<string, ProfileWithColor>;
   availability: AvailabilityRow[];
   currentProfileId: string | null;
+  /** 등록 대상으로 고를 수 있는 팀과 팀원. */
+  targets: MentionTarget[];
   holidayNames: Record<string, string>;
 }
 
@@ -23,6 +26,7 @@ const CalendarView = ({
   profileColorMap,
   availability: initialAvailability,
   currentProfileId,
+  targets,
   holidayNames,
 }: CalendarViewProps) => {
   const [availability, setAvailability] = useState(initialAvailability);
@@ -52,12 +56,13 @@ const CalendarView = ({
 
         <CalendarGrid
           availability={availability}
-          currentProfileId={currentProfileId}
           holidayNames={holidayNames}
           monthStart={monthStart}
           profileColorMap={profileColorMap}
           selectedProfileId={selectedProfileId}
-          onDeleted={(id) => setAvailability((prev) => prev.filter((block) => block.id !== id))}
+          onDeleted={(ids) =>
+            setAvailability((prev) => prev.filter((block) => !ids.includes(block.id)))
+          }
           onSelectDate={setSelectedDate}
         />
       </div>
@@ -66,14 +71,9 @@ const CalendarView = ({
         <AvailabilityTimePicker
           currentProfileId={currentProfileId}
           date={selectedDate}
-          existingBlocks={availability.filter(
-            (block) => block.user_id === currentProfileId && block.available_date === selectedDate
-          )}
+          targets={targets}
           onCancel={() => setSelectedDate(null)}
-          onCreated={(row) => {
-            setAvailability((prev) => [...prev, row]);
-            setSelectedDate(null);
-          }}
+          onCreated={(rows) => setAvailability((prev) => [...prev, ...rows])}
         />
       )}
     </div>
