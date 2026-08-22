@@ -89,13 +89,19 @@ const SprintList = ({ sprints }: SprintListProps) => {
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
-        <div className="w-44">
-          <DatePickerPopover label="시작일" value={startDate} onChange={setStartDate} />
-        </div>
+        <DatePickerPopover
+          label="시작일"
+          triggerClassName="w-auto"
+          value={startDate}
+          onChange={setStartDate}
+        />
         <span className="text-text-muted">~</span>
-        <div className="w-44">
-          <DatePickerPopover label="종료일" value={endDate} onChange={setEndDate} />
-        </div>
+        <DatePickerPopover
+          label="종료일"
+          triggerClassName="w-auto"
+          value={endDate}
+          onChange={setEndDate}
+        />
       </form>
 
       {sprints.length === 0 ? (
@@ -115,21 +121,19 @@ const SprintList = ({ sprints }: SprintListProps) => {
                     value={editName}
                     onChange={(event) => setEditName(event.target.value)}
                   />
-                  <div className="w-44">
-                    <DatePickerPopover
-                      label="시작일"
-                      value={editStartDate}
-                      onChange={setEditStartDate}
-                    />
-                  </div>
+                  <DatePickerPopover
+                    label="시작일"
+                    triggerClassName="w-auto"
+                    value={editStartDate}
+                    onChange={setEditStartDate}
+                  />
                   <span className="text-text-muted">~</span>
-                  <div className="w-44">
-                    <DatePickerPopover
-                      label="종료일"
-                      value={editEndDate}
-                      onChange={setEditEndDate}
-                    />
-                  </div>
+                  <DatePickerPopover
+                    label="종료일"
+                    triggerClassName="w-auto"
+                    value={editEndDate}
+                    onChange={setEditEndDate}
+                  />
                   <button
                     className="ml-auto rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
                     disabled={!canSaveEdit}

@@ -43,9 +43,15 @@ interface DatePickerPopoverProps {
   label: string;
   value: string;
   onChange: (date: string) => void;
+  triggerClassName?: string;
 }
 
-const DatePickerPopover = ({ label, value, onChange }: DatePickerPopoverProps) => {
+const DatePickerPopover = ({
+  label,
+  value,
+  onChange,
+  triggerClassName,
+}: DatePickerPopoverProps) => {
   const selectedDate = new Date(value);
   const [monthCursor, setMonthCursor] = useState(selectedDate);
 
@@ -62,6 +68,7 @@ const DatePickerPopover = ({ label, value, onChange }: DatePickerPopoverProps) =
           📅 {format(selectedDate, "M월 d일 (EEEEEE)", { locale: ko })}
         </span>
       }
+      triggerClassName={triggerClassName}
     >
       {(close) => (
         <div>
