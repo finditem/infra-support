@@ -9,6 +9,10 @@
 - [x] 카드 간단 추가 Server Action (제목만 입력, 해당 컬럼 상태로 INSERT) — `src/app/_lib/actions.ts`
 - [x] src/app/page.tsx를 실제 데이터 연동 버전으로 교체
 - [x] middleware.ts: "/"를 로그인 여부와 무관하게 접근 가능한 OPEN_PATHS로 분리 (GUEST_ONLY_PATHS와 별도 처리, "/" 로그인 상태에서도 리다이렉트 루프 없이 접근 가능)
+- [x] origin/develop 머지. develop이 `0006`~`0008`을 가져가 마이그레이션 번호를 `0010`으로 조정했다
+- [x] `sprints` 역작성 제거. 출처가 `feat/schedule-sprint-name`으로 밝혀졌고 develop의 `0007`이 테이블과 RLS 정책을 이미 만들며, 역작성했던 타입 파일도 develop 것과 내용이 동일해 그대로 둔다
+- [x] 머지로 드러난 새 드리프트 반영. develop의 `0007`에는 `sprints_end_date_after_start_date` 체크 제약이 있으나 원격에는 없다. 제약이 테이블 생성 후에 파일에만 추가된 것으로 보여 `0010`에서 복원한다. 사전 검사에 종료일이 시작일보다 이른 행 확인도 함께 추가했다
+- [ ] `0010` 재적용 후 항목별 검사 쿼리로 재확인 (`0009` 시점에 이미 적용한 항목은 멱등하게 다시 통과해야 하고, sprints 체크 제약이 새로 붙어야 한다)
 - [x] pnpm build / pnpm lint 검증
 
 ## 캘린더 페이지 퍼블리싱 (design/calendar, mockup_calendar.html 기준)
@@ -267,6 +271,95 @@
 - [x] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
 
+## 주차 헤더에 스프린트/주제 라벨 표시
+
+메인 칸반보드 상단 `KanbanHeader`가 "2026년 8월 3주차" 텍스트만 보여주던 것에, 그 주가 속한 작업의 큰 주제(예: "1차 스프린트")를 함께 표시한다. 별도 sprints 테이블 대신 `weeks.sprint_name` 텍스트 컬럼을 추가하는 경량 방식으로 가고, 입력은 헤더 인라인 편집이 아니라 이미 계획만 되어 있던 `/settings` 라우트를 재활용한 관리 화면에서 한다. 캘린더 화면은 주 단위 개념이 없어 범위 밖.
+
+- [x] `supabase/migrations/0006_add_week_sprint_name.sql` 신규 작성 (`weeks.sprint_name text` 컬럼 추가, RLS 정책 추가 불필요)
+- [x] `src/types/tables/weeks.ts`: `WeeksWritable`에 `sprint_name: string | null` 추가, `WeeksInsert`에서 `created_at`과 동일하게 옵셔널 처리
+- [x] `src/app/settings/_lib/actions.ts` 신규 작성: `updateWeekSprintName(weekId, sprintName)` 서버 액션 (`calendar/_lib/actions.ts` 패턴 재사용)
+- [x] `src/app/settings/page.tsx` 신규 작성: `weeks` 전체를 `start_date` 내림차순 조회, `NavBar` 렌더링, `SprintSettingsTable`로 전달
+- [x] `src/app/settings/_components/SprintSettingsTable.tsx` 신규 작성: 주차별 라벨(`getWeekLabel` 재사용)/기간/`sprint_name` 인라인 입력, blur 시 저장 후 `router.refresh()`
+- [x] `src/components/NavBar.tsx`: `NAV_ITEMS`에 `{ href: "/settings", label: "설정" }` 추가
+- [x] `src/app/_components/KanbanHeader.tsx`: `sprintName: string | null` prop 추가, 있을 때만 weekLabel 위에 배지로 표시
+- [x] `src/app/page.tsx`: `KanbanHeader`에 `sprintName={weekRow.sprint_name}` 전달
+- [x] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가) — 아래 재설계로 0006 대신 0007을 적용할 것
+
+## 스프린트를 주차 종속에서 기간 기반 독립 엔티티로 재설계
+
+위 방식은 주차(`weeks`)마다 스프린트 이름을 매번 입력해야 해서 번거롭다는 피드백을 받았다. `weeks.sprint_name` 텍스트 컬럼 대신, 자체 기간(시작일~종료일)을 갖는 `sprints` 테이블을 새로 둔다. 설정 화면은 주차 목록을 순회하며 입력받는 표 대신, "+" 버튼으로 이름과 기간을 입력하면 새 스프린트가 목록 아래로 쌓이는 UI로 바꾼다. 칸반 헤더는 현재 주의 시작일이 어느 스프린트의 기간에 속하는지 조회해서 표시하며, 헤더 UI 자체(배지 위치/스타일)는 이전 작업에서 이미 확정된 것을 그대로 쓴다.
+
+- [x] `supabase/migrations/0007_replace_week_sprint_name_with_sprints.sql` 신규 작성: `weeks.sprint_name` 컬럼 제거, `sprints(id, name, start_date, end_date, created_at)` 테이블 생성 및 `authenticated_full_access` RLS 정책 추가 (0006은 적용하지 않고 이 마이그레이션으로 대체)
+- [x] `src/types/tables/weeks.ts`에서 `sprint_name` 제거(원복), `src/types/tables/sprints.ts` 신규 작성, `src/types/tables/index.ts`에 re-export 추가
+- [x] `src/app/_lib/kanban.ts`: `getSprintForWeek(supabase, weekStart)` 추가 — 주어진 주 시작일이 `start_date`~`end_date` 범위에 포함되는 스프린트를 조회
+- [x] `src/app/page.tsx`: `weekRow.sprint_name` 대신 `getSprintForWeek` 조회 결과를 `KanbanHeader`의 `sprintName`으로 전달
+- [x] `src/app/settings/_lib/actions.ts`: `updateWeekSprintName`을 `createSprint({ name, startDate, endDate })`로 교체
+- [x] `src/app/settings/page.tsx`: `weeks` 대신 `sprints` 전체를 `created_at` 오름차순 조회
+- [x] `src/app/settings/_components/SprintSettingsTable.tsx` 삭제, `SprintList.tsx` 신규 작성: "+" 버튼 + 이름/기간(시작일~종료일) 입력 폼, 저장 시 입력값 초기화 후 목록 맨 아래에 추가
+- [x] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL(0007)을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
+
+## 스프린트 등록 폼 날짜 입력을 커스텀 캘린더 피커로 교체
+
+`SprintList.tsx`의 시작일/종료일이 네이티브 `<input type="date">`라 UI가 볼품없다는 피드백을 받았다. 새 컴포넌트를 만드는 대신 이미 존재하는 `TaskCreateModal/DatePickerPopover.tsx`(할 일 마감일 선택에 쓰이는 월별 그리드 팝오버, `PropertyPopover` 셸 기반)를 재사용한다. `/calendar`의 `CalendarGrid.tsx`가 이미 쓰고 있는 관례(일요일 `text-fg-state-error`, 토요일 `text-primary`)를 `DatePickerPopover`에도 적용해, 할 일 생성 모달의 마감일 선택에도 함께 개선 효과가 생기도록 했다.
+
+- [x] `DatePickerPopover.tsx`: `getDayClassName`/`getWeekdayHeaderClassName` 헬퍼(if-체인)를 추가해 그리드 내 일/토요일 텍스트와 요일 헤더에 각각 `text-fg-state-error`/`text-primary` 적용
+- [x] `SprintList.tsx`: `<input type="date">` 2개를 `DatePickerPopover`(라벨 "시작일"/"종료일") 2개로 교체, `startDate`/`endDate` 초기값을 오늘 날짜로 변경, `canSubmit`에서 날짜 빈 값 체크 제거
+- [x] pnpm build / pnpm lint 검증
+
+## 스프린트 수정/삭제 기능 추가
+
+목록에 추가만 가능하고 수정/삭제가 없어서 잘못 입력한 스프린트를 고칠 방법이 없었다. `CalendarGrid.tsx`의 가능 시간 삭제 확인 패턴("삭제할까요?" + 삭제/취소 인라인 전환)을 그대로 재사용해 삭제 시 확인 단계를 거치도록 하고, 수정은 행을 이름+기간 입력 폼으로 바꿔치기하는 인라인 편집 방식으로 구현한다.
+
+- [x] `settings/_lib/actions.ts`: `updateSprint({ id, name, startDate, endDate })`, `deleteSprint(id)` 서버 액션 추가
+- [x] `SprintList.tsx`: 각 행에 수정(연필 아이콘)/삭제(✕) 버튼 추가. 수정 클릭 시 해당 행이 이름 입력 + `DatePickerPopover` 2개 + 저장/취소 버튼으로 전환. 삭제 클릭 시 "삭제할까요?" 확인 상태로 전환 후 삭제/취소
+- [x] pnpm build / pnpm lint 검증
+
+## PR #156 자동 코드 리뷰 반영
+
+- [x] `0007_replace_week_sprint_name_with_sprints.sql`: `weeks.sprint_name` 삭제를 `drop column if exists`로 변경(0006 미적용 상태에서도 0007만으로 실행 가능하도록), `sprints` 테이블에 `end_date >= start_date` 체크 제약 추가
+- [x] `SprintList.tsx`: `canSubmit`/`canSaveEdit`에 `startDate <= endDate` 검증 추가
+- [x] `SprintList.tsx`: `createSprint`/`updateSprint`/`deleteSprint` 실패 시 입력값을 초기화하거나 새로고침하지 않고 에러 메시지를 표시하며 상태 유지
+- [x] `SprintList.tsx`: 추가 폼/수정 행에 `flex-wrap` 적용해 좁은 화면에서 줄바꿈되도록 수정
+- [x] pnpm build / pnpm lint 검증
+
+## Slack 알림 연동 (일정 생성/수정/삭제)
+
+- [x] `profiles.slack_user_id` 컬럼 추가 마이그레이션 — `supabase/migrations/0008_add_profile_slack_user_id.sql`
+- [x] `src/types/tables/profiles.ts`에 `slack_user_id` 반영
+- [x] Slack 전송 모듈 (`chat.postMessage` 호출, 토큰 없으면 조용히 건너뜀) — `src/lib/slack/postSlackMessage.ts`
+- [x] 이벤트별 메시지 본문 생성 (생성/수정/삭제, 멘션과 mrkdwn 이스케이프) — `src/lib/slack/buildTaskEventMessage.ts`
+- [x] 채널 + 담당자/보고자 DM 전송 (행위자 본인과 Slack 계정 미연결 팀원 제외) — `src/lib/slack/notifyTaskEvent.ts`
+- [x] DB 조회로 알림 payload 조립 (상태명, 담당자/보고자/행위자, 상위 일정 제목, 링크) — `src/app/_lib/taskNotification.ts`
+- [x] `createTask`에 생성 알림 연결
+- [x] `updateTask`에 수정 전 행 조회 + 변경 필드 diff 알림 연결
+- [x] `deleteTask` 서버 액션 추가 (삭제 전 하위 일정 조회 후 물리 삭제, 삭제 알림 전송)
+- [x] 일정 수정 모달에 삭제 버튼 + 확인 다이얼로그 추가
+- [x] KanbanBoard에서 삭제된 일정(하위 포함) 목록에서 제거
+- [x] `.env.example`에 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL` 추가
+- [x] 마이그레이션 `0008`(develop 병합 시 0006에서 번호 변경) SQL을 사용자가 Supabase SQL 에디터에서 직접 적용
+- [x] Flow Bot 앱 확인: `chat:write`가 이미 부여되어 있어 스코프 추가와 재설치 불필요. 토큰/채널 ID/`SITE_URL`을 `.env`에 등록 완료
+- [x] `profiles.slack_user_id`에 팀원 7명의 Slack 멤버 ID 입력
+- [x] pnpm build / pnpm lint 검증
+
+## Slack 알림을 DM 없이 채널 멘션으로 변경
+
+- [x] `notifyTaskEvent`에서 DM 전송 제거, 팀 채널 한 곳으로만 전송
+- [x] 담당자/보고자 멘션 줄을 생성/수정/삭제 모든 이벤트에 표시 (수정 알림에도 멘션이 들어가야 당사자에게 알림이 간다)
+- [ ] 담당자/보고자가 알림 채널에 참여해 있는지 확인 (채널 밖 사용자를 멘션하면 Slack이 초대 안내를 띄운다)
+
+## Slack 알림 동작 확인 (남은 작업)
+
+- [ ] 워크트리 브랜치로 dev 서버를 띄워 일정 생성/수정/삭제 시 채널 메시지가 올라오는지 확인 (메인 워킹 디렉토리의 dev 서버는 develop 브랜치라 이 코드가 없다)
+- [ ] `select name, slack_user_id from public.profiles order by name;`으로 `slack_user_id`가 null인 팀원이 없는지 확인
+- [ ] Vercel 환경 변수에 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL` 등록 (배포 시점)
+
+## PR #154 리뷰 반영 (Slack 전송과 저장 응답 분리)
+
+- [x] `postSlackMessage`의 `fetch`에 `AbortSignal.timeout` 5초 상한 추가 (Slack이 응답하지 않을 때 서버리스 함수가 매달리지 않도록)
+- [x] `createTask`/`updateTask`/`deleteTask`에서 알림 호출을 `next/server`의 `after()`로 감싸 저장 성공 응답을 지연시키지 않도록 변경
+
 ## 원격 스키마와 마이그레이션 파일 정합 (fix/schedule-schema-sync)
 
 `0001_init.sql`이 적용 기록이 아니라 사후에 손으로 작성한 문서라, 원격 Supabase 프로젝트와 이 디렉토리의 마이그레이션 파일이 처음부터 어긋나 있었다. 파일만 보고 새 프로젝트를 세팅하면 운영 중인 DB와 다른 스키마가 만들어지는 상태였고, `tasks.status_id`처럼 없으면 일정이 칸반에서 사라지는 NOT NULL 제약도 빠져 있었다. 원격 스키마 전체를 떠서 파일과 한 줄씩 대조한 뒤 정합용 마이그레이션 하나로 맞춘다.
@@ -274,13 +367,13 @@
 다른 브랜치가 각자 마이그레이션 파일과 함께 이미 원격에 적용한 것들(`feat/slack-notification`의 `profiles.slack_user_id`, `feat/teams`의 `teams`/`team_members`와 색상 배정 함수 일반화)은 해당 PR이 머지되면서 맞춰지므로 이 작업에서 다루지 않는다.
 
 - [x] 원격 스키마 전체 조회(컬럼, 제약, 인덱스, 트리거, RLS 정책, 함수 정의)해서 `0001`~`0005`와 대조
-- [x] `supabase/migrations/0009_schema_sync.sql` 신규 작성. 이미 적용된 원격에서도, 0001부터 새로 세팅하는 프로젝트에서도 같은 결과가 나오도록 전부 멱등하게 작성했다
+- [x] `supabase/migrations/0010_schema_sync.sql` 신규 작성. 이미 적용된 원격에서도, 0001부터 새로 세팅하는 프로젝트에서도 같은 결과가 나오도록 전부 멱등하게 작성했다
 - [x] 되돌릴 수 없는 변경 전에 `tasks.status_id`와 `availability.user_id`의 null 행을 먼저 검사해 있으면 명확한 메시지와 함께 중단하도록 함
 - [x] `status_history` 폐기. 원격에 만들어진 적이 없고 코드도 쓰지 않으며, 같은 역할(상태 변경 사유 기록)을 컬럼 구성이 동일한 `task_reasons`가 대신하고 있다. `src/types/tables/status_history.ts`와 배럴 re-export도 제거
 - [x] `weeks.created_at` 컬럼 추가 (`0001`에는 있으나 원격에 없었음)
 - [x] NOT NULL 복원 7건: `tasks.status_id`/`created_at`/`updated_at`, `availability.user_id`/`created_at`, `profiles.created_at`, `task_statuses.created_at`. 시각 컬럼은 `now()`로 백필한 뒤 제약을 건다
 - [x] `tasks`의 updated_at 갱신 트리거 중복 정리. 원격에 있던 `tasks_updated_at`(`handle_updated_at()` 호출)과 나중에 만들어진 `tasks_set_updated_at`(`set_updated_at()` 호출)이 겹쳐 매 수정마다 두 번 실행되고 있었다. 파일에 있는 이름을 남기고 나머지 트리거와 함수를 제거
-- [x] 원격에만 있던 `sprints`, `task_reasons` 테이블을 원격 정의 그대로 파일로 남기고 `src/types/tables/`에 타입 추가. 아직 애플리케이션 코드에서 사용하지 않는다
+- [x] 원격에만 있던 `task_reasons` 테이블을 원격 정의 그대로 파일로 남기고 `src/types/tables/`에 타입 추가. 아직 애플리케이션 코드에서 사용하지 않는다
 - [x] RLS 정책 이름과 정의 통일. `0001`이 만든 테이블은 `로그인한 사용자 전체 접근`(to public, `auth.uid() is not null`), 이후 추가된 테이블은 `authenticated_full_access`(to authenticated, true)로 두 방식이 섞여 있었다. 효과는 사실상 같으므로 파일이 쓰는 이름으로 맞춤
 - [x] 마이그레이션 SQL을 사용자가 Supabase SQL 에디터에서 직접 적용
 - [x] 적용 후 항목별 검사 쿼리로 9개 항목 전부 OK 확인 (status_history 폐기, weeks.created_at, NOT NULL 7건, tasks 트리거 중복 정리, handle_updated_at 제거, sprints/task_reasons 존재, RLS 정책 이름 통일과 누락 없음)

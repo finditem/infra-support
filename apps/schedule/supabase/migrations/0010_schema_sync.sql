@@ -4,8 +4,9 @@
 -- 파일과 다른 부분이 있었다. 그 결과 파일만 보고 새 Supabase 프로젝트를 세팅하면
 -- 운영 중인 DB와 다른 스키마가 만들어지는 상태였다.
 --
--- 다른 브랜치가 각자 마이그레이션 파일과 함께 이미 적용한 것들(profiles.slack_user_id,
--- teams/team_members 및 색상 배정 함수 일반화)은 해당 PR이 머지되면서 맞춰지므로 여기서 다루지 않는다.
+-- 다른 브랜치가 각자 마이그레이션 파일과 함께 이미 적용한 것들은 여기서 다루지 않는다.
+-- 스프린트(0006, 0007)와 Slack 알림(0008)은 develop에 머지되면서 이미 맞춰졌고,
+-- teams/team_members는 feat/teams가 머지될 때 맞춰진다.
 --
 -- 이 파일은 이미 적용된 원격에서도, 0001부터 새로 세팅하는 프로젝트에서도 같은 결과가 나오도록
 -- 전부 멱등하게 작성했다.
@@ -16,14 +17,16 @@ do $$
 declare
   tasks_without_status int;
   availability_without_user int;
+  sprints_with_reversed_dates int;
 begin
   select count(*) into tasks_without_status from public.tasks where status_id is null;
   select count(*) into availability_without_user from public.availability where user_id is null;
+  select count(*) into sprints_with_reversed_dates from public.sprints where end_date < start_date;
 
-  if tasks_without_status > 0 or availability_without_user > 0 then
+  if tasks_without_status > 0 or availability_without_user > 0 or sprints_with_reversed_dates > 0 then
     raise exception
-      'NOT NULL 복원 전에 정리가 필요한 행이 있다. tasks.status_id 누락 %건, availability.user_id 누락 %건. 해당 행을 채우거나 지운 뒤 다시 실행할 것.',
-      tasks_without_status, availability_without_user;
+      '제약 복원 전에 정리가 필요한 행이 있다. tasks.status_id 누락 %건, availability.user_id 누락 %건, 종료일이 시작일보다 이른 sprints %건. 해당 행을 채우거나 지운 뒤 다시 실행할 것.',
+      tasks_without_status, availability_without_user, sprints_with_reversed_dates;
   end if;
 end $$;
 
@@ -73,18 +76,23 @@ create trigger tasks_set_updated_at
   for each row
   execute function public.set_updated_at();
 
--- 6. 원격에만 있고 리포지토리에 정의가 없던 두 테이블을 파일로 남긴다.
+-- 6. sprints의 기간 체크 제약을 복원한다.
+-- 0007이 sprints를 만든 뒤에 제약이 파일에만 추가되어, 이미 적용된 원격에는 반영되지 않았다.
+-- 0001부터 새로 세팅한 프로젝트에는 0007이 이미 만들어 두므로 아래 조건에서 걸러진다.
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+     where conrelid = 'public.sprints'::regclass
+       and conname = 'sprints_end_date_after_start_date'
+  ) then
+    alter table public.sprints
+      add constraint sprints_end_date_after_start_date check (end_date >= start_date);
+  end if;
+end $$;
+
+-- 7. 원격에만 있고 리포지토리에 정의가 없던 테이블을 파일로 남긴다.
 -- 원격 정의를 그대로 옮긴 것이라 이미 적용된 프로젝트에서는 아무것도 바뀌지 않는다.
-
--- 스프린트(기간) 단위 묶음. 아직 애플리케이션 코드에서 사용하지 않는다.
-create table if not exists public.sprints (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  start_date date not null,
-  end_date date not null,
-  created_at timestamptz not null default now()
-);
-
 -- 마감 초과 미완료 일정의 사유 기록(기능설계서 11-2). 아직 애플리케이션 코드에서 사용하지 않는다.
 create table if not exists public.task_reasons (
   id uuid primary key default gen_random_uuid(),
@@ -95,7 +103,7 @@ create table if not exists public.task_reasons (
   created_at timestamptz default now()
 );
 
--- 7. RLS 정책 이름과 정의를 통일한다.
+-- 8. RLS 정책 이름과 정의를 통일한다.
 -- 0001이 만든 테이블들은 원격에서 "로그인한 사용자 전체 접근"(to public, auth.uid() is not null)으로,
 -- 이후 추가된 테이블들은 "authenticated_full_access"(to authenticated, true)로 되어 있어 두 방식이 섞여 있었다.
 -- 효과는 사실상 같으므로 파일이 쓰는 이름으로 맞춘다.
@@ -104,7 +112,6 @@ alter table public.task_statuses enable row level security;
 alter table public.weeks enable row level security;
 alter table public.tasks enable row level security;
 alter table public.availability enable row level security;
-alter table public.sprints enable row level security;
 alter table public.task_reasons enable row level security;
 
 do $$
@@ -112,7 +119,7 @@ declare
   target text;
 begin
   foreach target in array array[
-    'profiles', 'task_statuses', 'weeks', 'tasks', 'availability', 'sprints', 'task_reasons'
+    'profiles', 'task_statuses', 'weeks', 'tasks', 'availability', 'task_reasons'
   ] loop
     execute format('drop policy if exists "로그인한 사용자 전체 접근" on public.%I', target);
     execute format('drop policy if exists "authenticated_full_access" on public.%I', target);
