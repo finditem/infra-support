@@ -14,6 +14,7 @@ import { useState } from "react";
 import type { AvailabilityRow } from "@/types/tables";
 import { cn } from "@/utils";
 import type { ProfileWithColor } from "../../_types/kanban";
+import { useEscapeKey } from "../_hooks";
 import { deleteAvailability } from "../_lib/actions";
 import { formatTimeRange } from "../_lib/time";
 
@@ -53,6 +54,9 @@ const CalendarGrid = ({
   onSelectDate,
 }: CalendarGridProps) => {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  useEscapeKey(() => setPendingDeleteId(null), pendingDeleteId !== null);
+
   const gridStart = startOfWeek(startOfMonth(monthStart), { weekStartsOn: 0 });
   const gridEnd = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 0 });
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
@@ -69,6 +73,11 @@ const CalendarGrid = ({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface-elevated">
+      {/* 삭제 확인이 떠 있는 동안 바깥 클릭을 이 레이어가 받아 확인만 닫는다. 뒤 날짜 셀의 등록 모달이 함께 열리지 않도록 클릭을 흡수한다. */}
+      {pendingDeleteId && (
+        <div aria-hidden className="fixed inset-0 z-30" onClick={() => setPendingDeleteId(null)} />
+      )}
+
       <div className="grid grid-cols-7 border-b border-border">
         {WEEKDAYS.map((weekday, index) => (
           <div
@@ -98,7 +107,7 @@ const CalendarGrid = ({
               className="relative min-h-[110px] border-b border-r border-border p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
             >
               <button
-                aria-label={`${dateKey} 가능 시간 추가`}
+                aria-label={`${dateKey} 일정 등록`}
                 className="absolute inset-0 z-0"
                 type="button"
                 onClick={() => onSelectDate(dateKey)}
@@ -139,7 +148,7 @@ const CalendarGrid = ({
                       <span
                         key={block.id}
                         className={cn(
-                          "pointer-events-auto flex items-center gap-1",
+                          "pointer-events-auto relative z-[35] flex items-center gap-1",
                           blockClassName
                         )}
                         style={blockStyle}
