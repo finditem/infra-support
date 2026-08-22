@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { TasksInsert, TasksRow, TasksUpdate } from "@/types/tables";
+import { notifyTaskCreated, notifyTaskDeleted, notifyTaskUpdated } from "./taskNotification";
 
 interface CreateTaskInput {
   title: string;
@@ -50,6 +51,8 @@ export const createTask = async ({
     return null;
   }
 
+  await notifyTaskCreated(supabase, data);
+
   return data;
 };
 
@@ -89,6 +92,8 @@ export const updateTask = async ({
     due_date: dueDate,
   };
 
+  const { data: before } = await supabase.from("tasks").select("*").eq("id", id).maybeSingle();
+
   const { data, error } = await supabase
     .from("tasks")
     .update(updatePayload)
@@ -101,5 +106,39 @@ export const updateTask = async ({
     return null;
   }
 
+  if (before) {
+    await notifyTaskUpdated(supabase, before, data);
+  }
+
   return data;
+};
+
+/**
+ * 일정을 삭제한다. 하위 일정은 DB의 on delete cascade로 함께 지워지므로,
+ * 알림과 보드 갱신에 쓸 하위 일정 정보를 삭제 전에 미리 읽어둔다.
+ */
+export const deleteTask = async (id: string): Promise<string[] | null> => {
+  const supabase = await createClient();
+
+  const { data: task } = await supabase.from("tasks").select("*").eq("id", id).maybeSingle();
+
+  if (!task) return null;
+
+  const { data: subtasks } = await supabase.from("tasks").select("id, title").eq("parent_id", id);
+  const subtaskRows: { id: string; title: string }[] = subtasks ?? [];
+
+  const { error } = await supabase.from("tasks").delete().eq("id", id);
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  await notifyTaskDeleted(
+    supabase,
+    task,
+    subtaskRows.map((subtask) => subtask.title)
+  );
+
+  return [id, ...subtaskRows.map((subtask) => subtask.id)];
 };

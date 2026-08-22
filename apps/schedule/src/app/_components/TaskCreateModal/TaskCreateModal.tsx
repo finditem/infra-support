@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
 import { CornerDownLeft } from "lucide-react";
-import { createTask, updateTask } from "../../_lib/actions";
+import { createTask, deleteTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
@@ -30,6 +30,8 @@ interface TaskCreateModalProps {
   task?: TasksRow | null;
   onClose: () => void;
   onSaved: (tasks: TasksRow[]) => void;
+  /** 삭제된 일정 id 목록(하위 일정 포함)을 전달한다. */
+  onDeleted: (taskIds: string[]) => void;
 }
 
 const TaskCreateModal = ({
@@ -43,6 +45,7 @@ const TaskCreateModal = ({
   task = null,
   onClose,
   onSaved,
+  onDeleted,
 }: TaskCreateModalProps) => {
   const [title, setTitle] = useState(task?.title ?? "");
   const [body, setBody] = useState(task?.body ?? "");
@@ -58,6 +61,7 @@ const TaskCreateModal = ({
   );
   const [statusId, setStatusId] = useState(task?.status_id ?? initialStatusId);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [subtaskDrafts, setSubtaskDrafts] = useState<SubtaskDraft[]>([]);
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
@@ -153,6 +157,29 @@ const TaskCreateModal = ({
     if (failedTitles.length > 0) {
       window.alert(`다음 하위 일정 생성에 실패했습니다: ${failedTitles.join(", ")}`);
     }
+  };
+
+  const handleDelete = async () => {
+    if (!task || isDeleting) return;
+
+    const confirmed = window.confirm(
+      "이 일정을 삭제할까요? 하위 일정이 있으면 함께 삭제되며 되돌릴 수 없습니다."
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+
+    const deletedIds = await deleteTask(task.id);
+
+    setIsDeleting(false);
+
+    if (!deletedIds) {
+      window.alert("일정 삭제에 실패했습니다.");
+      return;
+    }
+
+    onDeleted(deletedIds);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -301,6 +328,16 @@ const TaskCreateModal = ({
           </span>
 
           <div className="flex gap-1.5">
+            {isEditing && (
+              <button
+                className="rounded-[7px] px-3.5 py-1.5 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+                disabled={isDeleting || isSubmitting}
+                type="button"
+                onClick={() => void handleDelete()}
+              >
+                삭제
+              </button>
+            )}
             <button
               className="rounded-[7px] border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
               type="button"
@@ -310,7 +347,7 @@ const TaskCreateModal = ({
             </button>
             <button
               className="flex items-center gap-1 rounded-[7px] bg-primary px-4 py-1.5 text-xs font-semibold text-text-inverse hover:bg-primary-hover disabled:opacity-50"
-              disabled={!title.trim() || isSubmitting}
+              disabled={!title.trim() || isSubmitting || isDeleting}
               type="button"
               onClick={() => void handleSubmit()}
             >
