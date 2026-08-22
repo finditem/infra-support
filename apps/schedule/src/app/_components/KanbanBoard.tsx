@@ -85,7 +85,7 @@ const KanbanBoard = ({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-5 rounded-xl border border-border bg-surface-elevated px-8 py-6">
+      <div className="flex flex-col gap-5 rounded-xl border border-border bg-surface-elevated px-4 py-6 sm:px-8">
         <KanbanFilters filter={filter} profiles={profiles} onFilterChange={setFilter} />
         <KanbanProgress progress={progress} />
       </div>

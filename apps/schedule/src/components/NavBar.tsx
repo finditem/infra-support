@@ -14,8 +14,8 @@ export const NavBar = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center justify-between border-b border-border bg-surface-elevated px-8 py-3">
-      <div className="flex items-center gap-6">
+    <nav className="flex flex-wrap items-center justify-between gap-y-2 border-b border-border bg-surface-elevated px-4 py-3 sm:px-8">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-6">
         <span className="text-sm font-bold text-text-default">찾길 일정관리</span>
 
         <div className="flex items-center gap-1">
