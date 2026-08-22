@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { getStatusColor } from "@/app/_lib/kanbanUtils";
 import type { TaskStatusesRow } from "@/types/tables";
 import PropertyPopover from "./PropertyPopover";
@@ -20,7 +21,13 @@ const StatusPickerPopover = ({
 }: StatusPickerPopoverProps) => {
   const selected = statuses.find((status) => status.id === selectedId) ?? null;
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && resolvedTheme === "dark";
 
   return (
     <PropertyPopover

@@ -8,7 +8,7 @@ import { SignOutButton } from "./SignOutButton";
 const NAV_ITEMS = [
   { href: "/", label: "일정" },
   { href: "/calendar", label: "캘린더" },
-  { href: "/settings/teams", label: "설정" },
+  { href: "/settings", label: "설정" },
 ];
 
 /**

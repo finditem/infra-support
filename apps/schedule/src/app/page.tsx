@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "./_components/KanbanBoard";
 import KanbanHeader from "./_components/KanbanHeader";
-import { getOrCreateWeek } from "./_lib/kanban";
+import { getOrCreateWeek, getSprintForWeek } from "./_lib/kanban";
 import { getRegisteredProfiles } from "./_lib/profiles";
 import { getMonday, getWeekLabel } from "./_lib/kanbanUtils";
 
@@ -19,7 +19,10 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
   } = await supabase.auth.getUser();
 
   const weekStart = getMonday(week ? new Date(week) : new Date());
-  const weekRow = await getOrCreateWeek(supabase, weekStart);
+  const [weekRow, sprint] = await Promise.all([
+    getOrCreateWeek(supabase, weekStart),
+    getSprintForWeek(supabase, weekStart),
+  ]);
 
   const [{ data: statuses }, profiles, { data: tasks }, { data: currentProfile }] =
     await Promise.all([
@@ -36,7 +39,11 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
   return (
     <main className="flex min-h-screen flex-col bg-surface">
       <NavBar />
-      <KanbanHeader weekLabel={getWeekLabel(weekStart)} weekStart={weekStart} />
+      <KanbanHeader
+        sprintName={sprint?.name ?? null}
+        weekLabel={getWeekLabel(weekStart)}
+        weekStart={weekStart}
+      />
 
       <div className="flex-1 px-4 py-6 sm:px-8">
         {weekRow ? (

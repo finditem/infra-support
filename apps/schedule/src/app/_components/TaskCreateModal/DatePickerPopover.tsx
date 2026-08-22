@@ -20,13 +20,40 @@ import PropertyPopover from "./PropertyPopover";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
+const getWeekdayHeaderClassName = (index: number) => {
+  if (index === 0) return "text-fg-state-error";
+  if (index === 6) return "text-primary";
+  return "text-text-muted";
+};
+
+const getDayClassName = (
+  isSelected: boolean,
+  inMonth: boolean,
+  isSunday: boolean,
+  isSaturday: boolean
+) => {
+  if (isSelected) return "bg-primary font-semibold text-text-inverse";
+  if (!inMonth) return "text-text-muted/40";
+  if (isSunday) return "text-fg-state-error hover:bg-fill-neutural-subtle-hover";
+  if (isSaturday) return "text-primary hover:bg-fill-neutural-subtle-hover";
+  return "text-text-default hover:bg-fill-neutural-subtle-hover";
+};
+
 interface DatePickerPopoverProps {
   label: string;
   value: string;
   onChange: (date: string) => void;
+  labelClassName?: string;
+  triggerClassName?: string;
 }
 
-const DatePickerPopover = ({ label, value, onChange }: DatePickerPopoverProps) => {
+const DatePickerPopover = ({
+  label,
+  value,
+  onChange,
+  labelClassName,
+  triggerClassName,
+}: DatePickerPopoverProps) => {
   const selectedDate = new Date(value);
   const [monthCursor, setMonthCursor] = useState(selectedDate);
 
@@ -37,12 +64,14 @@ const DatePickerPopover = ({ label, value, onChange }: DatePickerPopoverProps) =
   return (
     <PropertyPopover
       label={label}
+      labelClassName={labelClassName}
       panelClassName="w-64"
       trigger={
-        <span className="text-xs text-text-default">
+        <span className="whitespace-nowrap text-xs text-text-default">
           📅 {format(selectedDate, "M월 d일 (EEEEEE)", { locale: ko })}
         </span>
       }
+      triggerClassName={triggerClassName}
     >
       {(close) => (
         <div>
@@ -67,8 +96,14 @@ const DatePickerPopover = ({ label, value, onChange }: DatePickerPopoverProps) =
           </div>
 
           <div className="grid grid-cols-7 gap-y-1">
-            {WEEKDAYS.map((weekday) => (
-              <span key={weekday} className="text-center text-[10px] font-medium text-text-muted">
+            {WEEKDAYS.map((weekday, index) => (
+              <span
+                key={weekday}
+                className={cn(
+                  "text-center text-[10px] font-medium",
+                  getWeekdayHeaderClassName(index)
+                )}
+              >
                 {weekday}
               </span>
             ))}
@@ -76,17 +111,15 @@ const DatePickerPopover = ({ label, value, onChange }: DatePickerPopoverProps) =
             {days.map((day) => {
               const inMonth = isSameMonth(day, monthCursor);
               const isSelected = isSameDay(day, selectedDate);
+              const isSunday = day.getDay() === 0;
+              const isSaturday = day.getDay() === 6;
 
               return (
                 <button
                   key={day.toISOString()}
                   className={cn(
                     "mx-auto flex size-6 items-center justify-center rounded-full text-[11px]",
-                    isSelected
-                      ? "bg-primary font-semibold text-text-inverse"
-                      : inMonth
-                        ? "text-text-default hover:bg-fill-neutural-subtle-hover"
-                        : "text-text-muted/40"
+                    getDayClassName(isSelected, inMonth, isSunday, isSaturday)
                   )}
                   type="button"
                   onClick={() => {

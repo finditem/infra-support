@@ -72,5 +72,3 @@
 ## 구조 및 정리
 
 - [x] 비어 있는 `_hooks`, `_types`, `_utils` 배럴 채우기 — 폼 상태 훅과 폼 값 타입, 변경 감지 유틸을 각 위치에 분리한다. `_utils` 파일명은 전역 `utils/`의 PascalCase + `Utils` suffix 규칙(`ApiEditUtils.ts`)을 따른다
-- [ ] 하드코딩된 hex 색상을 디자인 토큰으로 교체 — `#DFDFDF`, `#1EB87B`, `#E2E8F0`, `#5D5D5D`, `#ACACAC`, `#62CDA3`이 컴포넌트 전반에 흩어져 있다
-- [ ] 활성화 토글을 공통 컴포넌트로 뽑을지 검토 — 현재 `ApiOperationInformation.tsx`에 `peer` 클래스 조합으로 인라인 구현되어 있다

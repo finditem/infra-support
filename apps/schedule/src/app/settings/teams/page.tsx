@@ -2,6 +2,7 @@ import { NavBar } from "@/components/NavBar";
 import { createClient } from "@/lib/supabase/server";
 import { getRegisteredProfiles } from "../../_lib/profiles";
 import { getTeamsWithMembers } from "../../_lib/teams";
+import SettingsTabs from "../_components/SettingsTabs";
 import TeamsManager from "./_components/TeamsManager";
 
 const TeamsSettingsPage = async () => {
@@ -22,6 +23,8 @@ const TeamsSettingsPage = async () => {
 
       <div className="flex-1 px-4 py-6 sm:px-8">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+          <SettingsTabs />
+
           <div className="flex flex-col gap-1">
             <h1 className="text-lg font-bold text-text-default">팀 관리</h1>
             <p className="text-xs text-text-muted">
