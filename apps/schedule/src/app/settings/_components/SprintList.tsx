@@ -4,6 +4,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import DatePickerPopover from "@/app/_components/TaskCreateModal/DatePickerPopover";
 import { createSprint } from "../_lib/actions";
 import type { SprintsRow } from "@/types/tables";
 
@@ -14,14 +15,16 @@ interface SprintListProps {
 const inputClassName =
   "rounded-lg border border-border bg-surface-elevated px-3 py-1.5 text-sm text-text-default outline-none transition focus:border-primary";
 
+const getToday = () => format(new Date(), "yyyy-MM-dd");
+
 const SprintList = ({ sprints }: SprintListProps) => {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(getToday);
+  const [endDate, setEndDate] = useState(getToday);
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = name.trim() !== "" && startDate !== "" && endDate !== "" && !submitting;
+  const canSubmit = name.trim() !== "" && !submitting;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -31,8 +34,8 @@ const SprintList = ({ sprints }: SprintListProps) => {
     await createSprint({ name: name.trim(), startDate, endDate });
     setSubmitting(false);
     setName("");
-    setStartDate("");
-    setEndDate("");
+    setStartDate(getToday());
+    setEndDate(getToday());
     router.refresh();
   };
 
@@ -54,19 +57,13 @@ const SprintList = ({ sprints }: SprintListProps) => {
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
-        <input
-          className={inputClassName}
-          type="date"
-          value={startDate}
-          onChange={(event) => setStartDate(event.target.value)}
-        />
+        <div className="w-36">
+          <DatePickerPopover label="시작일" value={startDate} onChange={setStartDate} />
+        </div>
         <span className="text-text-muted">~</span>
-        <input
-          className={inputClassName}
-          type="date"
-          value={endDate}
-          onChange={(event) => setEndDate(event.target.value)}
-        />
+        <div className="w-36">
+          <DatePickerPopover label="종료일" value={endDate} onChange={setEndDate} />
+        </div>
       </form>
 
       {sprints.length === 0 ? (
