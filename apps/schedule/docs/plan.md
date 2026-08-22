@@ -295,3 +295,11 @@
 - [x] `src/app/settings/_components/SprintSettingsTable.tsx` 삭제, `SprintList.tsx` 신규 작성: "+" 버튼 + 이름/기간(시작일~종료일) 입력 폼, 저장 시 입력값 초기화 후 목록 맨 아래에 추가
 - [x] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션 SQL(0007)을 사용자가 Supabase SQL 에디터에서 직접 적용 (Claude가 대신 실행 불가)
+
+## 스프린트 등록 폼 날짜 입력을 커스텀 캘린더 피커로 교체
+
+`SprintList.tsx`의 시작일/종료일이 네이티브 `<input type="date">`라 UI가 볼품없다는 피드백을 받았다. 새 컴포넌트를 만드는 대신 이미 존재하는 `TaskCreateModal/DatePickerPopover.tsx`(할 일 마감일 선택에 쓰이는 월별 그리드 팝오버, `PropertyPopover` 셸 기반)를 재사용한다. `/calendar`의 `CalendarGrid.tsx`가 이미 쓰고 있는 관례(일요일 `text-fg-state-error`, 토요일 `text-primary`)를 `DatePickerPopover`에도 적용해, 할 일 생성 모달의 마감일 선택에도 함께 개선 효과가 생기도록 했다.
+
+- [x] `DatePickerPopover.tsx`: `getDayClassName`/`getWeekdayHeaderClassName` 헬퍼(if-체인)를 추가해 그리드 내 일/토요일 텍스트와 요일 헤더에 각각 `text-fg-state-error`/`text-primary` 적용
+- [x] `SprintList.tsx`: `<input type="date">` 2개를 `DatePickerPopover`(라벨 "시작일"/"종료일") 2개로 교체, `startDate`/`endDate` 초기값을 오늘 날짜로 변경, `canSubmit`에서 날짜 빈 값 체크 제거
+- [x] pnpm build / pnpm lint 검증
