@@ -355,4 +355,44 @@
 
 - [x] `postSlackMessage`의 `fetch`에 `AbortSignal.timeout` 5초 상한 추가 (Slack이 응답하지 않을 때 서버리스 함수가 매달리지 않도록)
 - [x] `createTask`/`updateTask`/`deleteTask`에서 알림 호출을 `next/server`의 `after()`로 감싸 저장 성공 응답을 지연시키지 않도록 변경
+
+## 팀(그룹) 관리 기능 추가
+
+팀원을 프론트엔드/백엔드/기획처럼 그룹으로 묶어 관리한다. 한 사람이 여러 팀에 속할 수 있다. 이후 캘린더/칸반에서 "@프론트엔드"처럼 팀 단위로 언급해 일정을 추가하는 기능의 기반이 되며, 이번 작업에서는 설정 페이지까지만 만들고 언급 연동은 다음 단계로 미룬다.
+
+- [x] `supabase/migrations/0009_teams.sql` 신규 작성: `teams`(name unique, 언급용 slug unique, color, created_by, created_at/updated_at), `team_members`(team_id/profile_id 복합 기본키, 팀 삭제 시 cascade), 두 테이블 모두 기존과 동일한 `authenticated_full_access` RLS 정책
+- [x] `0005_add_profile_color.sql`의 `assign_profile_color()`를 대상 테이블만 파라미터로 받는 `assign_pastel_color(regclass)`로 일반화하고, `assign_profile_color()`/`assign_team_color()`는 그 함수를 호출하는 얇은 래퍼로 둠 (`handle_new_user()`가 부르는 이름과 시그니처가 그대로라 기존 profiles 동작은 변하지 않는다)
+- [x] `prepare_team()` 트리거 함수: insert/update 전에 팀명을 trim하고, 공백을 제거한 언급 슬러그를 만들고, insert 시 색상을 배정한다. `set_updated_at` 트리거도 함께 연결
+- [x] 마이그레이션 안에서 `set_updated_at()`을 `create or replace`로 함께 정의: `0001_init.sql`에는 있지만 실제 Supabase 프로젝트에는 없고 같은 본문의 `handle_updated_at()`이 대신 쓰이고 있어, 트리거 생성이 `42883`으로 실패했다
+- [x] 마이그레이션 번호를 `0006`에서 `0009`까지 두 차례 변경: `0006`/`0007`은 스프린트 재설계, `0008`은 `feat/slack-notification`이 develop에 먼저 병합되며 가져갔다
+- [x] `src/types/tables/teams.ts`, `src/types/tables/team_members.ts` 신규 작성 및 `src/types/tables/index.ts`에 re-export 추가 (team_members는 복합 기본키라 Row에 id가 없다)
+- [x] `src/app/_types/teams.ts` 신규 작성: `TeamWithMembers = TeamsRow & { members: ProfileWithColor[] }`
+- [x] `src/app/_lib/profiles.ts` 신규 작성: `getRegisteredProfiles(supabase)` — 칸반/캘린더/팀 관리 세 페이지에 같은 조회가 중복돼 있어서 분리하고 기존 두 페이지도 이 함수를 쓰도록 교체
+- [x] `src/app/_lib/teams.ts` 신규 작성: `getTeamsWithMembers(supabase, profiles?)` — 팀 목록에 멤버를 붙여 반환. 이후 캘린더/칸반에서도 그대로 쓴다
+- [x] `src/app/settings/teams/_lib/actions.ts` 신규 작성: `createTeam`/`updateTeam`/`deleteTeam`/`addTeamMember`/`removeTeamMember`. 팀명 중복은 unique 위반(`23505`)을 받아 호출부에 알리고, 변경 후 `revalidatePath("/settings/teams")` 호출
+- [x] `src/app/settings/teams/page.tsx` 신규 작성 (Server Component에서 팀/멤버/팀원 조회), `src/app/settings/page.tsx`는 `/settings/teams`로 redirect
+- [x] `src/app/settings/teams/_components/TeamsManager.tsx`: 팀 추가 폼과 팀 목록. 중복 팀명은 "이미 있는 팀명입니다"로 안내
+- [x] `src/app/settings/teams/_components/TeamCard.tsx`: 팀 색상 점, 팀명 인라인 수정, 언급 슬러그 표시, 멤버 아바타와 제거 버튼, 멤버 추가 팝오버, 인라인 삭제 확인(`confirm()` 미사용)
+- [x] `src/components/NavBar.tsx`에 "설정" 링크 추가. 하위 경로에서도 활성으로 보이도록 접두어 판정 함수 분리, 조건부 className을 `cn()`으로 교체
+- [x] `src/app/_components/ProfileAvatar.tsx` 신규 작성: 이니셜 아바타 마크업이 네 군데에 복사돼 있어서 크기 prop을 가진 공용 컴포넌트로 분리하고 `KanbanCard`/`KanbanProgress`/`ProfilePickerPopover`를 교체
+- [x] `src/hooks/usePopoverPosition.ts`, `src/hooks/useOutsideClose.ts` 신규 작성: `PropertyPopover`의 위치 계산과 바깥 클릭 닫힘 로직을 훅으로 분리해 `MentionPicker`와 함께 쓰도록 함
+- [x] `ProfilePickerPopover`를 `TaskCreateModal/`에서 `src/app/_components/`로 올리고 `label` 옵셔널, `allowClear`, `triggerClassName` prop 추가 (기본값은 기존 동작과 동일)
+
+### 다음 단계에서 연결 (이번에는 사용처 없음)
+
+아래 두 파일은 캘린더/칸반의 언급 기반 일정 추가에서 쓸 부품이라 이번 작업에서는 어디에서도 import하지 않는다.
+
+- [x] `src/app/_lib/mentions.ts`: `MentionTarget`, `buildMentionTargets`, `parseMentions`(슬러그가 긴 후보부터 매칭), `resolveMentionProfiles`, 그리고 입력 필드 연결에 필요한 `getActiveMention`/`insertMention`/`filterMentionTargets`
+- [x] `src/app/_components/MentionPicker.tsx`: "@" 입력 시 뜨는 언급 대상 팝오버. 팀은 색상 점과 멤버 수, 개인은 아바타로 구분하고 위/아래/Enter/Esc로 선택 가능
+- [ ] 캘린더의 개인 일정 추가와 칸반의 일정 추가 입력에 `MentionPicker`를 연결하고, 저장 시 `parseMentions` + `resolveMentionProfiles`로 대상 팀원을 확정하는 작업
+- [x] `supabase/migrations/0009_teams.sql`을 사용자가 Supabase SQL 에디터에서 직접 적용 (적용 후 teams_prepare/teams_set_updated_at 트리거 동작 확인 완료)
+
+## develop 병합 충돌 해결 (PR #155)
+
+- [x] `src/components/NavBar.tsx`: "설정" 링크를 `/settings/teams`가 아니라 develop이 만든 `/settings`로 되돌린다. 하위 경로 접두어 판정은 그대로 두어 팀 관리에서도 "설정"이 활성으로 남는다
+- [x] `src/app/settings/_components/SettingsTabs.tsx` 신규 작성: 스프린트(`/settings`)와 팀 관리(`/settings/teams`)를 오가는 탭. 두 페이지에서 함께 쓰므로 별도 파일로 둔다
+- [x] `src/app/settings/page.tsx`: `/settings/teams`로 보내던 redirect를 없애고 develop의 스프린트 목록 페이지를 그대로 쓰되 상단에 탭을 붙인다
+- [x] `src/app/settings/teams/page.tsx`: 같은 탭을 상단에 붙인다
+- [x] `src/app/page.tsx`: develop의 `getSprintForWeek`와 이 브랜치의 `getRegisteredProfiles` import를 모두 남긴다
+- [x] `supabase/migrations/0008_teams.sql`을 `0009_teams.sql`로 변경: develop이 `0008_add_profile_slack_user_id.sql`을 먼저 가져갔다. SQL 본문은 그대로라 이미 적용한 Supabase 프로젝트에 다시 적용할 필요는 없다
 - [x] pnpm build / pnpm lint 검증

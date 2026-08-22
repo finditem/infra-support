@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NavBar } from "@/components/NavBar";
+import SettingsTabs from "./_components/SettingsTabs";
 import SprintList from "./_components/SprintList";
 
 const SettingsPage = async () => {
@@ -15,7 +16,9 @@ const SettingsPage = async () => {
       <NavBar />
 
       <div className="flex-1 px-8 py-6">
-        <h1 className="mb-4 text-lg font-semibold text-text-default">스프린트</h1>
+        <SettingsTabs />
+
+        <h1 className="mb-4 mt-6 text-lg font-semibold text-text-default">스프린트</h1>
         <SprintList sprints={sprints ?? []} />
       </div>
     </main>
