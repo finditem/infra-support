@@ -28,17 +28,25 @@ const SprintList = ({ sprints }: SprintListProps) => {
   const [editStartDate, setEditStartDate] = useState("");
   const [editEndDate, setEditEndDate] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = name.trim() !== "" && !submitting;
-  const canSaveEdit = editName.trim() !== "";
+  const canSubmit = name.trim() !== "" && startDate <= endDate && !submitting;
+  const canSaveEdit = editName.trim() !== "" && editStartDate <= editEndDate;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!canSubmit) return;
 
     setSubmitting(true);
-    await createSprint({ name: name.trim(), startDate, endDate });
+    const created = await createSprint({ name: name.trim(), startDate, endDate });
     setSubmitting(false);
+
+    if (!created) {
+      setError("스프린트 추가에 실패했습니다. 다시 시도해주세요.");
+      return;
+    }
+
+    setError(null);
     setName("");
     setStartDate(getToday());
     setEndDate(getToday());
@@ -55,25 +63,39 @@ const SprintList = ({ sprints }: SprintListProps) => {
   const handleSaveEdit = async () => {
     if (!editingId || !canSaveEdit) return;
 
-    await updateSprint({
+    const updated = await updateSprint({
       id: editingId,
       name: editName.trim(),
       startDate: editStartDate,
       endDate: editEndDate,
     });
+
+    if (!updated) {
+      setError("스프린트 수정에 실패했습니다. 다시 시도해주세요.");
+      return;
+    }
+
+    setError(null);
     setEditingId(null);
     router.refresh();
   };
 
   const handleDelete = async (id: string) => {
-    await deleteSprint(id);
+    const deleted = await deleteSprint(id);
+
+    if (!deleted) {
+      setError("스프린트 삭제에 실패했습니다. 다시 시도해주세요.");
+      return;
+    }
+
+    setError(null);
     setPendingDeleteId(null);
     router.refresh();
   };
 
   return (
     <div className="flex flex-col gap-3">
-      <form className="flex items-center gap-2" onSubmit={handleSubmit}>
+      <form className="flex flex-wrap items-center gap-2" onSubmit={handleSubmit}>
         <button
           aria-label="스프린트 추가"
           className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-elevated text-text-muted hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
@@ -106,6 +128,8 @@ const SprintList = ({ sprints }: SprintListProps) => {
         />
       </form>
 
+      {error && <p className="text-xs text-fg-state-error">{error}</p>}
+
       {sprints.length === 0 ? (
         <p className="text-sm text-text-muted">등록된 스프린트가 없습니다.</p>
       ) : (
@@ -115,7 +139,7 @@ const SprintList = ({ sprints }: SprintListProps) => {
               return (
                 <li
                   key={sprint.id}
-                  className="flex items-center gap-2 rounded-lg border border-primary bg-surface-elevated px-4 py-2.5"
+                  className="flex flex-wrap items-center gap-2 rounded-lg border border-primary bg-surface-elevated px-4 py-2.5"
                 >
                   <input
                     className={inputClassName}
