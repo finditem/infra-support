@@ -126,7 +126,7 @@ const TeamCard = ({ team, profiles }: TeamCardProps) => {
     if (isConfirmingDelete) {
       return (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-text-default">삭제할까요?</span>
+          <span className="text-sm text-text-default">{team.name} 팀을 삭제할까요?</span>
           <div className="flex items-center gap-1">
             <button
               className={cn(settingsTextButtonClassName, "text-fg-state-error")}
@@ -192,7 +192,7 @@ const TeamCard = ({ team, profiles }: TeamCardProps) => {
         <div className="flex shrink-0 items-center gap-3">
           <span className="text-xs text-text-muted">멤버 {team.members.length}명</span>
           <button
-            aria-label="팀 수정"
+            aria-label={`${team.name} 수정`}
             className={settingsIconButtonClassName}
             type="button"
             onClick={startEditing}
@@ -200,7 +200,7 @@ const TeamCard = ({ team, profiles }: TeamCardProps) => {
             <Pencil size={13} />
           </button>
           <button
-            aria-label="팀 삭제"
+            aria-label={`${team.name} 삭제`}
             className={settingsIconButtonClassName}
             type="button"
             onClick={() => setIsConfirmingDelete(true)}
