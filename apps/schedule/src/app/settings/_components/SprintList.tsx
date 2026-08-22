@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DatePickerPopover from "@/app/_components/TaskCreateModal/DatePickerPopover";
-import { createSprint } from "../_lib/actions";
+import { createSprint, deleteSprint, updateSprint } from "../_lib/actions";
 import type { SprintsRow } from "@/types/tables";
 
 interface SprintListProps {
@@ -23,8 +23,14 @@ const SprintList = ({ sprints }: SprintListProps) => {
   const [startDate, setStartDate] = useState(getToday);
   const [endDate, setEndDate] = useState(getToday);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editEndDate, setEditEndDate] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const canSubmit = name.trim() !== "" && !submitting;
+  const canSaveEdit = editName.trim() !== "";
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -36,6 +42,32 @@ const SprintList = ({ sprints }: SprintListProps) => {
     setName("");
     setStartDate(getToday());
     setEndDate(getToday());
+    router.refresh();
+  };
+
+  const startEdit = (sprint: SprintsRow) => {
+    setEditingId(sprint.id);
+    setEditName(sprint.name);
+    setEditStartDate(sprint.start_date);
+    setEditEndDate(sprint.end_date);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !canSaveEdit) return;
+
+    await updateSprint({
+      id: editingId,
+      name: editName.trim(),
+      startDate: editStartDate,
+      endDate: editEndDate,
+    });
+    setEditingId(null);
+    router.refresh();
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteSprint(id);
+    setPendingDeleteId(null);
     router.refresh();
   };
 
@@ -70,18 +102,111 @@ const SprintList = ({ sprints }: SprintListProps) => {
         <p className="text-sm text-text-muted">등록된 스프린트가 없습니다.</p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {sprints.map((sprint) => (
-            <li
-              key={sprint.id}
-              className="flex items-center justify-between rounded-lg border border-border bg-surface-elevated px-4 py-2.5"
-            >
-              <span className="text-sm font-medium text-text-default">{sprint.name}</span>
-              <span className="text-xs text-text-muted">
-                {format(new Date(sprint.start_date), "M/d")} ~{" "}
-                {format(new Date(sprint.end_date), "M/d")}
-              </span>
-            </li>
-          ))}
+          {sprints.map((sprint) => {
+            if (editingId === sprint.id) {
+              return (
+                <li
+                  key={sprint.id}
+                  className="flex items-center gap-2 rounded-lg border border-primary bg-surface-elevated px-4 py-2.5"
+                >
+                  <input
+                    className={inputClassName}
+                    type="text"
+                    value={editName}
+                    onChange={(event) => setEditName(event.target.value)}
+                  />
+                  <div className="w-44">
+                    <DatePickerPopover
+                      label="시작일"
+                      value={editStartDate}
+                      onChange={setEditStartDate}
+                    />
+                  </div>
+                  <span className="text-text-muted">~</span>
+                  <div className="w-44">
+                    <DatePickerPopover
+                      label="종료일"
+                      value={editEndDate}
+                      onChange={setEditEndDate}
+                    />
+                  </div>
+                  <button
+                    className="ml-auto rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+                    disabled={!canSaveEdit}
+                    type="button"
+                    onClick={() => void handleSaveEdit()}
+                  >
+                    저장
+                  </button>
+                  <button
+                    className="rounded-md px-2 py-1 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+                    type="button"
+                    onClick={() => setEditingId(null)}
+                  >
+                    취소
+                  </button>
+                </li>
+              );
+            }
+
+            if (pendingDeleteId === sprint.id) {
+              return (
+                <li
+                  key={sprint.id}
+                  className="flex items-center justify-between rounded-lg border border-border bg-surface-elevated px-4 py-2.5"
+                >
+                  <span className="text-sm text-text-default">삭제할까요?</span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      className="rounded-md px-2 py-1 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover"
+                      type="button"
+                      onClick={() => void handleDelete(sprint.id)}
+                    >
+                      삭제
+                    </button>
+                    <button
+                      className="rounded-md px-2 py-1 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+                      type="button"
+                      onClick={() => setPendingDeleteId(null)}
+                    >
+                      취소
+                    </button>
+                  </div>
+                </li>
+              );
+            }
+
+            return (
+              <li
+                key={sprint.id}
+                className="flex items-center justify-between rounded-lg border border-border bg-surface-elevated px-4 py-2.5"
+              >
+                <span className="text-sm font-medium text-text-default">{sprint.name}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-text-muted">
+                    {format(new Date(sprint.start_date), "M/d")} ~{" "}
+                    {format(new Date(sprint.end_date), "M/d")}
+                  </span>
+                  <button
+                    aria-label="스프린트 수정"
+                    className="flex size-6 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
+                    type="button"
+                    onClick={() => startEdit(sprint)}
+                  >
+                    <Pencil size={13} />
+                  </button>
+                  <button
+                    aria-label="스프린트 삭제"
+                    className="flex size-6 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
+                    type="button"
+                    onClick={() => setPendingDeleteId(sprint.id)}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
