@@ -543,3 +543,23 @@
 - [x] (PR #163 Codex 리뷰 반영, P2) 언급 대상 판정을 클라이언트에서 서버로 옮김. `createComment`/`updateComment`가 받던 `mentionedProfileIds`를 없애고 서버 액션이 저장할 본문을 직접 파싱한다. 이 값을 클라이언트가 정하면 로그인한 팀원이 서버 액션을 직접 호출해 본문에 언급하지도 않은 사람에게 DM을 보낼 수 있었다. `feat/task-comments` 때부터 있던 구조지만 그때는 결과가 관계 행 오염에 그쳤고, 발송이 붙으면서 실제 피해로 이어질 수 있게 되어 이번에 닫았다. 판정 함수는 클라이언트와 동일한 `parseMentions`/`resolveMentionProfiles`라 결과는 달라지지 않고, 댓글 저장마다 조회 3건(profiles, teams, team_members)이 는다
 - [ ] 실제 화면에서 댓글로 팀원/팀을 언급했을 때 당사자에게 DM이 오는지 확인 (수정 시 기존 언급 대상에게 다시 가지 않는지, 봇이 DM을 열 수 있는지 포함)
 - [x] pnpm build / pnpm lint 검증 (워크트리에서 실행, 경고 없음)
+
+## 캘린더 반복 일정과 등록 대상 선택 (feat/calendar-recurring)
+
+가능 시간을 날짜 하나에 본인 몫으로만 등록할 수 있어서, 매주 같은 시간에 열리는 회의처럼 되풀이되는 일정은 날짜 수만큼 모달을 반복해서 열어야 했다. `docs/기능설계서.md` 10. 미구현 표의 "반복 일정"은 칸반의 업무 자동 생성을 가리키지만, 이번 요청은 캘린더의 가능 시간 반복 등록이라 이 작업에서 새로 정의한다. 반복 주기는 없음/매일/매주/매월, 종료는 날짜 지정, 대상은 팀원과 팀을 함께 고르는 방식으로 사용자와 확정했다.
+
+- [x] `supabase/migrations/0012_add_availability_recurrence.sql` 신규 작성: `availability`에 `recurrence_group_id uuid` 컬럼과 부분 인덱스 추가. 한 번의 반복 등록으로 만들어진 행을 하나의 묶음으로 묶어 "이후 반복 전체 삭제"의 근거로 쓴다
+- [x] `src/types/tables/availability.ts`: `recurrence_group_id` 추가. Insert에서는 선택 항목으로 둔다 (반복 없이 등록하면 null)
+- [x] `src/app/calendar/_lib/recurrence.ts` 신규 작성: 반복 주기 타입과 선택지, 종료일 기본값, 시작일과 종료일 사이의 반복 날짜 전개. 매월은 시작일의 일자를 유지하고 그 일자가 없는 달(31일 → 2월)은 건너뛴다
+- [x] `src/app/calendar/_lib/actions.ts`: 단건 등록을 대상 여러 명 × 날짜 여러 개의 일괄 등록으로 확장. 겹치는 시간대는 서버에서 미리 걸러 건너뛴 개수를 돌려준다. 묶음 단위 삭제 액션 추가
+- [x] `src/app/calendar/_components/AvailabilityTargetPicker.tsx` 신규 작성: 팀과 팀원을 함께 고르는 다중 선택 팝오버. 팀을 고르면 소속 팀원으로 펼쳐 등록한다
+- [x] `src/app/calendar/_components/AvailabilityTimePicker.tsx`: 대상 선택, 반복 주기, 종료일 입력과 등록될 개수 요약 추가
+- [x] `src/app/calendar/_components/RecurringDeleteDialog.tsx` 신규 작성: 반복으로 만든 블록을 지울 때 이 일정만 지울지 이후 반복까지 지울지 고르는 확인 창
+- [x] `src/app/calendar/_components/CalendarGrid.tsx`: 모든 블록을 삭제 대상으로 열고(등록 대상 선택이 생겨 본인 것만 지울 수 있으면 대신 등록해 준 일정을 정정할 수 없다), 반복 블록은 확인 창을 띄운다
+- [x] `src/app/calendar/_components/CalendarView.tsx`: 등록/삭제가 여러 행을 한 번에 다루도록 상태 갱신 방식 변경
+- [x] `src/app/calendar/page.tsx`: 대상 선택 후보를 만들기 위해 팀 목록을 함께 조회한다
+- [x] develop의 모달 공통 동작(`ModalOverlay`, `src/hooks/useEscapeKey`)을 머지하면서 이번 작업의 모달 두 개를 그 구조에 맞췄다. 시간 등록 모달과 반복 삭제 확인 창이 딤 레이어를 직접 그리는 대신 `ModalOverlay`를 쓴다
+- [x] `AvailabilityTimePicker.tsx`: 대상과 반복 입력이 붙어 모달이 길어졌으므로 높이를 화면의 85%로 제한하고 넘치면 모달 안에서 스크롤되게 했다. 딤 레이어가 뒤 화면 스크롤을 잠그고 있어 이 제한이 없으면 짧은 화면에서 아래쪽 버튼에 닿을 수 없다
+- [x] 마이그레이션 SQL을 Supabase SQL 에디터에 적용 (사용자가 직접 적용)
+- [x] 실제 화면에서 반복 등록, 팀 단위 대상 등록, 겹침 건너뛰기 안내, 반복 삭제 확인 창 동작 확인 (사용자 확인)
+- [x] pnpm build / pnpm lint 검증 (경고 없이 통과)
