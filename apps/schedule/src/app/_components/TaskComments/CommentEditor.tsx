@@ -101,7 +101,10 @@ const CommentEditor = ({
       return;
     }
 
-    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+    // 언급 입력 중에는 제출하지 않는다. 팝오버가 window 캡처 단계에서 Enter를 먼저 받아
+    // 언급을 삽입하는데 전파는 막지 않아서, 여기서 제출하면 삽입이 반영되기 전의
+    // "@검색어" 상태가 그대로 저장되고 입력창까지 비워진다.
+    if (!activeMention && (event.metaKey || event.ctrlKey) && event.key === "Enter") {
       event.preventDefault();
       event.stopPropagation();
       void handleSubmit();

@@ -424,6 +424,9 @@
 - [x] 본문 강조용 `splitMentionSegments`를 `_lib/mentions.ts`에 추가하고 기존 `parseMentions`를 그 위에 다시 얹었다. 언급 판정 규칙(경계 문자, 긴 슬러그 우선, 동명이인 제외)이 두 벌로 갈라지지 않도록 한 것이다
 - [x] 언급 후보를 만들기 위해 `page.tsx`와 `task/[id]/page.tsx`에서 `getTeamsWithMembers`로 팀을 함께 조회하고 `buildMentionTargets`로 합쳐 내려보낸다. 이미 조회한 profiles를 넘겨 중복 조회를 피한다
 - [x] `MentionPicker`는 Escape를 window에서 가로채 스스로 닫지만 전파까지 막지는 않아, 그대로 두면 자동완성을 닫으려던 Escape가 모달까지 올라가 모달이 함께 닫힌다. `CommentEditor`에서 언급 입력 중일 때만 전파를 막아 해결했다
+- [x] (PR #160 Codex 리뷰 반영, P2) 언급 자동완성이 열린 상태에서 커맨드+엔터를 누르면 잘린 본문이 저장되던 버그 수정. 팝오버가 window 캡처 단계에서 Enter를 먼저 받아 언급을 삽입하지만 전파는 막지 않아, 삽입이 반영되기 전의 `@검색어` 상태로 저장되고 입력창까지 비워지고 있었다. 언급 입력 중에는 제출을 건너뛴다
+- [x] (PR #160 Codex 리뷰 반영, P1) `task_comments`와 `task_comment_mentions`의 RLS를 작성자 소유권 기준으로 나눔. 이 앱은 별도 백엔드 없이 클라이언트가 anon key로 PostgREST에 직접 접근해서, 정책이 `using (true)`이면 서버 액션의 `author_id` 조건만으로는 작성자 제한이 강제되지 않고 로그인한 팀원이 남의 댓글을 고치거나 지울 수 있었다. 읽기는 팀 전체에 열고 쓰기만 본인으로 제한했다. 다른 테이블의 `authenticated_full_access` 단일 정책 방침에서 벗어나는 부분이라 마이그레이션 주석에 이유를 남겼다
+- [ ] 바뀐 RLS 정책을 원격에 적용 (마이그레이션의 정책 블록만 재실행하면 되도록 `drop policy if exists`를 앞에 뒀다)
 - [x] pnpm build / pnpm lint 검증 (검증 중 발견한 `perfectionist/sort-jsx-props` 경고 2건 수정). dev 서버와 `next build`가 같은 `.next` 디렉토리를 공유하므로, 검증 전에 dev 서버를 내리고 `.next`를 지운 뒤 빌드한다
 - [x] 실제 화면에서 댓글 생성/수정/삭제, 멘션 자동완성과 강조, 라이트/다크 모드 확인
 - [x] 멘션 자동완성 목록을 키보드로 이동할 때 활성 항목이 목록 밖으로 밀려나도 스크롤되지 않던 버그 수정 (`MentionAutocomplete`에서 활성 항목을 `scrollIntoView({ block: "nearest" })`로 끌어온다)

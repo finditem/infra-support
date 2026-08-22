@@ -29,13 +29,65 @@ create table public.task_comment_mentions (
 create index task_comments_task_id_idx on public.task_comments (task_id);
 create index task_comment_mentions_mentioned_profile_id_idx on public.task_comment_mentions (mentioned_profile_id);
 
--- RLS: 0001_init.sql과 동일하게 로그인 사용자 전체 접근 단일 정책만 둔다.
--- 작성자 본인만 수정/삭제 가능하다는 제약은 서버 액션에서 author_id 조건으로 강제한다.
+-- RLS: 읽기는 팀 전체에 열고, 쓰기는 작성자 본인으로 제한한다.
+--
+-- 0001_init.sql의 다른 테이블은 "MVP 단계는 권한을 단순하게 가져간다" 방침에 따라
+-- authenticated_full_access 단일 정책을 쓴다. 댓글만 정책을 나누는 이유는, 이 앱이 별도 백엔드 없이
+-- 클라이언트에서 anon key로 PostgREST에 직접 접근하는 구조여서 서버 액션의 author_id 조건만으로는
+-- "작성자 본인만 수정/삭제"라는 제약이 실제로 강제되지 않기 때문이다.
+-- 로그인한 팀원이 API를 직접 호출하면 남의 댓글도 고치거나 지울 수 있다.
+--
+-- 이미 적용된 프로젝트에서 정책만 다시 맞출 수 있도록 drop policy if exists를 앞에 둔다.
 alter table public.task_comments enable row level security;
 alter table public.task_comment_mentions enable row level security;
 
-create policy "authenticated_full_access" on public.task_comments for all to authenticated using (true) with check (true);
-create policy "authenticated_full_access" on public.task_comment_mentions for all to authenticated using (true) with check (true);
+drop policy if exists "authenticated_full_access" on public.task_comments;
+drop policy if exists "authenticated_read" on public.task_comments;
+drop policy if exists "author_insert" on public.task_comments;
+drop policy if exists "author_update" on public.task_comments;
+drop policy if exists "author_delete" on public.task_comments;
+
+create policy "authenticated_read" on public.task_comments
+  for select to authenticated using (true);
+
+create policy "author_insert" on public.task_comments
+  for insert to authenticated with check (author_id = auth.uid());
+
+create policy "author_update" on public.task_comments
+  for update to authenticated
+  using (author_id = auth.uid())
+  with check (author_id = auth.uid());
+
+create policy "author_delete" on public.task_comments
+  for delete to authenticated using (author_id = auth.uid());
+
+-- 멘션 행은 댓글에 종속되므로 그 댓글의 작성자만 넣고 지울 수 있게 한다.
+-- 서버 액션은 본문이 바뀔 때 삭제 후 재삽입으로 동기화하므로 update 정책은 두지 않는다.
+drop policy if exists "authenticated_full_access" on public.task_comment_mentions;
+drop policy if exists "authenticated_read" on public.task_comment_mentions;
+drop policy if exists "comment_author_insert" on public.task_comment_mentions;
+drop policy if exists "comment_author_delete" on public.task_comment_mentions;
+
+create policy "authenticated_read" on public.task_comment_mentions
+  for select to authenticated using (true);
+
+create policy "comment_author_insert" on public.task_comment_mentions
+  for insert to authenticated
+  with check (
+    exists (
+      select 1 from public.task_comments comment
+      where comment.id = comment_id and comment.author_id = auth.uid()
+    )
+  );
+
+create policy "comment_author_delete" on public.task_comment_mentions
+  for delete to authenticated
+  using (
+    exists (
+      select 1 from public.task_comments comment
+      where comment.id = comment_id and comment.author_id = auth.uid()
+    )
+  );
 
 -- tasks와 동일하게 updated_at을 자동 갱신한다.
 -- 0001_init.sql이 이미 같은 함수를 정의하지만, 원격 DB에 그 정의가 없는 상태가 실제로 확인되어
