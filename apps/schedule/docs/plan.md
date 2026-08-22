@@ -397,6 +397,13 @@
 - [x] `supabase/migrations/0008_teams.sql`을 `0009_teams.sql`로 변경: develop이 `0008_add_profile_slack_user_id.sql`을 먼저 가져갔다. SQL 본문은 그대로라 이미 적용한 Supabase 프로젝트에 다시 적용할 필요는 없다
 - [x] pnpm build / pnpm lint 검증
 
+## 다크모드 "새 작업" 모달 input/textarea 배경색 수정
+
+`TaskCreateModal.tsx`의 제목 input, 설명 textarea(상위+하위 일정 모두)에 배경색 클래스가 아예 없어 브라우저 기본 폼 컨트롤 배경이 노출되고, 다크모드에서 모달 배경(`bg-surface-elevated`)과 어우러지지 않는 문제 수정.
+
+- [x] `TaskCreateModal.tsx`: 제목 input, 설명 textarea, 하위 일정 제목 input, 하위 일정 설명 textarea className에 `bg-transparent` 추가
+- [x] pnpm build / pnpm lint 검증
+
 ## 일정 등록 모달 제목 변경 + 12/24시간 표시 전환
 
 모달 제목을 "가능 시간 등록"에서 "일정 등록"으로 바꾸고, 기존 오전/오후 휠은 그대로 두되 우상단 "24시간" 버튼으로 시 열을 00~23으로 바꿔 볼 수 있게 한다. 겸사겸사 ESC로 모달을 닫는 것도 함께 넣는다.
