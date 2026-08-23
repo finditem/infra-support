@@ -23,7 +23,6 @@ interface SubtaskDraft {
 }
 
 interface TaskCreateModalProps {
-  weekId: string | null;
   statuses: TaskStatusesRow[];
   profiles: ProfileWithColor[];
   currentProfileId: string | null;
@@ -43,7 +42,6 @@ interface TaskCreateModalProps {
 }
 
 const TaskCreateModal = ({
-  weekId,
   statuses,
   profiles,
   currentProfileId,
@@ -109,7 +107,6 @@ const TaskCreateModal = ({
           id: task.id,
           title: title.trim(),
           body: body.trim() || null,
-          weekId,
           statusId,
           assigneeId,
           reporterId,
@@ -119,7 +116,6 @@ const TaskCreateModal = ({
       : await createTask({
           title: title.trim(),
           body: body.trim() || null,
-          weekId,
           statusId,
           assigneeId,
           reporterId,
@@ -144,7 +140,6 @@ const TaskCreateModal = ({
         const savedSubtask = await createTask({
           title: draft.title.trim(),
           body: draft.body.trim() || null,
-          weekId,
           statusId,
           assigneeId: null,
           reporterId: null,
