@@ -7,8 +7,11 @@ import { CornerDownLeft } from "lucide-react";
 import { createTask, deleteTask, updateTask } from "../../_lib/actions";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
-import type { TaskStatusesRow, TasksRow } from "@/types/tables";
+import { ModalOverlay } from "@/components/ModalOverlay";
+import type { TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
 import ProfilePickerPopover from "../ProfilePickerPopover";
+import type { MentionTarget } from "../../_lib/mentions";
+import TaskComments from "../TaskComments/TaskComments";
 import DatePickerPopover from "./DatePickerPopover";
 import PriorityPickerPopover from "./PriorityPickerPopover";
 import StatusPickerPopover from "./StatusPickerPopover";
@@ -27,8 +30,13 @@ interface TaskCreateModalProps {
   parentId?: string | null;
   parentTitle?: string | null;
   task?: TasksRow | null;
+  /** 편집 모드에서만 쓰는 이 일정의 댓글 목록. 생성 모드에서는 아직 일정이 없어 댓글도 없다. */
+  comments?: TaskCommentsRow[];
+  /** 댓글에서 언급할 수 있는 팀과 팀원 목록. */
+  mentionTargets?: MentionTarget[];
   onClose: () => void;
   onSaved: (tasks: TasksRow[]) => void;
+  onCommentsChange?: (comments: TaskCommentsRow[]) => void;
   /** 삭제된 일정 id 목록(하위 일정 포함)을 전달한다. */
   onDeleted: (taskIds: string[]) => void;
 }
@@ -41,8 +49,11 @@ const TaskCreateModal = ({
   parentId = null,
   parentTitle = null,
   task = null,
+  comments = [],
+  mentionTargets = [],
   onClose,
   onSaved,
+  onCommentsChange,
   onDeleted,
 }: TaskCreateModalProps) => {
   const [title, setTitle] = useState(task?.title ?? "");
@@ -178,20 +189,18 @@ const TaskCreateModal = ({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      onClose();
-    } else if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
       event.preventDefault();
       void handleSubmit();
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-5"
-      onKeyDown={handleKeyDown}
-    >
-      <div className="flex max-h-[85vh] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]">
+    <ModalOverlay className="z-[200] p-5" onClose={onClose}>
+      <div
+        className="flex max-h-[85vh] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
+        onKeyDown={handleKeyDown}
+      >
         <div className="flex shrink-0 items-center justify-between border-b border-border px-[18px] py-3">
           <span className="text-xs text-text-muted">
             {parentTitle ?? "팀 일정"} <span className="mx-[3px] text-border">/</span>
@@ -212,7 +221,7 @@ const TaskCreateModal = ({
         <div className="overflow-y-auto">
           <div className="px-5 pt-[18px]">
             <input
-              className="placeholder:text-text-muted/50 w-full border-none text-[17px] font-semibold text-text-default outline-none"
+              className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[17px] font-semibold text-text-default outline-none"
               autoFocus
               placeholder="작업 제목을 입력하세요"
               type="text"
@@ -256,7 +265,7 @@ const TaskCreateModal = ({
           <div className="px-[46px] py-3">
             <textarea
               ref={bodyRef}
-              className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none text-[13px] leading-[1.75] text-text-muted outline-none"
+              className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none bg-transparent text-[13px] leading-[1.75] text-text-muted outline-none"
               placeholder="설명을 추가하세요..."
               value={body}
               onChange={(event) => setBody(event.target.value)}
@@ -274,7 +283,7 @@ const TaskCreateModal = ({
                 >
                   <div className="flex items-center gap-1.5">
                     <input
-                      className="placeholder:text-text-muted/50 w-full border-none text-[13px] font-medium text-text-default outline-none"
+                      className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[13px] font-medium text-text-default outline-none"
                       placeholder="하위 일정 제목"
                       type="text"
                       value={draft.title}
@@ -292,7 +301,7 @@ const TaskCreateModal = ({
                     </button>
                   </div>
                   <textarea
-                    className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none text-xs leading-[1.6] text-text-muted outline-none"
+                    className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none bg-transparent text-xs leading-[1.6] text-text-muted outline-none"
                     placeholder="설명을 추가하세요..."
                     value={draft.body}
                     onChange={(event) => updateSubtaskDraft(draft.id, { body: event.target.value })}
@@ -308,6 +317,18 @@ const TaskCreateModal = ({
                 + 하위 일정 추가
               </button>
             </div>
+          )}
+
+          {isEditing && task && onCommentsChange && (
+            <TaskComments
+              className="border-t border-border px-5 py-4"
+              comments={comments}
+              currentProfileId={currentProfileId}
+              mentionTargets={mentionTargets}
+              profiles={profiles}
+              taskId={task.id}
+              onCommentsChange={onCommentsChange}
+            />
           )}
         </div>
 
@@ -325,7 +346,7 @@ const TaskCreateModal = ({
           <div className="flex gap-1.5">
             {isEditing && (
               <button
-                className="rounded-[7px] px-3.5 py-1.5 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+                className="rounded-[7px] border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
                 disabled={isDeleting || isSubmitting}
                 type="button"
                 onClick={() => void handleDelete()}
@@ -351,7 +372,7 @@ const TaskCreateModal = ({
           </div>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 };
 

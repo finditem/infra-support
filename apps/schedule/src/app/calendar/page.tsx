@@ -2,7 +2,9 @@ import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from "date-f
 import { createClient } from "@/lib/supabase/server";
 import { NavBar } from "@/components/NavBar";
 import { buildProfileColorMap } from "../_lib/kanbanUtils";
+import { buildMentionTargets } from "../_lib/mentions";
 import { getRegisteredProfiles } from "../_lib/profiles";
+import { getTeamsWithMembers } from "../_lib/teams";
 import type { ProfileWithColor } from "../_types/kanban";
 import CalendarHeader from "./_components/CalendarHeader";
 import CalendarView from "./_components/CalendarView";
@@ -38,6 +40,8 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
     supabase.auth.getUser(),
   ]);
 
+  // 팀 목록은 가능 시간을 등록할 대상 후보다. 이미 조회한 profiles를 넘겨 중복 조회를 피한다.
+  const teams = await getTeamsWithMembers(supabase, profiles);
   const profileColorMap = buildProfileColorMap(profiles);
   const profilesWithColor: ProfileWithColor[] = profiles.map(
     (profile) => profileColorMap.get(profile.id) as ProfileWithColor
@@ -55,6 +59,7 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
         monthStart={monthStart}
         profileColorMap={profileColorMap}
         profiles={profilesWithColor}
+        targets={buildMentionTargets(teams, profiles)}
       />
     </main>
   );

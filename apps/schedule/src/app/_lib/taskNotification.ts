@@ -3,6 +3,9 @@ import { notifyTaskEvent } from "@/lib/slack";
 import type { SlackNotificationProfile, TaskFieldChange } from "@/lib/slack";
 import type { TasksRow } from "@/types/tables";
 import { PRIORITY_META } from "./kanbanUtils";
+import { loadNotificationProfileMap, toNotificationProfile } from "./notificationProfiles";
+import { loadParentTitle } from "./parentTaskTitle";
+import { buildTaskUrl } from "./taskUrl";
 
 /** 본문처럼 길어질 수 있는 값은 알림에서 잘라 보여준다. */
 const BODY_PREVIEW_LENGTH = 40;
@@ -16,30 +19,6 @@ interface TaskNotificationContext {
   url: string | null;
 }
 
-interface NotificationProfileRow {
-  id: string;
-  name: string;
-  slack_user_id: string | null;
-}
-
-const toNotificationProfile = (
-  profile: NotificationProfileRow | undefined
-): SlackNotificationProfile | null =>
-  profile ? { name: profile.name, slackUserId: profile.slack_user_id } : null;
-
-const loadProfileMap = async (supabase: SupabaseClient, ids: (string | null)[]) => {
-  const uniqueIds = Array.from(new Set(ids.filter((id): id is string => !!id)));
-
-  if (uniqueIds.length === 0) return new Map<string, NotificationProfileRow>();
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, name, slack_user_id")
-    .in("id", uniqueIds);
-
-  return new Map((data ?? []).map((profile: NotificationProfileRow) => [profile.id, profile]));
-};
-
 const loadStatusNameMap = async (supabase: SupabaseClient, ids: (string | null)[]) => {
   const uniqueIds = Array.from(new Set(ids.filter((id): id is string => !!id)));
 
@@ -52,26 +31,6 @@ const loadStatusNameMap = async (supabase: SupabaseClient, ids: (string | null)[
   );
 };
 
-/**
- * 알림 링크. 하위 일정은 전용 페이지가 없으므로 상위 일정 페이지로 보낸다.
- * SITE_URL이 없으면(로컬 등) 링크를 생략한다.
- */
-const buildTaskUrl = (task: TasksRow) => {
-  const siteUrl = process.env.SITE_URL;
-
-  if (!siteUrl) return null;
-
-  return `${siteUrl.replace(/\/$/, "")}/task/${task.parent_id ?? task.id}`;
-};
-
-const loadParentTitle = async (supabase: SupabaseClient, parentId: string | null) => {
-  if (!parentId) return null;
-
-  const { data } = await supabase.from("tasks").select("title").eq("id", parentId).maybeSingle();
-
-  return data?.title ?? null;
-};
-
 const loadContext = async (
   supabase: SupabaseClient,
   task: TasksRow
@@ -81,7 +40,7 @@ const loadContext = async (
   } = await supabase.auth.getUser();
 
   const [profileMap, statusNameMap, parentTitle] = await Promise.all([
-    loadProfileMap(supabase, [task.assignee_id, task.reporter_id, user?.id ?? null]),
+    loadNotificationProfileMap(supabase, [task.assignee_id, task.reporter_id, user?.id ?? null]),
     loadStatusNameMap(supabase, [task.status_id]),
     loadParentTitle(supabase, task.parent_id),
   ]);
@@ -106,7 +65,7 @@ const collectChanges = async (
   after: TasksRow
 ): Promise<TaskFieldChange[]> => {
   const [profileMap, statusNameMap] = await Promise.all([
-    loadProfileMap(supabase, [
+    loadNotificationProfileMap(supabase, [
       before.assignee_id,
       after.assignee_id,
       before.reporter_id,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useOutsideClose, usePopoverPosition } from "@/hooks";
 import { cn } from "@/utils";
@@ -32,6 +32,23 @@ const PropertyPopover = ({
   // 트리거 기준 좌표를 직접 계산한다.
   const position = usePopoverPosition({ isOpen, anchorRef: triggerRef, panelRef, align });
   useOutsideClose(isOpen, [triggerRef, panelRef], () => setIsOpen(false));
+
+  // ESC는 모달보다 이 팝오버가 먼저 받아야 한다. 모달은 document에서 듣고 있으므로
+  // 그보다 앞서는 window 캡처 단계에서 가로채고, 처리했다는 사실을 preventDefault로 남긴다.
+  // MentionPicker도 같은 방식으로 모달과 층을 나눈다.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+
+      event.preventDefault();
+      setIsOpen(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [isOpen]);
 
   return (
     <>
