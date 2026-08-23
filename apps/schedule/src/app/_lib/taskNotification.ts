@@ -31,16 +31,33 @@ const loadStatusNameMap = async (supabase: SupabaseClient, ids: (string | null)[
   );
 };
 
-const loadContext = async (
+/**
+ * 이 변경을 실행한 사람의 id를 정한다. Slack 봇처럼 로그인 세션이 없는 호출부는
+ * actorIdOverride로 명시적으로 넘긴다(넘기지 않은 값 undefined와, 알 수 없어 null을 넘기는 것을 구분한다).
+ * 세션이 있는 일반 서버 액션은 override 없이 auth.getUser()로 현재 로그인 사용자를 쓴다.
+ */
+const resolveActorId = async (
   supabase: SupabaseClient,
-  task: TasksRow
-): Promise<TaskNotificationContext> => {
+  actorIdOverride: string | null | undefined
+) => {
+  if (actorIdOverride !== undefined) return actorIdOverride;
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  return user?.id ?? null;
+};
+
+const loadContext = async (
+  supabase: SupabaseClient,
+  task: TasksRow,
+  actorIdOverride?: string | null
+): Promise<TaskNotificationContext> => {
+  const actorId = await resolveActorId(supabase, actorIdOverride);
+
   const [profileMap, statusNameMap, parentTitle] = await Promise.all([
-    loadNotificationProfileMap(supabase, [task.assignee_id, task.reporter_id, user?.id ?? null]),
+    loadNotificationProfileMap(supabase, [task.assignee_id, task.reporter_id, actorId]),
     loadStatusNameMap(supabase, [task.status_id]),
     loadParentTitle(supabase, task.parent_id),
   ]);
@@ -49,7 +66,7 @@ const loadContext = async (
     statusName: statusNameMap.get(task.status_id) ?? null,
     assignee: toNotificationProfile(profileMap.get(task.assignee_id ?? "")),
     reporter: toNotificationProfile(profileMap.get(task.reporter_id ?? "")),
-    actor: toNotificationProfile(profileMap.get(user?.id ?? "")),
+    actor: toNotificationProfile(profileMap.get(actorId ?? "")),
     parentTitle,
     url: buildTaskUrl(task),
   };
@@ -135,9 +152,13 @@ const collectChanges = async (
   return changes;
 };
 
-export const notifyTaskCreated = async (supabase: SupabaseClient, task: TasksRow) => {
+export const notifyTaskCreated = async (
+  supabase: SupabaseClient,
+  task: TasksRow,
+  actorId?: string | null
+) => {
   try {
-    const context = await loadContext(supabase, task);
+    const context = await loadContext(supabase, task, actorId);
 
     await notifyTaskEvent({
       event: "created",
@@ -156,14 +177,15 @@ export const notifyTaskCreated = async (supabase: SupabaseClient, task: TasksRow
 export const notifyTaskUpdated = async (
   supabase: SupabaseClient,
   before: TasksRow,
-  after: TasksRow
+  after: TasksRow,
+  actorId?: string | null
 ) => {
   try {
     const changes = await collectChanges(supabase, before, after);
 
     if (changes.length === 0) return;
 
-    const context = await loadContext(supabase, after);
+    const context = await loadContext(supabase, after, actorId);
 
     await notifyTaskEvent({
       event: "updated",

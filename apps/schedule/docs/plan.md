@@ -612,8 +612,10 @@
 
 ### 5-3 상태 변경
 
-- [ ] `src/lib/slack/commands/updateStatus.ts` 신규: 상태명(할 일/진행 중/검토 중/완료/지연됨/미완료) + 일정 제목 매칭 후 UPDATE, DM 피드백 + 기존 `notifyTaskEvent` 재사용해 채널 알림
-- [ ] 제목 매칭 없음/모호(복수 결과) 시 DM 안내
+- [x] `src/lib/slack/commands/updateStatus.ts` 신규: 상태명(할 일/진행 중/검토 중/완료/지연됨/미완료) + 일정 제목(부분 일치, ilike) 매칭 후 UPDATE, DM 피드백 + 기존 `notifyTaskUpdated` 재사용해 채널 알림
+- [x] 제목 매칭 없음/모호(복수 결과) 시 DM 안내
+- [x] (계획에 없었음) `src/app/_lib/taskNotification.ts`: `notifyTaskCreated`/`notifyTaskUpdated`에 `actorId` 옵션 추가 — 기존엔 `auth.getUser()`로만 행위자를 판단해서, 로그인 세션이 없는 Slack 봇 경로에서는 알림의 "등록자/수정자"가 항상 비어 있었다. 넘기지 않으면 기존과 동일하게 동작(하위 호환)
+- [x] `src/lib/slack/commands/router.ts`: 상태 변경 명령 분기 추가
 
 ### 5-2 자연어 일정 추가 (LLM 파싱)
 

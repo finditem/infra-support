@@ -2,6 +2,7 @@ import { postSlackMessage } from "../postSlackMessage";
 import { resolveProfileFromSlackUser } from "../resolveProfileFromSlackUser";
 import { sendHelpMessage } from "./help";
 import { sendMyTasks } from "./myTasks";
+import { handleStatusChange, matchStatusCommand } from "./updateStatus";
 
 const HELP_TRIGGERS = new Set(["도움말", "도와줘", "help"]);
 
@@ -12,7 +13,7 @@ interface RouteSlackMessageParams {
 
 /**
  * 봇 DM으로 들어온 메시지를 명령별로 분기한다.
- * 상태 변경(5-3), 자연어 일정 등록(5-2)은 이후 커밋에서 이 라우터에 분기를 추가한다.
+ * 자연어 일정 등록(5-2)은 이후 커밋에서 이 라우터에 분기를 추가한다.
  */
 export const routeSlackMessage = async ({ text, slackUserId }: RouteSlackMessageParams) => {
   const trimmed = text.trim();
@@ -34,6 +35,14 @@ export const routeSlackMessage = async ({ text, slackUserId }: RouteSlackMessage
 
   if (trimmed === "내 일정") {
     await sendMyTasks(profile.id, slackUserId);
+    return;
+  }
+
+  const statusCommand = matchStatusCommand(trimmed);
+
+  if (statusCommand) {
+    const [statusName, titleQuery] = statusCommand;
+    await handleStatusChange(profile, statusName, titleQuery, slackUserId);
     return;
   }
 
