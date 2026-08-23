@@ -396,3 +396,12 @@
 - [x] `src/app/page.tsx`: develop의 `getSprintForWeek`와 이 브랜치의 `getRegisteredProfiles` import를 모두 남긴다
 - [x] `supabase/migrations/0008_teams.sql`을 `0009_teams.sql`로 변경: develop이 `0008_add_profile_slack_user_id.sql`을 먼저 가져갔다. SQL 본문은 그대로라 이미 적용한 Supabase 프로젝트에 다시 적용할 필요는 없다
 - [x] pnpm build / pnpm lint 검증
+
+## 마감일 기준 주차별 일정 노출 오류 수정
+
+일정 모달에 표시되는 주차는 마감일로 계산하면서 실제 `tasks.week_id`에는 현재 보고 있는 보드의 주차를 저장해, 일정이 마감일과 다른 주차에 노출되는 문제를 수정한다.
+
+- [x] 일정 생성/수정 시 서버에서 마감일에 해당하는 주차를 조회하거나 생성한 뒤 `week_id`로 저장한다.
+- [x] 주차 이동 시 칸반을 해당 주차 ID로 다시 마운트해 서버에서 받은 일정으로 로컬 상태를 초기화한다.
+- [x] 일정 수정으로 주차가 바뀌면 현재 보드에서 즉시 제거하고, 현재 주차에 속하는 저장 결과만 보드에 반영한다.
+- [x] 사용자 확인 후 `apps/schedule` 빌드와 린트를 실행한다.

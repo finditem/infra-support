@@ -48,6 +48,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
       <div className="flex-1 px-4 py-6 sm:px-8">
         {weekRow ? (
           <KanbanBoard
+            key={weekRow.id}
             currentProfileId={currentProfile?.id ?? null}
             profiles={profiles}
             statuses={statuses ?? []}
