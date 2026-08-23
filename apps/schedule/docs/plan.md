@@ -589,3 +589,66 @@
 - [x] (PR #168 Codex 리뷰 반영, P2) `updateTaskStatus`의 알림 비교 기준을 갱신된 행에서 상태만 이전 값으로 되돌린 것으로 바꿔, 그 사이 다른 세션이 고친 제목이나 담당자 변경이 드래그한 사람의 변경으로 알림에 실리지 않게 했다
 - [ ] 라이트/다크 모드에서 드롭 영역 하이라이트와 핸들 표시 확인 (브라우저에서 직접 확인 필요)
 - [x] pnpm build / pnpm lint 검증 (워크트리에서 실행, 경고 없이 통과)
+
+## Slack 봇 인바운드 연동 (기능설계서 5장: 자연어 일정 등록/상태변경/리마인드/주간 리포트)
+
+기존 Slack 연동은 발신 전용(`postSlackMessage`, `notifyTaskEvent`)이었다. 이번엔 봇이 DM을 수신해 명령을 처리하는 양방향 연동을 추가한다. 5-2 자연어 파싱은 줄바꿈 규칙이 아니라 실제 LLM 호출(Claude, `@anthropic-ai/sdk`)로 처리하기로 결정. 로그인 세션이 없는 Slack 웹훅/cron 라우트가 이번에 처음 생기는데, 기존 RLS(`to authenticated`)는 이런 요청을 통과시키지 못하므로 이 라우트들에서만 쓰는 Supabase service role 클라이언트를 새로 도입한다(클라이언트 번들에는 절대 포함하지 않음) — `apps/schedule/CLAUDE.md`의 "service role 미사용" 결정을 이번 작업으로 갱신한다. 11장(지연/미완료 사유)은 이번 범위 밖.
+
+### 준비 (service role 클라이언트, 서명 검증, Events API 스켈레톤)
+
+- [ ] `apps/schedule/CLAUDE.md`: "서버 전용 키(service role)는 쓰지 않는다" 문구를 Slack 웹훅/cron 라우트 전용 service role 도입 결정으로 갱신
+- [ ] `src/lib/supabase/service.ts` 신규: `createServiceClient()` (service role 키, `persistSession: false`), 서버 전용 라우트에서만 import한다는 주석
+- [ ] `.env.example`에 `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `ANTHROPIC_API_KEY`, `CRON_SECRET` 추가 (용도 주석 포함)
+- [ ] `src/lib/slack/verifySlackRequest.ts` 신규: `SLACK_SIGNING_SECRET` 기반 HMAC 서명 검증 (Events API, Interactivity 공용)
+- [ ] `src/app/api/slack/events/route.ts` 신규: `url_verification` challenge 응답, `message` 이벤트(봇 자신 메시지·서브타입 제외) 라우팅 스켈레톤
+- [ ] `src/lib/slack/resolveProfileFromSlackUser.ts` 신규: Slack user id -> `profiles` 매핑 조회 헬퍼 (service client 사용)
+
+### 5-1 봇 사용법 안내
+
+- [ ] `src/lib/slack/commands/router.ts` 신규: 메시지 텍스트를 도움말/상태변경/내일정/일정추가로 분기
+- [ ] `src/lib/slack/commands/help.ts` 신규: 도움말 메시지 전송 (매칭 안 되는 입력도 도움말로 폴백)
+- [ ] "내 일정" 명령: 발신자에 매핑된 담당자 기준 미완료 일정 목록 DM
+
+### 5-3 상태 변경
+
+- [ ] `src/lib/slack/commands/updateStatus.ts` 신규: 상태명(할 일/진행 중/검토 중/완료/지연됨/미완료) + 일정 제목 매칭 후 UPDATE, DM 피드백 + 기존 `notifyTaskEvent` 재사용해 채널 알림
+- [ ] 제목 매칭 없음/모호(복수 결과) 시 DM 안내
+
+### 5-2 자연어 일정 추가 (LLM 파싱)
+
+- [ ] `@anthropic-ai/sdk` 의존성 추가
+- [ ] `src/lib/slack/ai/parseTaskFromMessage.ts` 신규: 메시지 텍스트 -> `{ title, body, reporterName }` 추출(LLM 호출), 파싱 실패 시 null 반환
+- [ ] `src/lib/slack/commands/createTaskFromMessage.ts` 신규: 담당자=발신자 profile, 마감일=`getDefaultDueDate`(`_lib/kanbanUtils.ts`) 재사용, reporterName은 profiles 이름 매칭(없으면 비움), tasks INSERT, DM 피드백 + 채널 알림
+
+### Interactivity(버튼) 처리 준비
+
+- [ ] `src/app/api/slack/interactions/route.ts` 신규: 서명 검증 + `block_actions` payload 파싱, `action_id` 라우팅 스켈레톤
+
+### 5-4 마감 3일 전 진행 상황 체크 (개인 DM)
+
+- [ ] `src/app/api/cron/due-soon-check/route.ts` 신규: `CRON_SECRET` 검증, 마감일=오늘+3일 & 상태가 완료/미완료가 아닌 tasks 조회, 담당자 DM 전송(버튼: 완료/검토 중/지연됨)
+- [ ] 인터랙션 라우터에 해당 `action_id` 처리 추가 (상태 UPDATE + 원본 메시지 갱신)
+
+### 5-5 미완료 알림 + 선택지 (개인 DM)
+
+- [ ] `src/app/api/cron/overdue-check/route.ts` 신규: 마감일이 지났고 완료가 아닌 tasks 조회, 담당자 DM 전송(버튼: 완료로 변경/다음주로 미루기)
+- [ ] 인터랙션 라우터에 해당 `action_id` 처리 추가 (완료 처리 / 마감일을 다음주 일요일로 갱신)
+
+### 5-6 + 5-7 주간 마감 결과 리포트 + 마감 초과 박제 (팀 채널)
+
+- [ ] `src/app/api/cron/weekly-report/route.ts` 신규: 지난주(월~일) 마감이었던 tasks를 완료/미완료로 집계, 미완료 항목은 초과일수 계산해 박제 표시, 완료율 계산 후 팀 채널 전송
+
+### Cron 스케줄 등록
+
+- [ ] `vercel.json` 신규: `due-soon-check`/`overdue-check` 매일, `weekly-report` 매주 월요일 09:00 KST 스케줄 등록
+
+### 검증
+
+- [ ] pnpm build / pnpm lint
+
+### 사용자가 직접 진행 (Claude 불가)
+
+- [ ] Slack App 대시보드: Event Subscriptions 활성화 + Request URL(`SITE_URL/api/slack/events`) 등록, `message.im` 구독, 필요 스코프(`im:history` 등) 추가 후 재설치
+- [ ] Slack App 대시보드: Interactivity 활성화 + Request URL(`SITE_URL/api/slack/interactions`) 등록
+- [ ] `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `ANTHROPIC_API_KEY`, `CRON_SECRET`을 `.env`/Vercel 환경변수에 등록
+- [ ] Vercel 배포 후 Cron 활성화 확인
