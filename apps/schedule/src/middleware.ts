@@ -28,7 +28,11 @@ export const middleware = async (request: NextRequest) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isNoAuthRequiredPath = NO_AUTH_REQUIRED_PATHS.includes(request.nextUrl.pathname);
+  // /api/ 경로(Slack 웹훅, cron)는 로그인 세션이 없는 서버 간 요청이라 여기서 제외한다.
+  // 대신 각 라우트가 자체적으로 Slack 서명이나 CRON_SECRET을 검증한다.
+  const isNoAuthRequiredPath =
+    NO_AUTH_REQUIRED_PATHS.includes(request.nextUrl.pathname) ||
+    request.nextUrl.pathname.startsWith("/api/");
   const isGuestOnlyPath = GUEST_ONLY_PATHS.includes(request.nextUrl.pathname);
 
   if (!user && !isNoAuthRequiredPath) {

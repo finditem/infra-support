@@ -596,18 +596,19 @@
 
 ### 준비 (service role 클라이언트, 서명 검증, Events API 스켈레톤)
 
-- [ ] `apps/schedule/CLAUDE.md`: "서버 전용 키(service role)는 쓰지 않는다" 문구를 Slack 웹훅/cron 라우트 전용 service role 도입 결정으로 갱신
-- [ ] `src/lib/supabase/service.ts` 신규: `createServiceClient()` (service role 키, `persistSession: false`), 서버 전용 라우트에서만 import한다는 주석
-- [ ] `.env.example`에 `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `ANTHROPIC_API_KEY`, `CRON_SECRET` 추가 (용도 주석 포함)
-- [ ] `src/lib/slack/verifySlackRequest.ts` 신규: `SLACK_SIGNING_SECRET` 기반 HMAC 서명 검증 (Events API, Interactivity 공용)
-- [ ] `src/app/api/slack/events/route.ts` 신규: `url_verification` challenge 응답, `message` 이벤트(봇 자신 메시지·서브타입 제외) 라우팅 스켈레톤
-- [ ] `src/lib/slack/resolveProfileFromSlackUser.ts` 신규: Slack user id -> `profiles` 매핑 조회 헬퍼 (service client 사용)
+- [x] `apps/schedule/CLAUDE.md`: "서버 전용 키(service role)는 쓰지 않는다" 문구를 Slack 웹훅/cron 라우트 전용 service role 도입 결정으로 갱신
+- [x] `src/lib/supabase/service.ts` 신규: `createServiceClient()` (service role 키, `persistSession: false`), 서버 전용 라우트에서만 import한다는 주석
+- [x] `.env.example`에 `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `ANTHROPIC_API_KEY`, `CRON_SECRET` 추가 (용도 주석 포함)
+- [x] `src/lib/slack/verifySlackRequest.ts` 신규: `SLACK_SIGNING_SECRET` 기반 HMAC 서명 검증 (Events API, Interactivity 공용)
+- [x] `src/app/api/slack/events/route.ts` 신규: `url_verification` challenge 응답, `message` 이벤트(봇 자신 메시지·서브타입 제외) 라우팅 스켈레톤
+- [x] `src/lib/slack/resolveProfileFromSlackUser.ts` 신규: Slack user id -> `profiles` 매핑 조회 헬퍼 (service client 사용)
+- [x] (계획에 없었음) `src/middleware.ts`: `/api/` 경로를 인증 가드 대상에서 제외 — Slack 웹훅/cron은 로그인 세션이 없어 그대로 두면 `/login`으로 리다이렉트되어 요청이 아예 도달하지 못했다
 
 ### 5-1 봇 사용법 안내
 
-- [ ] `src/lib/slack/commands/router.ts` 신규: 메시지 텍스트를 도움말/상태변경/내일정/일정추가로 분기
-- [ ] `src/lib/slack/commands/help.ts` 신규: 도움말 메시지 전송 (매칭 안 되는 입력도 도움말로 폴백)
-- [ ] "내 일정" 명령: 발신자에 매핑된 담당자 기준 미완료 일정 목록 DM
+- [x] `src/lib/slack/commands/router.ts` 신규: 메시지 텍스트를 도움말/내일정으로 분기 (상태변경/일정추가는 이후 커밋에서 분기 추가)
+- [x] `src/lib/slack/commands/help.ts` 신규: 도움말 메시지 전송 (매칭 안 되는 입력도 도움말로 폴백)
+- [x] "내 일정" 명령: 발신자에 매핑된 담당자 기준 미완료 일정 목록 DM — `src/lib/slack/commands/myTasks.ts`
 
 ### 5-3 상태 변경
 
