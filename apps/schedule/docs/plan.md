@@ -626,25 +626,32 @@
 
 ### Interactivity(버튼) 처리 준비
 
-- [ ] `src/app/api/slack/interactions/route.ts` 신규: 서명 검증 + `block_actions` payload 파싱, `action_id` 라우팅 스켈레톤
+- [x] `src/lib/slack/postSlackMessage.ts`: `blocks?: SlackBlock[]` 옵션 추가 (버튼이 필요한 메시지용, 기존 text 전용 호출부는 영향 없음)
+- [x] `src/lib/slack/postToResponseUrl.ts` 신규: 인터랙션 payload의 `response_url`로 원본 메시지를 교체 (버튼 클릭 후 갱신용, 봇 토큰 불필요)
+- [x] `src/app/api/slack/interactions/route.ts` 신규: 서명 검증 + `x-www-form-urlencoded`의 `payload` 필드 파싱, `block_actions`만 `routeSlackInteraction`으로 위임
+- [x] `src/lib/slack/interactions/router.ts` 신규: `action_id`를 5-4/5-5 핸들러로 분기
 
 ### 5-4 마감 3일 전 진행 상황 체크 (개인 DM)
 
-- [ ] `src/app/api/cron/due-soon-check/route.ts` 신규: `CRON_SECRET` 검증, 마감일=오늘+3일 & 상태가 완료/미완료가 아닌 tasks 조회, 담당자 DM 전송(버튼: 완료/검토 중/지연됨)
-- [ ] 인터랙션 라우터에 해당 `action_id` 처리 추가 (상태 UPDATE + 원본 메시지 갱신)
+- [x] `src/lib/cron/verifyCronRequest.ts` 신규: `Authorization: Bearer ${CRON_SECRET}` 검증 (Vercel Cron이 자동으로 붙이는 헤더)
+- [x] `src/lib/slack/blocks/dueSoonBlocks.ts` 신규: 완료/검토 중/지연됨 버튼 Block Kit + `action_id` -> 상태명 매핑(`DUE_SOON_STATUS_BY_ACTION`)
+- [x] `src/app/api/cron/due-soon-check/route.ts` 신규: 마감일=오늘+3일 & 상태가 완료/미완료가 아닌 tasks 조회, 담당자 DM 전송
+- [x] `src/lib/slack/interactions/handleDueSoonAction.ts` 신규: 버튼 클릭 시 상태 UPDATE + `notifyTaskUpdated` 재사용해 채널 알림 + `response_url`로 원본 메시지 갱신
 
 ### 5-5 미완료 알림 + 선택지 (개인 DM)
 
-- [ ] `src/app/api/cron/overdue-check/route.ts` 신규: 마감일이 지났고 완료가 아닌 tasks 조회, 담당자 DM 전송(버튼: 완료로 변경/다음주로 미루기)
-- [ ] 인터랙션 라우터에 해당 `action_id` 처리 추가 (완료 처리 / 마감일을 다음주 일요일로 갱신)
+- [x] `src/lib/slack/blocks/overdueBlocks.ts` 신규: 담당자 한 명의 여러 미완료 일정을 한 메시지에 묶는 Block Kit (일정별 완료로 변경/다음주로 미루기 버튼)
+- [x] `src/app/api/cron/overdue-check/route.ts` 신규: 마감일이 지났고 완료가 아닌 tasks를 담당자별로 묶어 DM 전송
+- [x] `src/lib/slack/interactions/handleOverdueAction.ts` 신규: 완료 처리 / 마감일을 원래 마감일 기준 +1주로 연기, 두 경우 모두 `notifyTaskUpdated` + `response_url` 갱신
+- [x] `src/lib/slack/interactions/router.ts`, `src/app/api/slack/interactions/route.ts`: 5-4/5-5 액션을 각 핸들러로 분기
 
 ### 5-6 + 5-7 주간 마감 결과 리포트 + 마감 초과 박제 (팀 채널)
 
-- [ ] `src/app/api/cron/weekly-report/route.ts` 신규: 지난주(월~일) 마감이었던 tasks를 완료/미완료로 집계, 미완료 항목은 초과일수 계산해 박제 표시, 완료율 계산 후 팀 채널 전송
+- [x] `src/app/api/cron/weekly-report/route.ts` 신규: 지난주(월~일) 마감이었던 tasks를 완료/미완료로 집계, 미완료 항목은 초과일수 계산해 "이번주 박제 명단" 섹션에 멘션으로 표시, 완료율 계산 후 `SLACK_CHANNEL_ID`로 전송
 
 ### Cron 스케줄 등록
 
-- [ ] `vercel.json` 신규: `due-soon-check`/`overdue-check` 매일, `weekly-report` 매주 월요일 09:00 KST 스케줄 등록
+- [x] `vercel.json` 신규: `due-soon-check`/`overdue-check`는 매일 `0 0 * * *`(UTC 00:00 = KST 09:00), `weekly-report`는 매주 월요일 `0 0 * * 1`(KST 월요일 09:00, 기획 문서의 "매주 월요일 오전 9시"와 일치). Vercel Cron 스케줄은 UTC 기준이라 KST 09:00에 맞춰 UTC 00:00으로 등록했다 — 겸사겸사 이 시각이면 서버 UTC 날짜와 KST 날짜가 같은 날이라(KST 00:00~09:00 구간만 어긋남), cron 라우트에서 마감일 비교에 `new Date()`/`startOfToday()`를 그대로 써도 날짜가 하루 밀리지 않는다
 
 ### 검증
 
