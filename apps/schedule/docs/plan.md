@@ -563,3 +563,17 @@
 - [x] 마이그레이션 SQL을 Supabase SQL 에디터에 적용 (사용자가 직접 적용)
 - [x] 실제 화면에서 반복 등록, 팀 단위 대상 등록, 겹침 건너뛰기 안내, 반복 삭제 확인 창 동작 확인 (사용자 확인)
 - [x] pnpm build / pnpm lint 검증 (경고 없이 통과)
+
+## 칸반보드 카드 드래그앤드롭 (feat/kanban-dnd)
+
+`docs/기능설계서.md`의 "드래그앤드롭으로 상태 컬럼 이동"을 구현한다. 컬럼 간 이동만 다루고 컬럼 안의 순서 변경은 범위 밖이다. 컬럼 내 정렬은 `sortByPriorityDesc`를 그대로 유지하므로 `tasks`에 순서 컬럼을 추가하지 않고 마이그레이션도 없다. 메인 보드와 하위 일정 보드가 같은 `KanbanBoard`를 쓰므로 두 곳 모두에 적용되며 분기 플래그를 두지 않는다.
+
+- [x] `@dnd-kit/core`, `@dnd-kit/utilities`를 apps/schedule 워크스페이스에 설치 (`@dnd-kit/sortable`은 컬럼 내 재정렬을 하지 않으므로 설치하지 않는다)
+- [x] `src/app/_lib/kanbanUtils.ts`에 `isStatusDerivedFromSubtasks` 추가: 하위 일정의 상태로 표시 컬럼이 결정되는 상위 일정은 드래그해도 화면이 바뀌지 않으므로 드래그 불가 판정에 쓴다
+- [x] `src/app/_lib/actions.ts`에 `updateTaskStatus` 추가: `status_id`만 갱신하고 변경 전 행과 비교해 `notifyTaskUpdated`로 Slack 알림. `updateTask`를 재사용하면 드래그 시점의 클라이언트 상태로 다른 필드를 덮어써 다른 세션의 수정을 되돌릴 수 있어 별도로 둔다
+- [x] `src/app/_components/KanbanCard.tsx`: `useDraggable` 적용, `GripVertical` 드래그 핸들(우선순위 배지 왼쪽, `aria-label="일정 이동"`)에만 리스너를 붙여 카드의 Enter/Space 모달 열기를 유지, `disabled` 시 커서 기본값과 `title` 안내, 바로가기 Link에 `onPointerDown` 전파 차단, `DragOverlay`용 정적 렌더 지원
+- [x] `src/app/_components/KanbanColumn.tsx`: 카드 목록 영역을 `useDroppable({ id: status.id })`로 만들고 `min-h`로 빈 컬럼도 드롭을 받게 하며 `isOver`일 때 점선 테두리와 옅은 배경 표시. "+ 일정 추가" 버튼은 드롭 영역 밖에 둔다
+- [x] `src/app/_components/KanbanBoard.tsx`: `DndContext`(PointerSensor distance 5, KeyboardSensor, closestCorners), `activeTask` 상태와 `DragOverlay`, `onDragEnd`에서 같은 컬럼이면 즉시 반환하고 아니면 낙관적 갱신 후 `updateTaskStatus` 호출, 실패 시 되돌리기와 `console.error`
+- [x] `KanbanColumn.tsx`: 다른 컬럼의 카드가 올라와 있으면 우선순위 정렬상 들어갈 위치에 카드 크기의 점선 자리표시를 그린다. 높이는 드래그 중인 카드를 보이지 않게 렌더해 맞춘다 (사용자 요청)
+- [ ] 라이트/다크 모드에서 드롭 영역 하이라이트와 핸들 표시 확인 (브라우저에서 직접 확인 필요)
+- [x] pnpm build / pnpm lint 검증 (워크트리에서 실행, 경고 없이 통과)

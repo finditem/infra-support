@@ -1,16 +1,29 @@
 "use client";
 
+import {
+  closestCorners,
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { useMemo, useState } from "react";
 import type { ProfilesRow, TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
+import { updateTaskStatus } from "../_lib/actions";
 import {
   buildProfileColorMap,
   calculateMemberProgress,
   filterTasks,
+  isStatusDerivedFromSubtasks,
   resolveEffectiveStatusId,
   sortByPriorityDesc,
 } from "../_lib/kanbanUtils";
 import type { MentionTarget } from "../_lib/mentions";
 import type { KanbanFilterState } from "../_types/kanban";
+import KanbanCard from "./KanbanCard";
 import KanbanColumn from "./KanbanColumn";
 import KanbanFilters from "./KanbanFilters";
 import KanbanProgress from "./KanbanProgress";
@@ -53,6 +66,13 @@ const KanbanBoard = ({
   const [filter, setFilter] = useState<KanbanFilterState>(INITIAL_FILTER);
   const [creatingStatusId, setCreatingStatusId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<TasksRow | null>(null);
+  const [activeTask, setActiveTask] = useState<TasksRow | null>(null);
+
+  // 5px 미만의 움직임은 클릭으로 남겨 드래그 직후 상세 모달이 열리는 문제를 막는다.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor)
+  );
 
   const profileMap = useMemo(() => buildProfileColorMap(profiles), [profiles]);
 
@@ -94,6 +114,50 @@ const KanbanBoard = ({
   const effectiveStatusId = (task: TasksRow) =>
     resolveEffectiveStatusId(childrenByParent.get(task.id) ?? [], statuses) ?? task.status_id;
 
+  const dragDisabledTaskIds = useMemo(
+    () =>
+      new Set(
+        scopedTasks
+          .filter((task) => isStatusDerivedFromSubtasks(task, childrenByParent, statuses))
+          .map((task) => task.id)
+      ),
+    [scopedTasks, childrenByParent, statuses]
+  );
+
+  const setTaskStatus = (taskId: string, statusId: string) => {
+    setTasks((prev) =>
+      prev.map((row) => (row.id === taskId ? { ...row, status_id: statusId } : row))
+    );
+  };
+
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    setActiveTask(tasks.find((task) => task.id === active.id) ?? null);
+  };
+
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    setActiveTask(null);
+
+    const task = tasks.find((row) => row.id === active.id);
+    if (!task || !over) return;
+
+    const nextStatusId = String(over.id);
+    if (effectiveStatusId(task) === nextStatusId) return;
+
+    // 낙관적으로 먼저 옮기고, 서버 저장이 실패하면 이전 상태로 되돌린다.
+    const previousStatusId = task.status_id;
+    setTaskStatus(task.id, nextStatusId);
+
+    const saved = await updateTaskStatus({ id: task.id, statusId: nextStatusId });
+
+    if (!saved) {
+      console.error(`일정 상태 변경에 실패해 이전 상태로 되돌립니다: ${task.id}`);
+      setTaskStatus(task.id, previousStatusId);
+      return;
+    }
+
+    setTasks((prev) => prev.map((row) => (row.id === saved.id ? saved : row)));
+  };
+
   const filteredTasks = useMemo(
     () => filterTasks(scopedTasks, filter, currentProfileId),
     [scopedTasks, filter, currentProfileId]
@@ -111,25 +175,52 @@ const KanbanBoard = ({
         <KanbanProgress progress={progress} />
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="flex min-w-max gap-4">
-          {statuses.map((status) => (
-            <KanbanColumn
-              key={status.id}
-              commentCountByTask={commentCountByTask}
-              profileMap={profileMap}
-              status={status}
-              statuses={statuses}
-              subtaskCountByParent={subtaskCountByParent}
-              tasks={sortByPriorityDesc(
-                filteredTasks.filter((task) => effectiveStatusId(task) === status.id)
-              )}
-              onAddTask={setCreatingStatusId}
-              onSelectTask={setEditingTask}
-            />
-          ))}
+      <DndContext
+        collisionDetection={closestCorners}
+        sensors={sensors}
+        onDragCancel={() => setActiveTask(null)}
+        onDragEnd={handleDragEnd}
+        onDragStart={handleDragStart}
+      >
+        <div className="overflow-x-auto">
+          <div className="flex min-w-max gap-4">
+            {statuses.map((status) => (
+              <KanbanColumn
+                key={status.id}
+                activeTask={activeTask}
+                commentCountByTask={commentCountByTask}
+                dragDisabledTaskIds={dragDisabledTaskIds}
+                profileMap={profileMap}
+                status={status}
+                statuses={statuses}
+                subtaskCountByParent={subtaskCountByParent}
+                tasks={sortByPriorityDesc(
+                  filteredTasks.filter((task) => effectiveStatusId(task) === status.id)
+                )}
+                onAddTask={setCreatingStatusId}
+                onSelectTask={setEditingTask}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+
+        <DragOverlay>
+          {activeTask && (
+            <KanbanCard
+              assignee={
+                activeTask.assignee_id ? (profileMap.get(activeTask.assignee_id) ?? null) : null
+              }
+              commentCount={commentCountByTask.get(activeTask.id) ?? 0}
+              reporter={
+                activeTask.reporter_id ? (profileMap.get(activeTask.reporter_id) ?? null) : null
+              }
+              statuses={statuses}
+              subtaskCount={subtaskCountByParent.get(activeTask.id) ?? 0}
+              task={activeTask}
+            />
+          )}
+        </DragOverlay>
+      </DndContext>
 
       {(creatingStatusId || editingTask) && (
         <TaskCreateModal

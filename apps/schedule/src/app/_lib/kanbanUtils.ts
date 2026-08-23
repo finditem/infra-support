@@ -114,6 +114,16 @@ export const resolveEffectiveStatusId = (
   return null;
 };
 
+/**
+ * 하위 일정의 상태로 표시 컬럼이 결정되는 상위 일정인지 판정한다.
+ * 이런 일정은 자기 status_id를 바꿔도 표시 컬럼이 달라지지 않으므로 드래그로 옮길 수 없게 막는 데 쓴다.
+ */
+export const isStatusDerivedFromSubtasks = (
+  task: TasksRow,
+  childrenByParent: Map<string, TasksRow[]>,
+  statuses: TaskStatusesRow[]
+) => resolveEffectiveStatusId(childrenByParent.get(task.id) ?? [], statuses) !== null;
+
 export const sortByPriorityDesc = (tasks: TasksRow[]) =>
   [...tasks].sort(
     (a, b) => PRIORITY_ORDER.indexOf(b.priority) - PRIORITY_ORDER.indexOf(a.priority)
