@@ -248,7 +248,6 @@ const KanbanBoard = ({
           profiles={Array.from(profileMap.values())}
           statuses={statuses}
           task={editingTask}
-          weekId={weekId}
           onClose={() => {
             setCreatingStatusId(null);
             setEditingTask(null);
@@ -267,15 +266,15 @@ const KanbanBoard = ({
             setEditingTask(null);
           }}
           onSaved={(saved) => {
-            setTasks((prev) =>
-              saved.reduce(
-                (acc, row) =>
-                  acc.some((existing) => existing.id === row.id)
-                    ? acc.map((existing) => (existing.id === row.id ? row : existing))
-                    : [...acc, row],
-                prev
-              )
-            );
+            const savedIds = new Set(saved.map((row) => row.id));
+            const visibleSaved = parentId
+              ? saved
+              : saved.filter((row) => row.week_id === weekId);
+
+            setTasks((prev) => [
+              ...prev.filter((row) => !savedIds.has(row.id)),
+              ...visibleSaved,
+            ]);
             setCreatingStatusId(null);
             setEditingTask(null);
           }}

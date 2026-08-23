@@ -1,6 +1,6 @@
 import { addDays, format, getISOWeek, getISOWeekYear } from "date-fns";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { SprintsRow, TaskCommentsRow, WeeksRow } from "@/types/tables";
+import type { SprintsRow, TaskCommentsRow, TasksRow, WeeksRow } from "@/types/tables";
 
 /**
  * 주어진 주(월요일 기준)에 해당하는 weeks 행을 조회하고, 없으면 새로 생성한다.
@@ -63,6 +63,45 @@ export const getCommentsForTasks = async (
   }
 
   return data ?? [];
+};
+
+/**
+ * 해당 주차의 상위 일정과 상태 집계에 필요한 모든 하위 일정을 가져온다.
+ * 하위 일정은 자체 마감 주차와 관계없이 상위 카드의 개수와 상태 계산에 포함한다.
+ */
+export const getTasksForWeek = async (
+  supabase: SupabaseClient,
+  weekId: string
+): Promise<TasksRow[]> => {
+  const { data: rootTasks, error: rootError } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("week_id", weekId)
+    .is("parent_id", null)
+    .order("created_at");
+
+  if (rootError) {
+    console.error(rootError);
+    return [];
+  }
+
+  if (!rootTasks || rootTasks.length === 0) return [];
+
+  const { data: childTasks, error: childError } = await supabase
+    .from("tasks")
+    .select("*")
+    .in(
+      "parent_id",
+      rootTasks.map((task) => task.id)
+    )
+    .order("created_at");
+
+  if (childError) {
+    console.error(childError);
+    return rootTasks;
+  }
+
+  return [...rootTasks, ...(childTasks ?? [])];
 };
 
 /**

@@ -1,14 +1,16 @@
 "use server";
 
 import { after } from "next/server";
+import { parseISO } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import type { TasksInsert, TasksRow, TasksUpdate } from "@/types/tables";
+import { getOrCreateWeek } from "./kanban";
+import { getMonday } from "./kanbanUtils";
 import { notifyTaskCreated, notifyTaskDeleted, notifyTaskUpdated } from "./taskNotification";
 
 interface CreateTaskInput {
   title: string;
   body: string | null;
-  weekId: string | null;
   statusId: string;
   assigneeId: string | null;
   reporterId: string | null;
@@ -21,7 +23,6 @@ interface CreateTaskInput {
 export const createTask = async ({
   title,
   body,
-  weekId,
   statusId,
   assigneeId,
   reporterId,
@@ -31,12 +32,17 @@ export const createTask = async ({
   parentId,
 }: CreateTaskInput): Promise<TasksRow | null> => {
   const supabase = await createClient();
+  const week = await getOrCreateWeek(supabase, getMonday(parseISO(dueDate)));
+
+  if (!week) {
+    return null;
+  }
 
   const insertPayload: TasksInsert = {
     title,
     body,
     status_id: statusId,
-    week_id: weekId,
+    week_id: week.id,
     assignee_id: assigneeId,
     reporter_id: reporterId,
     priority,
@@ -62,7 +68,6 @@ interface UpdateTaskInput {
   id: string;
   title: string;
   body: string | null;
-  weekId: string | null;
   statusId: string;
   assigneeId: string | null;
   reporterId: string | null;
@@ -74,7 +79,6 @@ export const updateTask = async ({
   id,
   title,
   body,
-  weekId,
   statusId,
   assigneeId,
   reporterId,
@@ -82,12 +86,17 @@ export const updateTask = async ({
   dueDate,
 }: UpdateTaskInput): Promise<TasksRow | null> => {
   const supabase = await createClient();
+  const week = await getOrCreateWeek(supabase, getMonday(parseISO(dueDate)));
+
+  if (!week) {
+    return null;
+  }
 
   const updatePayload: TasksUpdate = {
     title,
     body,
     status_id: statusId,
-    week_id: weekId,
+    week_id: week.id,
     assignee_id: assigneeId,
     reporter_id: reporterId,
     priority,
