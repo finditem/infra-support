@@ -619,9 +619,10 @@
 
 ### 5-2 자연어 일정 추가 (LLM 파싱)
 
-- [ ] `@anthropic-ai/sdk` 의존성 추가
-- [ ] `src/lib/slack/ai/parseTaskFromMessage.ts` 신규: 메시지 텍스트 -> `{ title, body, reporterName }` 추출(LLM 호출), 파싱 실패 시 null 반환
-- [ ] `src/lib/slack/commands/createTaskFromMessage.ts` 신규: 담당자=발신자 profile, 마감일=`getDefaultDueDate`(`_lib/kanbanUtils.ts`) 재사용, reporterName은 profiles 이름 매칭(없으면 비움), tasks INSERT, DM 피드백 + 채널 알림
+- [x] `@anthropic-ai/sdk` 의존성 추가 (`^0.120.0`)
+- [x] `src/lib/slack/ai/parseTaskFromMessage.ts` 신규: 메시지 텍스트 -> `{ title, body, reporterName }` 추출(Claude Haiku 호출), API 키 없음/호출 실패/파싱 실패 시 null 반환
+- [x] `src/lib/slack/commands/createTaskFromMessage.ts` 신규: 담당자=발신자 profile, 마감일=`getDefaultDueDate`(`_lib/kanbanUtils.ts`) 재사용, reporterName은 profiles 이름 부분 일치(없으면 비움), tasks INSERT, `notifyTaskCreated` 재사용해 채널 알림, DM 피드백
+- [x] `src/lib/slack/commands/router.ts`: 도움말/내일정/상태변경 어디에도 매칭 안 되면 자연어 일정 등록으로 폴백하도록 변경
 
 ### Interactivity(버튼) 처리 준비
 

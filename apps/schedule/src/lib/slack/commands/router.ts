@@ -1,3 +1,4 @@
+import { createTaskFromMessage } from "./createTaskFromMessage";
 import { postSlackMessage } from "../postSlackMessage";
 import { resolveProfileFromSlackUser } from "../resolveProfileFromSlackUser";
 import { sendHelpMessage } from "./help";
@@ -13,7 +14,7 @@ interface RouteSlackMessageParams {
 
 /**
  * 봇 DM으로 들어온 메시지를 명령별로 분기한다.
- * 자연어 일정 등록(5-2)은 이후 커밋에서 이 라우터에 분기를 추가한다.
+ * 도움말/내일정/상태변경 어디에도 매칭되지 않으면 자연어 일정 등록(5-2)으로 처리한다.
  */
 export const routeSlackMessage = async ({ text, slackUserId }: RouteSlackMessageParams) => {
   const trimmed = text.trim();
@@ -46,5 +47,5 @@ export const routeSlackMessage = async ({ text, slackUserId }: RouteSlackMessage
     return;
   }
 
-  await sendHelpMessage(slackUserId);
+  await createTaskFromMessage(profile, trimmed, slackUserId);
 };
