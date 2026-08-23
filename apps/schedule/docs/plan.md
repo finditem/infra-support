@@ -575,5 +575,7 @@
 - [x] `src/app/_components/KanbanColumn.tsx`: 카드 목록 영역을 `useDroppable({ id: status.id })`로 만들고 `min-h`로 빈 컬럼도 드롭을 받게 하며 `isOver`일 때 점선 테두리와 옅은 배경 표시. "+ 일정 추가" 버튼은 드롭 영역 밖에 둔다
 - [x] `src/app/_components/KanbanBoard.tsx`: `DndContext`(PointerSensor distance 5, KeyboardSensor, closestCorners), `activeTask` 상태와 `DragOverlay`, `onDragEnd`에서 같은 컬럼이면 즉시 반환하고 아니면 낙관적 갱신 후 `updateTaskStatus` 호출, 실패 시 되돌리기와 `console.error`
 - [x] `KanbanColumn.tsx`: 다른 컬럼의 카드가 올라와 있으면 우선순위 정렬상 들어갈 위치에 카드 크기의 점선 자리표시를 그린다. 높이는 드래그 중인 카드를 보이지 않게 렌더해 맞춘다 (사용자 요청)
+- [x] (PR #168 Codex 리뷰 반영, P2) 같은 카드를 저장 응답 전에 다시 끌면 응답 순서가 뒤바뀌어 나중 드롭이 덮이거나 되돌려질 수 있어, 저장 중인 카드는 `pendingTaskIds`로 드래그를 막는다. 하위 일정 파생과 사유가 달라 핸들 title은 파생 상태일 때만 보여준다
+- [x] (PR #168 Codex 리뷰 반영, P2) `updateTaskStatus`의 알림 비교 기준을 갱신된 행에서 상태만 이전 값으로 되돌린 것으로 바꿔, 그 사이 다른 세션이 고친 제목이나 담당자 변경이 드래그한 사람의 변경으로 알림에 실리지 않게 했다
 - [ ] 라이트/다크 모드에서 드롭 영역 하이라이트와 핸들 표시 확인 (브라우저에서 직접 확인 필요)
 - [x] pnpm build / pnpm lint 검증 (워크트리에서 실행, 경고 없이 통과)

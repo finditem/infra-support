@@ -9,6 +9,8 @@ import { getStatusColor, sortByPriorityDesc } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
 import KanbanCard from "./KanbanCard";
 
+const DERIVED_STATUS_TITLE = "하위 일정의 상태로 결정되는 일정입니다";
+
 interface KanbanColumnProps {
   status: TaskStatusesRow;
   statuses: TaskStatusesRow[];
@@ -16,8 +18,10 @@ interface KanbanColumnProps {
   profileMap: Map<string, ProfileWithColor>;
   subtaskCountByParent: Map<string, number>;
   commentCountByTask: Map<string, number>;
-  /** 드래그할 수 없는 카드의 id 집합. 하위 일정의 상태로 표시 컬럼이 결정되는 상위 일정이 해당한다. */
-  dragDisabledTaskIds: Set<string>;
+  /** 하위 일정의 상태로 표시 컬럼이 결정되어 드래그할 수 없는 상위 일정의 id 집합. */
+  derivedStatusTaskIds: Set<string>;
+  /** 드롭 후 서버 저장이 끝나지 않아 잠시 드래그를 막는 카드의 id 집합. */
+  pendingTaskIds: Set<string>;
   /** 드래그 중인 카드. 이 컬럼 위에 올라와 있으면 놓일 자리에 점선 자리표시를 그린다. */
   activeTask: TasksRow | null;
   onAddTask: (statusId: string) => void;
@@ -31,7 +35,8 @@ const KanbanColumn = ({
   profileMap,
   subtaskCountByParent,
   commentCountByTask,
-  dragDisabledTaskIds,
+  derivedStatusTaskIds,
+  pendingTaskIds,
   activeTask,
   onAddTask,
   onSelectTask,
@@ -51,7 +56,8 @@ const KanbanColumn = ({
       key={task.id}
       assignee={task.assignee_id ? (profileMap.get(task.assignee_id) ?? null) : null}
       commentCount={commentCountByTask.get(task.id) ?? 0}
-      dragDisabled={dragDisabledTaskIds.has(task.id)}
+      dragDisabled={derivedStatusTaskIds.has(task.id) || pendingTaskIds.has(task.id)}
+      dragDisabledTitle={derivedStatusTaskIds.has(task.id) ? DERIVED_STATUS_TITLE : undefined}
       reporter={task.reporter_id ? (profileMap.get(task.reporter_id) ?? null) : null}
       statuses={statuses}
       subtaskCount={subtaskCountByParent.get(task.id) ?? 0}

@@ -67,6 +67,9 @@ const KanbanBoard = ({
   const [creatingStatusId, setCreatingStatusId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<TasksRow | null>(null);
   const [activeTask, setActiveTask] = useState<TasksRow | null>(null);
+  // 서버 저장이 끝나지 않은 카드의 id. 같은 카드를 연달아 끌면 응답 순서가 뒤바뀌어
+  // 나중 드롭이 이전 응답에 덮이거나 되돌려질 수 있으므로, 저장 중에는 드래그를 막는다.
+  const [pendingTaskIds, setPendingTaskIds] = useState<Set<string>>(() => new Set());
 
   // 5px 미만의 움직임은 클릭으로 남겨 드래그 직후 상세 모달이 열리는 문제를 막는다.
   const sensors = useSensors(
@@ -114,7 +117,7 @@ const KanbanBoard = ({
   const effectiveStatusId = (task: TasksRow) =>
     resolveEffectiveStatusId(childrenByParent.get(task.id) ?? [], statuses) ?? task.status_id;
 
-  const dragDisabledTaskIds = useMemo(
+  const derivedStatusTaskIds = useMemo(
     () =>
       new Set(
         scopedTasks
@@ -123,6 +126,15 @@ const KanbanBoard = ({
       ),
     [scopedTasks, childrenByParent, statuses]
   );
+
+  const setTaskPending = (taskId: string, pending: boolean) => {
+    setPendingTaskIds((prev) => {
+      const next = new Set(prev);
+      if (pending) next.add(taskId);
+      else next.delete(taskId);
+      return next;
+    });
+  };
 
   const setTaskStatus = (taskId: string, statusId: string) => {
     setTasks((prev) =>
@@ -146,8 +158,10 @@ const KanbanBoard = ({
     // 낙관적으로 먼저 옮기고, 서버 저장이 실패하면 이전 상태로 되돌린다.
     const previousStatusId = task.status_id;
     setTaskStatus(task.id, nextStatusId);
+    setTaskPending(task.id, true);
 
     const saved = await updateTaskStatus({ id: task.id, statusId: nextStatusId });
+    setTaskPending(task.id, false);
 
     if (!saved) {
       console.error(`일정 상태 변경에 실패해 이전 상태로 되돌립니다: ${task.id}`);
@@ -189,7 +203,8 @@ const KanbanBoard = ({
                 key={status.id}
                 activeTask={activeTask}
                 commentCountByTask={commentCountByTask}
-                dragDisabledTaskIds={dragDisabledTaskIds}
+                derivedStatusTaskIds={derivedStatusTaskIds}
+                pendingTaskIds={pendingTaskIds}
                 profileMap={profileMap}
                 status={status}
                 statuses={statuses}

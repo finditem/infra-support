@@ -144,8 +144,10 @@ export const updateTaskStatus = async ({
     return null;
   }
 
+  // 다른 세션이 그 사이에 고친 제목이나 담당자 등이 data에 섞여 있을 수 있으므로,
+  // 비교 기준을 "갱신된 행에서 상태만 이전 값으로 되돌린 것"으로 잡아 알림에 상태 변경만 실리게 한다.
   if (before) {
-    after(() => notifyTaskUpdated(supabase, before, data));
+    after(() => notifyTaskUpdated(supabase, { ...data, status_id: before.status_id }, data));
   }
 
   return data;

@@ -11,8 +11,6 @@ import { isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
 import ProfileAvatar from "./ProfileAvatar";
 
-const DRAG_DISABLED_TITLE = "하위 일정의 상태로 결정되는 일정입니다";
-
 interface KanbanCardContentProps {
   task: TasksRow;
   assignee: ProfileWithColor | null;
@@ -25,8 +23,10 @@ interface KanbanCardContentProps {
 interface KanbanCardProps extends KanbanCardContentProps {
   /** 생략하면 DragOverlay용 정적 카드로 렌더한다. 클릭과 드래그가 모두 비활성화된다. */
   onSelect?: () => void;
-  /** 하위 일정의 상태로 표시 컬럼이 결정되는 일정이면 true로 넘겨 드래그를 막는다. */
+  /** true면 드래그를 막는다. 하위 일정의 상태로 표시 컬럼이 결정되거나 서버 저장이 진행 중인 카드가 해당한다. */
   dragDisabled?: boolean;
+  /** 드래그를 막은 이유. 핸들의 title로 보여주며, 저장 중처럼 잠깐 막는 경우에는 넘기지 않는다. */
+  dragDisabledTitle?: string;
 }
 
 interface KanbanCardViewProps extends KanbanCardContentProps {
@@ -151,7 +151,12 @@ const HANDLE_CLASS_NAME = "flex size-5 items-center justify-center rounded text-
  * 보드 위의 실제 카드. 드래그 리스너는 핸들 버튼에만 붙여 카드 본체의 Enter/Space가
  * 모달 열기로 남도록 한다. 핸들의 클릭과 키 입력은 카드로 전파되지 않게 막는다.
  */
-const DraggableKanbanCard = ({ onSelect, dragDisabled = false, ...content }: KanbanCardProps) => {
+const DraggableKanbanCard = ({
+  onSelect,
+  dragDisabled = false,
+  dragDisabledTitle,
+  ...content
+}: KanbanCardProps) => {
   const { attributes, isDragging, listeners, setActivatorNodeRef, setNodeRef } = useDraggable({
     id: content.task.id,
     disabled: dragDisabled,
@@ -172,7 +177,7 @@ const DraggableKanbanCard = ({ onSelect, dragDisabled = false, ...content }: Kan
               : "cursor-grab hover:bg-fill-neutural-subtle-default active:cursor-grabbing"
           )}
           disabled={dragDisabled}
-          title={dragDisabled ? DRAG_DISABLED_TITLE : undefined}
+          title={dragDisabled ? dragDisabledTitle : undefined}
           type="button"
           {...attributes}
           {...listeners}
