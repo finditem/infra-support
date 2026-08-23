@@ -655,7 +655,7 @@
 
 ### 검증
 
-- [ ] pnpm build / pnpm lint
+- [x] pnpm build / pnpm lint (5-1~5-3 커밋 직후, 5-4~5-7+인터랙션 커밋 직후 두 차례 통과 확인)
 
 ### 사용자가 직접 진행 (Claude 불가)
 
