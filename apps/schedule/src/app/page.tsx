@@ -1,9 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
-import type { TasksRow } from "@/types/tables";
 import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "./_components/KanbanBoard";
 import KanbanHeader from "./_components/KanbanHeader";
-import { getCommentsForTasks, getOrCreateWeek, getSprintForWeek } from "./_lib/kanban";
+import {
+  getCommentsForTasks,
+  getOrCreateWeek,
+  getSprintForWeek,
+  getTasksForWeek,
+} from "./_lib/kanban";
 import { buildMentionTargets } from "./_lib/mentions";
 import { getRegisteredProfiles } from "./_lib/profiles";
 import { getTeamsWithMembers } from "./_lib/teams";
@@ -27,25 +31,21 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
     getSprintForWeek(supabase, weekStart),
   ]);
 
-  const [{ data: statuses }, profiles, { data: tasks }, { data: currentProfile }] =
-    await Promise.all([
-      supabase.from("task_statuses").select("*").order("order_index"),
-      getRegisteredProfiles(supabase),
-      weekRow
-        ? supabase.from("tasks").select("*").eq("week_id", weekRow.id).order("created_at")
-        : Promise.resolve({ data: [] }),
-      user
-        ? supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
-        : Promise.resolve({ data: null }),
-    ]);
+  const [{ data: statuses }, profiles, tasks, { data: currentProfile }] = await Promise.all([
+    supabase.from("task_statuses").select("*").order("order_index"),
+    getRegisteredProfiles(supabase),
+    weekRow ? getTasksForWeek(supabase, weekRow.id) : Promise.resolve([]),
+    user
+      ? supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
   // 주차 일정 전체의 댓글을 여기서 한 번에 가져와, 카드마다 개수를 조회하는 N+1을 피한다.
   // 팀 목록은 댓글에서 "@팀명"으로 언급할 후보이며, 이미 조회한 profiles를 넘겨 중복 조회를 피한다.
-  const weekTasks: TasksRow[] = tasks ?? [];
   const [comments, teams] = await Promise.all([
     getCommentsForTasks(
       supabase,
-      weekTasks.map((task) => task.id)
+      tasks.map((task) => task.id)
     ),
     getTeamsWithMembers(supabase, profiles),
   ]);
@@ -68,7 +68,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
             mentionTargets={buildMentionTargets(teams, profiles)}
             profiles={profiles}
             statuses={statuses ?? []}
-            tasks={weekTasks}
+            tasks={tasks}
             weekId={weekRow.id}
           />
         ) : (
