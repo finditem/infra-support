@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { routeSlackMessage } from "@/lib/slack/commands/router";
 import { verifySlackRequest } from "@/lib/slack/verifySlackRequest";
 
@@ -39,13 +39,11 @@ export const POST = async (request: Request) => {
     return NextResponse.json({ challenge: (body as { challenge: string }).challenge });
   }
 
-  // Slack이 3초 안에 200을 못 받으면 같은 이벤트를 재전송한다. 재시도 요청은 그대로 ack만 하고
-  // 다시 처리하지 않는다 — 안 그러면 자연어 일정 등록 같은 부수효과가 중복 실행될 수 있다.
-  if (request.headers.get("x-slack-retry-num")) {
-    return NextResponse.json({ ok: true });
-  }
-
-  if (body.type === "event_callback") {
+  // Slack이 3초 안에 200을 못 받으면 같은 이벤트를 재전송한다. DB/OpenAI/Slack 호출을 다 기다렸다가
+  // 응답하면 이 시간을 쉽게 넘기므로, 실제 처리는 after()로 응답을 보낸 뒤에 수행한다.
+  // 재시도 요청은 그대로 ack만 하고 다시 처리하지 않는다 — 안 그러면 자연어 일정 등록 같은
+  // 부수효과가 중복 실행될 수 있다. 처리 자체는 이제 응답을 막지 않으므로 재시도가 드물어졌다.
+  if (body.type === "event_callback" && !request.headers.get("x-slack-retry-num")) {
     const { event } = body as { type: "event_callback"; event: SlackMessageEvent };
 
     if (
@@ -56,7 +54,8 @@ export const POST = async (request: Request) => {
       event.user &&
       event.text
     ) {
-      await routeSlackMessage({ text: event.text, slackUserId: event.user });
+      const { user, text } = event;
+      after(() => routeSlackMessage({ text, slackUserId: user }));
     }
   }
 

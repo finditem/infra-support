@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { routeSlackInteraction } from "@/lib/slack/interactions/router";
 import { verifySlackRequest } from "@/lib/slack/verifySlackRequest";
 
@@ -38,13 +38,14 @@ export const POST = async (request: Request) => {
   const payload = JSON.parse(payloadRaw) as SlackBlockActionsPayload;
   const action = payload.actions?.[0];
 
+  // Slack은 버튼 클릭에 3초 안에 ack해야 한다. DB/Slack 호출을 다 기다렸다가 응답하면
+  // 이 시간을 쉽게 넘겨 버튼이 실패한 것처럼 보이므로, 실제 처리는 after()로 응답 이후에 수행한다.
   if (payload.type === "block_actions" && action?.value) {
-    await routeSlackInteraction({
-      actionId: action.action_id,
-      taskId: action.value,
-      slackUserId: payload.user.id,
-      responseUrl: payload.response_url,
-    });
+    const { action_id: actionId, value: taskId } = action;
+    const { id: slackUserId } = payload.user;
+    const { response_url: responseUrl } = payload;
+
+    after(() => routeSlackInteraction({ actionId, taskId, slackUserId, responseUrl }));
   }
 
   return NextResponse.json({ ok: true });

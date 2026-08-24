@@ -654,6 +654,15 @@
 
 - [x] `vercel.json` 신규: `due-soon-check`/`overdue-check`는 매일 `0 0 * * *`(UTC 00:00 = KST 09:00), `weekly-report`는 매주 월요일 `0 0 * * 1`(KST 월요일 09:00, 기획 문서의 "매주 월요일 오전 9시"와 일치). Vercel Cron 스케줄은 UTC 기준이라 KST 09:00에 맞춰 UTC 00:00으로 등록했다 — 겸사겸사 이 시각이면 서버 UTC 날짜와 KST 날짜가 같은 날이라(KST 00:00~09:00 구간만 어긋남), cron 라우트에서 마감일 비교에 `new Date()`/`startOfToday()`를 그대로 써도 날짜가 하루 밀리지 않는다
 
+### PR #170 Codex 리뷰 반영
+
+- [x] `src/app/api/slack/events/route.ts`: DB/OpenAI/Slack 호출을 다 기다린 뒤 응답하면 Slack의 3초 ack 기한을 넘겨 불필요한 재시도가 발생하던 것을, `after()`로 응답을 먼저 보낸 뒤 처리하도록 수정 (P1)
+- [x] `src/app/api/slack/interactions/route.ts`: 같은 이유로 버튼 클릭 처리도 `after()`로 응답 이후 수행하도록 수정 — 처리 전에 3초를 넘기면 버튼이 실패한 것처럼 보였다 (P1)
+- [x] `src/lib/slack/interactions/handleOverdueAction.ts`: "다음주로 미루기"가 기존 마감일에 1주만 더해 7일 넘게 밀린 일정은 여전히 과거 날짜가 되던 버그를, 오늘 기준 다음주 일요일로 계산하도록 수정 (P1)
+- [x] `src/lib/slack/interactions/handleOverdueAction.ts`: 마감일을 미룰 때 `week_id`를 함께 갱신하지 않아 칸반보드 조회(`week_id` 기준)에서 밀린 일정이 옛 주차에 남아 보이지 않던 버그 수정, `getOrCreateWeek`/`getMonday` 재사용 (P1)
+- [x] `src/app/api/cron/overdue-check/route.ts`: Slack 메시지 블록 50개 제한을 넘길 수 있던(일정 25건 이상 담당 시 메시지 전체 전송 실패) 문제를, 담당자별 미완료 일정을 24건 단위로 나눠 여러 메시지로 전송하도록 수정 (P2)
+- [x] pnpm build / pnpm lint 검증
+
 ### 검증
 
 - [x] pnpm build / pnpm lint (5-1~5-3 커밋 직후, 5-4~5-7+인터랙션 커밋 직후 두 차례 통과 확인)

@@ -1,5 +1,7 @@
-import { addWeeks, format, parseISO } from "date-fns";
+import { addWeeks, endOfWeek, format, startOfToday } from "date-fns";
+import { getOrCreateWeek } from "@/app/_lib/kanban";
 import { notifyTaskUpdated } from "@/app/_lib/taskNotification";
+import { getMonday } from "@/app/_lib/kanbanUtils";
 import { createServiceClient } from "@/lib/supabase/service";
 import { escapeSlackText } from "../escapeSlackText";
 import { postToResponseUrl } from "../postToResponseUrl";
@@ -69,11 +71,24 @@ export const handleOverdueAction = async ({
       return;
     }
 
-    const nextDueDate = format(addWeeks(parseISO(before.due_date), 1), "yyyy-MM-dd");
+    // 기존 마감일에 1주를 더하면 7일 넘게 밀린 일정은 여전히 과거 날짜가 된다.
+    // "다음주로 미루기"는 오늘 기준 다음주 일요일로 옮기는 것이 맞다.
+    const nextDueDateObj = addWeeks(endOfWeek(startOfToday(), { weekStartsOn: 1 }), 1);
+    const nextDueDate = format(nextDueDateObj, "yyyy-MM-dd");
+
+    const week = await getOrCreateWeek(supabase, getMonday(nextDueDateObj));
+
+    if (!week) {
+      await postToResponseUrl({
+        responseUrl,
+        text: "⚠️ 주차 정보를 만들지 못해 마감일을 변경하지 못했어요.",
+      });
+      return;
+    }
 
     const { data: after, error } = await supabase
       .from("tasks")
-      .update({ due_date: nextDueDate })
+      .update({ due_date: nextDueDate, week_id: week.id })
       .eq("id", taskId)
       .select("*")
       .single();
