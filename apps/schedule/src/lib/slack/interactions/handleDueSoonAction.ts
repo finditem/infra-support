@@ -31,7 +31,7 @@ export const handleDueSoonAction = async ({
   ]);
 
   if (!status || !before) {
-    await postToResponseUrl({ responseUrl, text: "이미 삭제되었거나 찾을 수 없는 일정이에요." });
+    await postToResponseUrl({ responseUrl, text: "⚠️ 이미 삭제되었거나 찾을 수 없는 일정이에요." });
     return;
   }
 
@@ -44,7 +44,7 @@ export const handleDueSoonAction = async ({
 
   if (error || !after) {
     console.error("Slack 인터랙션 상태 변경 실패", error);
-    await postToResponseUrl({ responseUrl, text: "상태 변경 중 오류가 발생했어요." });
+    await postToResponseUrl({ responseUrl, text: "⚠️ 상태 변경 중 오류가 발생했어요." });
     return;
   }
 
@@ -53,6 +53,6 @@ export const handleDueSoonAction = async ({
 
   await postToResponseUrl({
     responseUrl,
-    text: `${escapeSlackText(after.title)}을(를) ${escapeSlackText(statusName)}(으)로 변경했어요!`,
+    text: `✅ *${escapeSlackText(after.title)}*을(를) *${escapeSlackText(statusName)}*(으)로 변경했어요!`,
   });
 };

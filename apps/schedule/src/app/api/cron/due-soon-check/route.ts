@@ -46,7 +46,7 @@ export const GET = async (request: Request) => {
 
     await postSlackMessage({
       channel: slackUserId,
-      text: `${task.title} 마감이 3일 남았어요! 현재 상태: ${statusName}`,
+      text: `📌 ${task.title} 마감이 3일 남았어요! 현재 상태: ${statusName}`,
       blocks: buildDueSoonBlocks(task.id, task.title, statusName),
     });
     sentCount += 1;

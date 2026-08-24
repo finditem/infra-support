@@ -23,16 +23,16 @@ export const sendMyTasks = async (assigneeId: string, slackUserId: string) => {
   const { data: tasks } = await query;
 
   if (!tasks || tasks.length === 0) {
-    await postSlackMessage({ channel: slackUserId, text: "담당 중인 미완료 일정이 없어요." });
+    await postSlackMessage({ channel: slackUserId, text: "🎉 담당 중인 미완료 일정이 없어요!" });
     return;
   }
 
   const lines = [
-    "내 일정",
+    "*📋 내 일정*",
     ...tasks.map((task) => {
       const due = task.due_date ?? "마감일 없음";
       const status = statusNameById.get(task.status_id) ?? "알 수 없음";
-      return `- ${escapeSlackText(task.title)} (${status}, ${due})`;
+      return `• *${escapeSlackText(task.title)}* (${status}, ${due})`;
     }),
   ];
 

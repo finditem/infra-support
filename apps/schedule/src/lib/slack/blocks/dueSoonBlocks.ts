@@ -17,7 +17,7 @@ export const buildDueSoonBlocks = (
     type: "section",
     text: {
       type: "mrkdwn",
-      text: `*${escapeSlackText(title)}* 마감이 3일 남았어요!\n현재 상태: ${escapeSlackText(statusName)}\n\n진행 상태를 바꿀까요?`,
+      text: `📌 *${escapeSlackText(title)}* 마감이 3일 남았어요!\n현재 상태: *${escapeSlackText(statusName)}*\n\n진행 상태를 바꿀까요?`,
     },
   },
   {

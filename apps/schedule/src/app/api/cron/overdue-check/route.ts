@@ -57,7 +57,7 @@ export const GET = async (request: Request) => {
 
     await postSlackMessage({
       channel: slackUserId,
-      text: `미완료 일정이 ${entries.length}건 있어요.`,
+      text: `⚠️ 미완료 일정이 ${entries.length}건 있어요.`,
       blocks: buildOverdueBlocks(entries),
     });
     sentCount += 1;

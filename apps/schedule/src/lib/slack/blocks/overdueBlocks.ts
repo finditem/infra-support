@@ -10,7 +10,7 @@ export interface OverdueTaskEntry {
 /** 5-5: 마감 초과 미완료 알림 DM의 Block Kit 본문. 담당자 한 명의 여러 일정을 한 메시지에 묶는다. */
 export const buildOverdueBlocks = (tasks: OverdueTaskEntry[]): SlackBlock[] => {
   const blocks: SlackBlock[] = [
-    { type: "section", text: { type: "mrkdwn", text: "*미완료 일정이 있어요!*" } },
+    { type: "section", text: { type: "mrkdwn", text: "⚠️ *미완료 일정이 있어요!*" } },
   ];
 
   tasks.forEach((task) => {
@@ -18,7 +18,7 @@ export const buildOverdueBlocks = (tasks: OverdueTaskEntry[]): SlackBlock[] => {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `${escapeSlackText(task.title)} - ${task.overdueDays}일 초과`,
+        text: `• *${escapeSlackText(task.title)}* - ${task.overdueDays}일 초과`,
       },
     });
     blocks.push({

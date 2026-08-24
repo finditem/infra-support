@@ -31,7 +31,7 @@ export const handleStatusChange = async (
   if (!status) {
     await postSlackMessage({
       channel: slackUserId,
-      text: `"${escapeSlackText(statusName)}" 상태를 찾을 수 없어요.`,
+      text: `⚠️ "${escapeSlackText(statusName)}" 상태를 찾을 수 없어요.`,
     });
     return;
   }
@@ -46,16 +46,16 @@ export const handleStatusChange = async (
   if (tasks.length === 0) {
     await postSlackMessage({
       channel: slackUserId,
-      text: `"${escapeSlackText(titleQuery)}" 일정을 찾을 수 없어요.`,
+      text: `⚠️ "${escapeSlackText(titleQuery)}" 일정을 찾을 수 없어요.`,
     });
     return;
   }
 
   if (tasks.length > 1) {
-    const titles = tasks.map((task) => `- ${escapeSlackText(task.title)}`).join("\n");
+    const titles = tasks.map((task) => `• ${escapeSlackText(task.title)}`).join("\n");
     await postSlackMessage({
       channel: slackUserId,
-      text: `"${escapeSlackText(titleQuery)}"로 검색된 일정이 여러 개예요. 더 정확한 제목으로 다시 시도해주세요.\n${titles}`,
+      text: `🔍 "${escapeSlackText(titleQuery)}"로 검색된 일정이 여러 개예요. 더 정확한 제목으로 다시 시도해주세요.\n${titles}`,
     });
     return;
   }
@@ -71,13 +71,13 @@ export const handleStatusChange = async (
 
   if (error || !after) {
     console.error("Slack 상태 변경 실패", error);
-    await postSlackMessage({ channel: slackUserId, text: "상태 변경 중 오류가 발생했어요." });
+    await postSlackMessage({ channel: slackUserId, text: "⚠️ 상태 변경 중 오류가 발생했어요." });
     return;
   }
 
   await notifyTaskUpdated(supabase, before, after, actorProfile.id);
   await postSlackMessage({
     channel: slackUserId,
-    text: `${escapeSlackText(after.title)}을(를) ${escapeSlackText(statusName)}(으)로 변경했어요!`,
+    text: `✅ *${escapeSlackText(after.title)}*을(를) *${escapeSlackText(statusName)}*(으)로 변경했어요!`,
   });
 };

@@ -66,23 +66,23 @@ export const GET = async (request: Request) => {
   const completionRate = rows.length === 0 ? 0 : Math.round((completed.length / rows.length) * 100);
 
   const lines = [
-    `지난주 업무 결과 리포트 (${format(lastWeekMonday, "M/d")} ~ ${format(lastWeekSunday, "M/d")})`,
+    `📊 *지난주 업무 결과 리포트 (${format(lastWeekMonday, "M/d")} ~ ${format(lastWeekSunday, "M/d")})*`,
     "",
-    `완료 (${completed.length}건)`,
+    `✅ *완료 (${completed.length}건)*`,
     ...completed.map(
-      (task) => `- ${escapeSlackText(task.title)} (${assigneeLabel(task.assignee_id)})`
+      (task) => `• ${escapeSlackText(task.title)} (${assigneeLabel(task.assignee_id)})`
     ),
     "",
-    `미완료 (${incomplete.length}건)`,
+    `⚠️ *미완료 (${incomplete.length}건)*`,
     ...incomplete.map(
-      (task) => `- ${escapeSlackText(task.title)} (${assigneeLabel(task.assignee_id)})`
+      (task) => `• ${escapeSlackText(task.title)} (${assigneeLabel(task.assignee_id)})`
     ),
     "",
-    `팀 완료율: ${completionRate}% (${completed.length}/${rows.length})`,
+    `📈 *팀 완료율: ${completionRate}% (${completed.length}/${rows.length})*`,
   ];
 
   if (incomplete.length > 0) {
-    lines.push("", "이번주 박제 명단");
+    lines.push("", "🔴 *이번주 박제 명단*");
 
     incomplete.forEach((task) => {
       const overdueDays = task.due_date
@@ -93,7 +93,7 @@ export const GET = async (request: Request) => {
       const overdueLabel =
         overdueDays !== null && overdueDays > 0 ? ` (${overdueDays}일 초과)` : "";
 
-      lines.push(`- ${escapeSlackText(task.title)} -> 담당자: ${mention}${overdueLabel}`);
+      lines.push(`• *${escapeSlackText(task.title)}* → 담당자: ${mention}${overdueLabel}`);
     });
   }
 

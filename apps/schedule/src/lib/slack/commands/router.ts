@@ -29,7 +29,7 @@ export const routeSlackMessage = async ({ text, slackUserId }: RouteSlackMessage
   if (!profile) {
     await postSlackMessage({
       channel: slackUserId,
-      text: "Slack 계정이 아직 팀원 프로필과 연결되지 않았어요. 관리자에게 연결을 요청해주세요.",
+      text: "⚠️ Slack 계정이 아직 팀원 프로필과 연결되지 않았어요. 관리자에게 연결을 요청해주세요.",
     });
     return;
   }
