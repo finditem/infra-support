@@ -10,12 +10,27 @@ import { postSlackMessage } from "../postSlackMessage";
 
 const DEFAULT_STATUS_NAME = "할 일";
 
+/**
+ * OpenAI 호출 자체를 막는 킬 스위치. 기본값은 비활성(false)이고, 명시적으로 "true"로 설정해야만 켜진다.
+ * OPENAI_API_KEY가 설정돼 있어도 이 플래그가 꺼져 있으면 API를 호출하지 않는다 — 크레딧이 없는 상태에서
+ * 다른 명령을 테스트하다 실수로 자연어 등록이 트리거돼 토큰이 소모되는 걸 막기 위함.
+ */
+const isAiTaskCreationEnabled = () => process.env.SLACK_AI_TASK_CREATION_ENABLED === "true";
+
 /** 5-2: 도움말/상태변경/내일정 어디에도 매칭되지 않은 DM을 자연어 일정 등록으로 처리한다. */
 export const createTaskFromMessage = async (
   assigneeProfile: ProfilesRow,
   text: string,
   slackUserId: string
 ) => {
+  if (!isAiTaskCreationEnabled()) {
+    await postSlackMessage({
+      channel: slackUserId,
+      text: "⚠️ 자연어 일정 등록은 아직 준비 중이에요. 도움말을 참고해주세요.",
+    });
+    return;
+  }
+
   const parsed = await parseTaskFromMessage(text);
 
   if (!parsed) {

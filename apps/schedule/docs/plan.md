@@ -623,6 +623,7 @@
 - [x] `src/lib/slack/ai/parseTaskFromMessage.ts` 신규: 메시지 텍스트 -> `{ title, body, reporterName }` 추출, API 키 없음/호출 실패/파싱 실패 시 null 반환 → 이후 OpenAI `gpt-5-nano` + Structured Outputs(`json_schema`, strict)로 교체
 - [x] `src/lib/slack/commands/createTaskFromMessage.ts` 신규: 담당자=발신자 profile, 마감일=`getDefaultDueDate`(`_lib/kanbanUtils.ts`) 재사용, reporterName은 profiles 이름 부분 일치(없으면 비움), tasks INSERT, `notifyTaskCreated` 재사용해 채널 알림, DM 피드백
 - [x] `src/lib/slack/commands/router.ts`: 도움말/내일정/상태변경 어디에도 매칭 안 되면 자연어 일정 등록으로 폴백하도록 변경
+- [x] (계획에 없었음) `SLACK_AI_TASK_CREATION_ENABLED` 킬 스위치 추가: 테스트 중 크레딧 없이 실수로 OpenAI 호출이 나가는 걸 막아달라는 요청으로, `createTaskFromMessage.ts` 최상단에서 이 값이 정확히 `"true"`가 아니면 API를 호출하지 않고 "준비 중" 안내만 보내도록 가드. `OPENAI_API_KEY` 유무와 별개로 동작(키가 있어도 플래그가 꺼져 있으면 호출 안 함). `.env.example`/`CLAUDE.md`에 문서화, 기본값은 `false`
 
 ### Interactivity(버튼) 처리 준비
 

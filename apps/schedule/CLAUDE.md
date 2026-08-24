@@ -99,6 +99,8 @@ Slack 알림용 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL`은 서버 전�
 
 봇 인바운드 연동(Slack 웹훅 수신, cron)에는 추가로 `SUPABASE_SERVICE_ROLE_KEY`(service role 클라이언트), `SLACK_SIGNING_SECRET`(Slack 요청 서명 검증), `OPENAI_API_KEY`(자연어 일정 등록 LLM 파싱, GPT-5 nano), `CRON_SECRET`(cron 엔드포인트 인증)이 필요하다. 모두 서버 전용이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다.
 
+자연어 일정 등록의 OpenAI 호출에는 별도 킬 스위치 `SLACK_AI_TASK_CREATION_ENABLED`가 있다. `OPENAI_API_KEY`가 설정돼 있어도 이 값이 정확히 `"true"`가 아니면 API를 호출하지 않고 "준비 중" 안내만 보낸다(기본값 비활성). 크레딧이 없거나 의도치 않은 토큰 소모를 막고 싶을 때 이 플래그만 끄면 된다.
+
 ## 기획 문서 및 작업 계획
 
 `docs/기획안.md`, `docs/기능설계서.md`에 원본 스펙 문서가 저장되어 있다 (기능설계서.md가 더 나중에 작성된 확장 버전이라 내용이 겹치면 그쪽을 우선한다). apps/schedule 관련 작업을 시작하기 전에는 `schedule-plan` 스킬(`.claude/skills/schedule-plan/SKILL.md`)을 먼저 실행해 이 문서들을 확인하고 `docs/plan.md`에 작업 체크리스트를 기록한다.
