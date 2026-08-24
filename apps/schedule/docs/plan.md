@@ -592,13 +592,13 @@
 
 ## Slack 봇 인바운드 연동 (기능설계서 5장: 자연어 일정 등록/상태변경/리마인드/주간 리포트)
 
-기존 Slack 연동은 발신 전용(`postSlackMessage`, `notifyTaskEvent`)이었다. 이번엔 봇이 DM을 수신해 명령을 처리하는 양방향 연동을 추가한다. 5-2 자연어 파싱은 줄바꿈 규칙이 아니라 실제 LLM 호출(Claude, `@anthropic-ai/sdk`)로 처리하기로 결정. 로그인 세션이 없는 Slack 웹훅/cron 라우트가 이번에 처음 생기는데, 기존 RLS(`to authenticated`)는 이런 요청을 통과시키지 못하므로 이 라우트들에서만 쓰는 Supabase service role 클라이언트를 새로 도입한다(클라이언트 번들에는 절대 포함하지 않음) — `apps/schedule/CLAUDE.md`의 "service role 미사용" 결정을 이번 작업으로 갱신한다. 11장(지연/미완료 사유)은 이번 범위 밖.
+기존 Slack 연동은 발신 전용(`postSlackMessage`, `notifyTaskEvent`)이었다. 이번엔 봇이 DM을 수신해 명령을 처리하는 양방향 연동을 추가한다. 5-2 자연어 파싱은 줄바꿈 규칙이 아니라 실제 LLM 호출로 처리하기로 결정. 처음엔 Claude(`@anthropic-ai/sdk`)로 구현했다가, 이후 OpenAI GPT API로 바꿔달라는 요청에 따라 `openai` 패키지 + `gpt-5-nano`(단순 추출 작업이라 가장 저렴한 모델 선택)로 교체했다 — `@anthropic-ai/sdk`는 제거, `ANTHROPIC_API_KEY`는 `OPENAI_API_KEY`로 대체. 로그인 세션이 없는 Slack 웹훅/cron 라우트가 이번에 처음 생기는데, 기존 RLS(`to authenticated`)는 이런 요청을 통과시키지 못하므로 이 라우트들에서만 쓰는 Supabase service role 클라이언트를 새로 도입한다(클라이언트 번들에는 절대 포함하지 않음) — `apps/schedule/CLAUDE.md`의 "service role 미사용" 결정을 이번 작업으로 갱신한다. 11장(지연/미완료 사유)은 이번 범위 밖.
 
 ### 준비 (service role 클라이언트, 서명 검증, Events API 스켈레톤)
 
 - [x] `apps/schedule/CLAUDE.md`: "서버 전용 키(service role)는 쓰지 않는다" 문구를 Slack 웹훅/cron 라우트 전용 service role 도입 결정으로 갱신
 - [x] `src/lib/supabase/service.ts` 신규: `createServiceClient()` (service role 키, `persistSession: false`), 서버 전용 라우트에서만 import한다는 주석
-- [x] `.env.example`에 `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `ANTHROPIC_API_KEY`, `CRON_SECRET` 추가 (용도 주석 포함)
+- [x] `.env.example`에 `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `OPENAI_API_KEY`, `CRON_SECRET` 추가 (용도 주석 포함) — 최초엔 `ANTHROPIC_API_KEY`였다가 아래 5-2 파싱 모델 교체와 함께 변경
 - [x] `src/lib/slack/verifySlackRequest.ts` 신규: `SLACK_SIGNING_SECRET` 기반 HMAC 서명 검증 (Events API, Interactivity 공용)
 - [x] `src/app/api/slack/events/route.ts` 신규: `url_verification` challenge 응답, `message` 이벤트(봇 자신 메시지·서브타입 제외) 라우팅 스켈레톤
 - [x] `src/lib/slack/resolveProfileFromSlackUser.ts` 신규: Slack user id -> `profiles` 매핑 조회 헬퍼 (service client 사용)
@@ -619,8 +619,8 @@
 
 ### 5-2 자연어 일정 추가 (LLM 파싱)
 
-- [x] `@anthropic-ai/sdk` 의존성 추가 (`^0.120.0`)
-- [x] `src/lib/slack/ai/parseTaskFromMessage.ts` 신규: 메시지 텍스트 -> `{ title, body, reporterName }` 추출(Claude Haiku 호출), API 키 없음/호출 실패/파싱 실패 시 null 반환
+- [x] `@anthropic-ai/sdk` 의존성 추가 (`^0.120.0`) → 이후 `openai`(`^7.5.0`)로 교체, `@anthropic-ai/sdk` 제거
+- [x] `src/lib/slack/ai/parseTaskFromMessage.ts` 신규: 메시지 텍스트 -> `{ title, body, reporterName }` 추출, API 키 없음/호출 실패/파싱 실패 시 null 반환 → 이후 OpenAI `gpt-5-nano` + Structured Outputs(`json_schema`, strict)로 교체
 - [x] `src/lib/slack/commands/createTaskFromMessage.ts` 신규: 담당자=발신자 profile, 마감일=`getDefaultDueDate`(`_lib/kanbanUtils.ts`) 재사용, reporterName은 profiles 이름 부분 일치(없으면 비움), tasks INSERT, `notifyTaskCreated` 재사용해 채널 알림, DM 피드백
 - [x] `src/lib/slack/commands/router.ts`: 도움말/내일정/상태변경 어디에도 매칭 안 되면 자연어 일정 등록으로 폴백하도록 변경
 
@@ -661,5 +661,5 @@
 
 - [ ] Slack App 대시보드: Event Subscriptions 활성화 + Request URL(`SITE_URL/api/slack/events`) 등록, `message.im` 구독, 필요 스코프(`im:history` 등) 추가 후 재설치
 - [ ] Slack App 대시보드: Interactivity 활성화 + Request URL(`SITE_URL/api/slack/interactions`) 등록
-- [ ] `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `ANTHROPIC_API_KEY`, `CRON_SECRET`을 `.env`/Vercel 환경변수에 등록
+- [ ] `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `OPENAI_API_KEY`, `CRON_SECRET`을 `.env`/Vercel 환경변수에 등록
 - [ ] Vercel 배포 후 Cron 활성화 확인
