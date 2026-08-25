@@ -680,15 +680,7 @@
 
 - [x] `supabase/migrations/0013_add_tasks_indexes.sql`: `tasks.week_id`, `tasks.parent_id`에 인덱스 추가. 두 컬럼 모두 외래키지만 Postgres가 자동으로 인덱스를 만들지 않아, `getTasksForWeek`의 주차별/하위일정 조회가 데이터가 늘어날수록 전체 스캔이 되고 있었다
 - [x] `src/app/page.tsx`: 순차적이던 Supabase 쿼리 단계를 재구성 — `supabase.auth.getUser()`를 weekRow/sprint 조회와 같은 단계로 병렬화하고, tasks에 의존하지 않는 `getTeamsWithMembers`를 profiles/tasks 단계로 앞당겨 사실상 4단계였던 순차 왕복을 3단계로 줄였다
+- [x] (계획 조정) `middleware.ts`와 `page.tsx`의 `auth.getUser()` 중복 호출 자체를 없애려면 미들웨어에서 검증한 유저 정보를 요청 헤더로 넘겨 서버 컴포넌트가 재사용하는 패턴이 필요한데, 이는 헤더 위조 방지를 직접 구현해야 하는 인증 관련 변경이라 위험 대비 이득이 낮다고 판단해 보류했다. 대신 위 항목처럼 `page.tsx` 내부에서 다른 독립 쿼리와 병렬화해 대기 시간만 없앴다 — 실제 호출 횟수(미들웨어 1회 + 페이지 1회)는 그대로다
 - [x] `src/app/loading.tsx`, `src/app/calendar/loading.tsx` 신규: 주차/월 이동 시 로딩 상태 없이 화면이 멈춰 보이던 것을, `NavBar` + 스피너로 즉시 피드백이 보이도록 개선
-- [x] pnpm build / pnpm lint 검증 (첫 커밋 4개, PR #172로 생성)
+- [ ] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션은 SQL 에디터 또는 `supabase db push`로 실제 Supabase 프로젝트에 직접 적용 필요 (사용자가 직접 진행)
-
-### `middleware.ts`/`page.tsx` auth.getUser() 중복 호출 제거
-
-PR #172 리뷰 참고 사항에 남겨둔 후속 작업. 처음에는 헤더 위조 방지를 직접 구현해야 하는 인증 관련 변경이라 위험 대비 이득이 낮다고 보류했으나, `.set()`(덮어쓰기, `.append()` 아님)으로 클라이언트가 보낸 값을 항상 무시하고 미들웨어가 검증한 값만 실어 보내면 위조 경로가 없다는 것을 확인해 진행했다. 이 헤더는 UI 표시(담당 카드 하이라이트 등)에만 쓰이고, 실제 데이터 변경 권한은 여전히 Postgres RLS(`auth.uid()` 기준)가 별도로 검증하므로 헤더 값이 틀려도 보안 경계가 뚫리지는 않는다.
-
-- [x] `src/middleware.ts`: `auth.getUser()` 검증 직후 `x-user-id` 요청 헤더를 `set`(유저 있음)/`delete`(없음)로 항상 덮어써 응답에 실어 보냄
-- [x] `src/app/page.tsx`: `supabase.auth.getUser()` 재호출 대신 `next/headers`의 `headers().get("x-user-id")`로 유저 id를 읽도록 교체, 이에 맞춰 weekRow/sprint 병렬 조회에서 auth 호출 제거(더 이상 필요 없어짐)
-- [x] `apps/schedule/CLAUDE.md` 인증 섹션에 `x-user-id` 헤더 재사용 패턴 문서화
-- [x] pnpm build / pnpm lint 검증
