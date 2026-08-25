@@ -51,22 +51,7 @@ export const middleware = async (request: NextRequest) => {
     return redirectResponse;
   }
 
-  // 여기서 이미 검증한 유저 id를 요청 헤더로 실어 보내면, Server Component가
-  // auth.getUser()를 다시 호출하지 않고도(왕복 네트워크 호출 1회 절약) 재사용할 수 있다.
-  // 클라이언트가 같은 이름의 헤더를 직접 보내더라도 항상 여기서 set/delete로 덮어쓰므로 위조되지 않는다.
-  const requestHeaders = new Headers(request.headers);
-  if (user) {
-    requestHeaders.set("x-user-id", user.id);
-  } else {
-    requestHeaders.delete("x-user-id");
-  }
-
-  const finalResponse = NextResponse.next({ request: { headers: requestHeaders } });
-  response.cookies.getAll().forEach((cookie) => {
-    finalResponse.cookies.set(cookie.name, cookie.value, cookie);
-  });
-
-  return finalResponse;
+  return response;
 };
 
 export const config = {
