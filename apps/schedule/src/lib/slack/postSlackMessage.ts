@@ -6,10 +6,15 @@ const SLACK_POST_MESSAGE_URL = "https://slack.com/api/chat.postMessage";
  */
 const SLACK_REQUEST_TIMEOUT_MS = 5000;
 
+/** Block Kit 블록 하나. 정확한 형태는 Slack이 검증하므로 앱에서는 느슨한 타입만 둔다. */
+export type SlackBlock = Record<string, unknown>;
+
 interface PostSlackMessageParams {
   /** 채널 ID(C...) 또는 DM을 보낼 사용자 ID(U...). */
   channel: string;
   text: string;
+  /** 버튼 등 인터랙티브 요소가 필요할 때만 넘긴다. text는 blocks가 있어도 알림 미리보기용으로 항상 필요하다. */
+  blocks?: SlackBlock[];
 }
 
 /**
@@ -19,6 +24,7 @@ interface PostSlackMessageParams {
 export const postSlackMessage = async ({
   channel,
   text,
+  blocks,
 }: PostSlackMessageParams): Promise<boolean> => {
   const token = process.env.SLACK_BOT_TOKEN;
 
@@ -34,7 +40,7 @@ export const postSlackMessage = async ({
         "Content-Type": "application/json; charset=utf-8",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ channel, text, unfurl_links: false, unfurl_media: false }),
+      body: JSON.stringify({ channel, text, blocks, unfurl_links: false, unfurl_media: false }),
       signal: AbortSignal.timeout(SLACK_REQUEST_TIMEOUT_MS),
     });
 

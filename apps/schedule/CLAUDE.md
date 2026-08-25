@@ -91,9 +91,15 @@ pnpm lint    # next lint
 
 ## 환경 변수
 
-`.env.example` 참고. `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`는 이 앱 전용 Supabase 프로젝트(모니터링 프로젝트와 별개)의 값을 사용한다. 서버 전용 키(service role)는 쓰지 않는다 — 별도 백엔드 앱이 없고 클라이언트에서 anon key + RLS로 접근하는 구조이기 때문이다.
+`.env.example` 참고. `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`는 이 앱 전용 Supabase 프로젝트(모니터링 프로젝트와 별개)의 값을 사용한다. 일반 페이지/서버 액션은 로그인 세션이 항상 있으므로 여전히 anon key + RLS(`to authenticated`)로 접근한다.
+
+Slack 웹훅(`src/app/api/slack/`)과 cron 라우트(`src/app/api/cron/`)는 예외다. Slack이나 Vercel Cron이 직접 호출하는 요청이라 로그인 세션이 없고, anon key로는 RLS를 통과하지 못한다. 이 라우트들에서만 `src/lib/supabase/service.ts`의 `createServiceClient()`(service role 키, RLS 우회)를 쓴다. service role 키는 절대 클라이언트 컴포넌트/번들에 import하지 않는다.
 
 Slack 알림용 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL`은 서버 전용 값이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다. 서버 액션(`src/app/_lib/actions.ts`)에서만 읽으므로 클라이언트 번들에 포함되지 않는다. 세 값이 없으면 알림만 건너뛰고 일정 저장은 정상 동작한다.
+
+봇 인바운드 연동(Slack 웹훅 수신, cron)에는 추가로 `SUPABASE_SERVICE_ROLE_KEY`(service role 클라이언트), `SLACK_SIGNING_SECRET`(Slack 요청 서명 검증), `OPENAI_API_KEY`(자연어 일정 등록 LLM 파싱, GPT-5 nano), `CRON_SECRET`(cron 엔드포인트 인증)이 필요하다. 모두 서버 전용이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다.
+
+자연어 일정 등록의 OpenAI 호출에는 별도 킬 스위치 `SLACK_AI_TASK_CREATION_ENABLED`가 있다. `OPENAI_API_KEY`가 설정돼 있어도 이 값이 정확히 `"true"`가 아니면 API를 호출하지 않고 "준비 중" 안내만 보낸다(기본값 비활성). 크레딧이 없거나 의도치 않은 토큰 소모를 막고 싶을 때 이 플래그만 끄면 된다.
 
 ## 기획 문서 및 작업 계획
 
