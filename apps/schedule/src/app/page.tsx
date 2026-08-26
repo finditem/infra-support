@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "./_components/KanbanBoard";
@@ -21,9 +22,9 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
   const { week } = await searchParams;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // 미들웨어가 이미 auth.getUser()로 검증해 x-user-id 헤더에 실어 보낸 값을 재사용한다.
+  // 여기서 다시 auth.getUser()를 호출하지 않아도 되므로 네트워크 왕복이 한 번 줄어든다.
+  const userId = (await headers()).get("x-user-id");
 
   const weekStart = getMonday(week ? new Date(week) : new Date());
   const [weekRow, sprint] = await Promise.all([
@@ -35,8 +36,8 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
     supabase.from("task_statuses").select("*").order("order_index"),
     getRegisteredProfiles(supabase),
     weekRow ? getTasksForWeek(supabase, weekRow.id) : Promise.resolve([]),
-    user
-      ? supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
+    userId
+      ? supabase.from("profiles").select("*").eq("id", userId).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
 
