@@ -32,24 +32,24 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
     getSprintForWeek(supabase, weekStart),
   ]);
 
-  const [{ data: statuses }, profiles, tasks, { data: currentProfile }] = await Promise.all([
+  // teams는 profiles 없이도 자체 조회가 가능하므로(getTeamsWithMembers), tasks를 기다리지 않고
+  // 이 단계에서 profiles와 나란히 조회한다. profiles를 넘겨 재사용하는 대신 별도 조회가 되지만,
+  // 순차 왕복이 아니라 같은 단계에서 병렬로 실행되므로 지연 시간에는 영향이 없다.
+  const [{ data: statuses }, profiles, tasks, { data: currentProfile }, teams] = await Promise.all([
     supabase.from("task_statuses").select("*").order("order_index"),
     getRegisteredProfiles(supabase),
     weekRow ? getTasksForWeek(supabase, weekRow.id) : Promise.resolve([]),
     userId
       ? supabase.from("profiles").select("*").eq("id", userId).maybeSingle()
       : Promise.resolve({ data: null }),
+    getTeamsWithMembers(supabase),
   ]);
 
   // 주차 일정 전체의 댓글을 여기서 한 번에 가져와, 카드마다 개수를 조회하는 N+1을 피한다.
-  // 팀 목록은 댓글에서 "@팀명"으로 언급할 후보이며, 이미 조회한 profiles를 넘겨 중복 조회를 피한다.
-  const [comments, teams] = await Promise.all([
-    getCommentsForTasks(
-      supabase,
-      tasks.map((task) => task.id)
-    ),
-    getTeamsWithMembers(supabase, profiles),
-  ]);
+  const comments = await getCommentsForTasks(
+    supabase,
+    tasks.map((task) => task.id)
+  );
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">

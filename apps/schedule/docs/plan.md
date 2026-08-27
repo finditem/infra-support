@@ -674,11 +674,13 @@
 - [ ] `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `OPENAI_API_KEY`, `CRON_SECRET`을 `.env`/Vercel 환경변수에 등록
 - [ ] Vercel 배포 후 Cron 활성화 확인
 
-## middleware.ts/page.tsx의 auth.getUser() 중복 호출 제거
+## 칸반보드 데이터 로딩 성능 개선
 
-칸반보드 데이터 로딩 성능 개선(별도 브랜치, PR #172) 작업 중 발견한 사항으로, 그 브랜치와 독립적으로 처리하기 위해 별도 브랜치로 분리했다. 미들웨어와 페이지 양쪽에서 각각 `auth.getUser()`를 호출해 인증 네트워크 왕복이 요청마다 두 번 발생하고 있었다. `.set()`(덮어쓰기, `.append()` 아님)으로 클라이언트가 보낸 값을 항상 무시하고 미들웨어가 검증한 값만 요청 헤더에 실어 보내면 위조 경로가 없다. 이 헤더는 UI 표시(담당 카드 하이라이트 등)에만 쓰이고, 실제 데이터 변경 권한은 여전히 Postgres RLS(`auth.uid()` 기준)가 별도로 검증하므로 헤더 값이 틀려도 보안 경계가 뚫리지는 않는다.
+사용자가 "다음 주" 버튼을 포함해 데이터 로딩이 전반적으로 느리다고 보고해 원인 조사 후 진행.
 
-- [x] `src/middleware.ts`: `auth.getUser()` 검증 직후 `x-user-id` 요청 헤더를 `set`(유저 있음)/`delete`(없음)로 항상 덮어써 응답에 실어 보냄
-- [x] `src/app/page.tsx`: `supabase.auth.getUser()` 재호출 대신 `next/headers`의 `headers().get("x-user-id")`로 유저 id를 읽도록 교체
-- [x] `apps/schedule/CLAUDE.md` 인증 섹션에 `x-user-id` 헤더 재사용 패턴 문서화
-- [x] pnpm build / pnpm lint 검증
+- [x] `supabase/migrations/0013_add_tasks_indexes.sql`: `tasks.week_id`, `tasks.parent_id`에 인덱스 추가. 두 컬럼 모두 외래키지만 Postgres가 자동으로 인덱스를 만들지 않아, `getTasksForWeek`의 주차별/하위일정 조회가 데이터가 늘어날수록 전체 스캔이 되고 있었다
+- [x] `src/app/page.tsx`: 순차적이던 Supabase 쿼리 단계를 재구성 — `getTasksForWeek`에 의존하지 않는 `getTeamsWithMembers`를 profiles/tasks 단계로 앞당겨 순차 왕복을 줄였다
+- [x] `src/app/loading.tsx`, `src/app/calendar/loading.tsx` 신규: 주차/월 이동 시 로딩 상태 없이 화면이 멈춰 보이던 것을, `NavBar` + 스피너로 즉시 피드백이 보이도록 개선
+- [x] middleware.ts/page.tsx의 `auth.getUser()` 중복 호출 제거는 별도 브랜치(PR #173, x-user-id 헤더 재사용 패턴)로 분리해 처리, develop에 먼저 머지됨 — 이 브랜치를 develop에 맞춰 병합하며 `page.tsx`도 `headers().get("x-user-id")` 기반으로 다시 정리
+- [x] pnpm build / pnpm lint 검증 (develop 병합 후 재검증)
+- [ ] 마이그레이션은 SQL 에디터 또는 `supabase db push`로 실제 Supabase 프로젝트에 직접 적용 필요 (사용자가 직접 진행)
