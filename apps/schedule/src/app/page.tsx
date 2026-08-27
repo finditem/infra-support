@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "./_components/KanbanBoard";
@@ -20,19 +21,15 @@ interface HomePageProps {
 const HomePage = async ({ searchParams }: HomePageProps) => {
   const { week } = await searchParams;
   const supabase = await createClient();
-  const weekStart = getMonday(week ? new Date(week) : new Date());
 
-  // weekRow/sprint 조회는 user 인증과 서로 의존관계가 없으므로 한 단계에 묶어 왕복 횟수를 줄인다.
-  const [
-    weekRow,
-    sprint,
-    {
-      data: { user },
-    },
-  ] = await Promise.all([
+  // 미들웨어가 이미 auth.getUser()로 검증해 x-user-id 헤더에 실어 보낸 값을 재사용한다.
+  // 여기서 다시 auth.getUser()를 호출하지 않아도 되므로 네트워크 왕복이 한 번 줄어든다.
+  const userId = (await headers()).get("x-user-id");
+
+  const weekStart = getMonday(week ? new Date(week) : new Date());
+  const [weekRow, sprint] = await Promise.all([
     getOrCreateWeek(supabase, weekStart),
     getSprintForWeek(supabase, weekStart),
-    supabase.auth.getUser(),
   ]);
 
   // teams는 profiles 없이도 자체 조회가 가능하므로(getTeamsWithMembers), tasks를 기다리지 않고
@@ -42,8 +39,8 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
     supabase.from("task_statuses").select("*").order("order_index"),
     getRegisteredProfiles(supabase),
     weekRow ? getTasksForWeek(supabase, weekRow.id) : Promise.resolve([]),
-    user
-      ? supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
+    userId
+      ? supabase.from("profiles").select("*").eq("id", userId).maybeSingle()
       : Promise.resolve({ data: null }),
     getTeamsWithMembers(supabase),
   ]);

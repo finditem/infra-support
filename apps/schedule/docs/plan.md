@@ -679,8 +679,8 @@
 사용자가 "다음 주" 버튼을 포함해 데이터 로딩이 전반적으로 느리다고 보고해 원인 조사 후 진행.
 
 - [x] `supabase/migrations/0013_add_tasks_indexes.sql`: `tasks.week_id`, `tasks.parent_id`에 인덱스 추가. 두 컬럼 모두 외래키지만 Postgres가 자동으로 인덱스를 만들지 않아, `getTasksForWeek`의 주차별/하위일정 조회가 데이터가 늘어날수록 전체 스캔이 되고 있었다
-- [x] `src/app/page.tsx`: 순차적이던 Supabase 쿼리 단계를 재구성 — `supabase.auth.getUser()`를 weekRow/sprint 조회와 같은 단계로 병렬화하고, tasks에 의존하지 않는 `getTeamsWithMembers`를 profiles/tasks 단계로 앞당겨 사실상 4단계였던 순차 왕복을 3단계로 줄였다
-- [x] (계획 조정) `middleware.ts`와 `page.tsx`의 `auth.getUser()` 중복 호출 자체를 없애려면 미들웨어에서 검증한 유저 정보를 요청 헤더로 넘겨 서버 컴포넌트가 재사용하는 패턴이 필요한데, 이는 헤더 위조 방지를 직접 구현해야 하는 인증 관련 변경이라 위험 대비 이득이 낮다고 판단해 보류했다. 대신 위 항목처럼 `page.tsx` 내부에서 다른 독립 쿼리와 병렬화해 대기 시간만 없앴다 — 실제 호출 횟수(미들웨어 1회 + 페이지 1회)는 그대로다
+- [x] `src/app/page.tsx`: 순차적이던 Supabase 쿼리 단계를 재구성 — `getTasksForWeek`에 의존하지 않는 `getTeamsWithMembers`를 profiles/tasks 단계로 앞당겨 순차 왕복을 줄였다
 - [x] `src/app/loading.tsx`, `src/app/calendar/loading.tsx` 신규: 주차/월 이동 시 로딩 상태 없이 화면이 멈춰 보이던 것을, `NavBar` + 스피너로 즉시 피드백이 보이도록 개선
-- [ ] pnpm build / pnpm lint 검증
+- [x] middleware.ts/page.tsx의 `auth.getUser()` 중복 호출 제거는 별도 브랜치(PR #173, x-user-id 헤더 재사용 패턴)로 분리해 처리, develop에 먼저 머지됨 — 이 브랜치를 develop에 맞춰 병합하며 `page.tsx`도 `headers().get("x-user-id")` 기반으로 다시 정리
+- [x] pnpm build / pnpm lint 검증 (develop 병합 후 재검증)
 - [ ] 마이그레이션은 SQL 에디터 또는 `supabase db push`로 실제 Supabase 프로젝트에 직접 적용 필요 (사용자가 직접 진행)
