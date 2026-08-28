@@ -5,6 +5,15 @@ export const ATTACHMENT_BUCKET = "task-attachments";
 export const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
 export const ALLOWED_ATTACHMENT_MIME_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
 
+/** Storage 오브젝트 키에 그대로 쓸 수 있는 확장자로 매핑한다. 원본 파일명(한글/공백 등 포함 가능)을
+ * 경로에 직접 쓰지 않기 위해서다 — Supabase Storage 키는 그런 문자를 거부한다("Invalid key"). */
+const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/gif": "gif",
+  "image/webp": "webp",
+};
+
 /** 업로드 전 클라이언트에서 즉시 피드백을 주기 위한 1차 검증. 실제 경계는 Storage 버킷 설정이다. */
 export const validateImageFile = (file: File): string | null => {
   if (!ALLOWED_ATTACHMENT_MIME_TYPES.includes(file.type)) {
@@ -28,7 +37,8 @@ export const uploadBodyImage = async (
   file: File
 ): Promise<{ url: string; fileName: string } | null> => {
   const supabase = createClient();
-  const storagePath = `${crypto.randomUUID()}-${file.name}`;
+  const extension = EXTENSION_BY_MIME_TYPE[file.type] ?? "bin";
+  const storagePath = `${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage
     .from(ATTACHMENT_BUCKET)
