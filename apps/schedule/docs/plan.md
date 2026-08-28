@@ -684,3 +684,15 @@
 - [x] middleware.ts/page.tsx의 `auth.getUser()` 중복 호출 제거는 별도 브랜치(PR #173, x-user-id 헤더 재사용 패턴)로 분리해 처리, develop에 먼저 머지됨 — 이 브랜치를 develop에 맞춰 병합하며 `page.tsx`도 `headers().get("x-user-id")` 기반으로 다시 정리
 - [x] pnpm build / pnpm lint 검증 (develop 병합 후 재검증)
 - [ ] 마이그레이션은 SQL 에디터 또는 `supabase db push`로 실제 Supabase 프로젝트에 직접 적용 필요 (사용자가 직접 진행)
+
+## 일정 본문에 이미지 인라인 삽입
+
+일정에 이미지를 첨부하고 싶다는 요청. 처음에는 댓글처럼 별도 "이미지" 갤러리 섹션으로 구현했으나, 사용자가 원한 건 본문(body) 텍스트 안에 마크다운 이미지처럼 인라인으로 삽입하는 방식이었다. 댓글의 "@슬러그" 언급 마커 패턴(`_lib/mentions.ts`)을 그대로 본떠 재구현했다. 상세 설계는 `~/.claude/plans/cached-tickling-mango.md` 참고.
+
+- [x] `supabase/migrations/0014_add_task_attachments.sql`: `task-attachments` Storage 버킷 생성(public, 5MB, 이미지 4종) + `storage.objects` RLS(authenticated read/insert). 별도 메타데이터 테이블은 두지 않는다(이미지 참조가 body 텍스트 자체에 마크다운으로 저장되므로)
+- [x] `src/app/_lib/imageUpload.ts` 신규 작성: `validateImageFile`, `uploadBodyImage`(taskId 없이 브라우저에서 Storage로 직접 업로드, 서버 액션 불필요 — 아직 저장 안 된 새 일정 작성 중에도 바로 삽입 가능해야 해서)
+- [x] `src/app/_lib/bodyImages.ts` 신규 작성: `insertImageMarkdown`(mentions.ts의 insertMention과 동일한 모양), `splitBodyImageSegments`/`countBodyImages`(mentions.ts의 splitMentionSegments를 미러링, 정규식 `!\[([^\]]*)\]\(([^)\s]+)\)`)
+- [x] `TaskCreateModal.tsx`: 본문 textarea 아래 "+ 이미지" 버튼 + 숨김 파일 input 추가. 클릭 시 커서 위치를 미리 캡처해두고(파일 대화상자로 포커스 이탈 대비) 업로드 성공 시 그 위치에 마커 삽입, 커서를 마커 뒤로 이동(CommentEditor의 멘션 삽입과 동일 타이밍). 생성/수정 모드 구분 없이 동일하게 동작(본문 편집 자체가 항상 가능하므로 별도 draft/즉시반영 분기 불필요)
+- [x] `KanbanCard.tsx`: 본문 미리보기를 `splitBodyImageSegments`로 렌더링(텍스트는 그대로, 이미지 마커는 작은 인라인 `<img>`), 첨부 개수 배지를 `countBodyImages(task.body)`로 prop 없이 자체 계산
+- [ ] pnpm build / pnpm lint 검증
+- [ ] 마이그레이션 SQL(0014)을 사용자가 Supabase 대시보드 SQL Editor에서 직접 적용 (Claude가 대신 실행 불가)

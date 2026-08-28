@@ -5,6 +5,8 @@ import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
 import { CornerDownLeft } from "lucide-react";
 import { createTask, deleteTask, updateTask } from "../../_lib/actions";
+import { insertImageMarkdown } from "../../_lib/bodyImages";
+import { uploadBodyImage, validateImageFile } from "../../_lib/imageUpload";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
 import { ModalOverlay } from "@/components/ModalOverlay";
@@ -72,8 +74,13 @@ const TaskCreateModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [subtaskDrafts, setSubtaskDrafts] = useState<SubtaskDraft[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  // 파일 선택 대화상자가 뜨는 동안 textarea가 포커스/선택 정보를 잃을 수 있어,
+  // 버튼을 누른 시점의 커서 위치를 미리 잡아둔다.
+  const insertionRangeRef = useRef({ start: 0, end: 0 });
 
   const weekLabel = getWeekLabel(getMonday(new Date(dueDate)));
   const isEditing = !!task;
@@ -89,6 +96,45 @@ const TaskCreateModal = ({
 
   const removeSubtaskDraft = (id: string) =>
     setSubtaskDrafts((prev) => prev.filter((draft) => draft.id !== id));
+
+  const handleInsertImageClick = () => {
+    const textarea = bodyRef.current;
+    insertionRangeRef.current = {
+      start: textarea?.selectionStart ?? body.length,
+      end: textarea?.selectionEnd ?? body.length,
+    };
+    imageInputRef.current?.click();
+  };
+
+  const handleImageFileSelected = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      window.alert(validationError);
+      return;
+    }
+
+    setIsUploadingImage(true);
+    const uploaded = await uploadBodyImage(file);
+    setIsUploadingImage(false);
+
+    if (!uploaded) {
+      window.alert("이미지 업로드에 실패했습니다.");
+      return;
+    }
+
+    const { start, end } = insertionRangeRef.current;
+    const next = insertImageMarkdown(body, start, end, uploaded.fileName, uploaded.url);
+    setBody(next.text);
+
+    // setBody가 반영된 뒤에 커서를 옮겨야 삽입한 마커 뒤가 아니라 예전 위치로 튀지 않는다.
+    requestAnimationFrame(() => {
+      bodyRef.current?.focus();
+      bodyRef.current?.setSelectionRange(next.caretIndex, next.caretIndex);
+    });
+  };
 
   const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -270,6 +316,25 @@ const TaskCreateModal = ({
               value={body}
               onChange={(event) => setBody(event.target.value)}
             />
+
+            <input
+              ref={imageInputRef}
+              className="hidden"
+              accept="image/*"
+              type="file"
+              onChange={(event) => {
+                void handleImageFileSelected(event.target.files);
+                event.target.value = "";
+              }}
+            />
+            <button
+              className="rounded-md px-1.5 py-1 text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+              disabled={isUploadingImage}
+              type="button"
+              onClick={handleInsertImageClick}
+            >
+              {isUploadingImage ? "업로드 중..." : "+ 이미지"}
+            </button>
           </div>
 
           {canAddSubtasks && (
