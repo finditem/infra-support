@@ -4,11 +4,10 @@ import { useDraggable } from "@dnd-kit/core";
 import { format } from "date-fns";
 import { ExternalLink, GripVertical, Image as ImageIcon, MessageSquare } from "lucide-react";
 import Link from "next/link";
-import { Fragment } from "react";
 import type { KeyboardEvent, ReactNode, Ref } from "react";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
-import { countBodyImages, splitBodyImageSegments } from "../_lib/bodyImages";
+import { countBodyImages, stripBodyImages } from "../_lib/bodyImages";
 import { isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
 import ProfileAvatar from "./ProfileAvatar";
@@ -53,6 +52,9 @@ const KanbanCardView = ({
   const priority = PRIORITY_META[task.priority];
   const overdue = isTaskOverdue(task, statuses);
   const attachmentCount = task.body ? countBodyImages(task.body) : 0;
+  const bodyText = task.body ? stripBodyImages(task.body) : "";
+  // 본문이 이미지로만 채워져 있으면(텍스트가 하나도 안 남으면) "이미지"라는 문구만 보여준다.
+  const bodyPreviewText = bodyText || (attachmentCount > 0 ? "이미지" : "");
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!onSelect) return;
@@ -105,22 +107,7 @@ const KanbanCardView = ({
 
       <h3 className="text-sm font-semibold text-text-default">{task.title}</h3>
 
-      {task.body && (
-        <p className="flex flex-wrap items-center gap-1 text-xs text-text-muted">
-          {splitBodyImageSegments(task.body).map((segment, index) =>
-            segment.type === "image" ? (
-              <img
-                key={index}
-                alt={segment.alt}
-                className="size-8 shrink-0 rounded object-cover"
-                src={segment.url}
-              />
-            ) : (
-              <Fragment key={index}>{segment.text}</Fragment>
-            )
-          )}
-        </p>
-      )}
+      {bodyPreviewText && <p className="truncate text-xs text-text-muted">{bodyPreviewText}</p>}
 
       <div className="flex items-center justify-between text-xs text-text-muted">
         <div className="flex items-center gap-3">

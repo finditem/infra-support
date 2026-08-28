@@ -694,5 +694,11 @@
 - [x] `src/app/_lib/bodyImages.ts` 신규 작성: `insertImageMarkdown`(mentions.ts의 insertMention과 동일한 모양), `splitBodyImageSegments`/`countBodyImages`(mentions.ts의 splitMentionSegments를 미러링, 정규식 `!\[([^\]]*)\]\(([^)\s]+)\)`)
 - [x] `TaskCreateModal.tsx`: 본문 textarea 아래 "+ 이미지" 버튼 + 숨김 파일 input 추가. 클릭 시 커서 위치를 미리 캡처해두고(파일 대화상자로 포커스 이탈 대비) 업로드 성공 시 그 위치에 마커 삽입, 커서를 마커 뒤로 이동(CommentEditor의 멘션 삽입과 동일 타이밍). 생성/수정 모드 구분 없이 동일하게 동작(본문 편집 자체가 항상 가능하므로 별도 draft/즉시반영 분기 불필요)
 - [x] `KanbanCard.tsx`: 본문 미리보기를 `splitBodyImageSegments`로 렌더링(텍스트는 그대로, 이미지 마커는 작은 인라인 `<img>`), 첨부 개수 배지를 `countBodyImages(task.body)`로 prop 없이 자체 계산
+- [x] 업로드 버그 수정: 파일명(한글/공백 포함)을 Storage 경로에 그대로 쓰면 `Invalid key` 에러가 나서, `imageUpload.ts`가 MIME 타입 기반 확장자(`{uuid}.{ext}`)로 경로를 만들도록 수정. 화면에 보이는 이름(마크다운 alt)은 원본 파일명 유지
+- [x] dnd-kit `DndContext`에 `id` 미지정으로 인한 하이드레이션 경고 수정(`KanbanBoard.tsx`, 이미지 기능과 무관한 기존 버그)
+- [x] 사용성 피드백 반영: 칸반 카드는 더 이상 이미지를 렌더링하지 않고 텍스트만 한 줄 truncate로 보여줌(이미지만 있는 본문이면 "이미지" 문구), 대신 일정 생성/수정 모달에 본문에 담긴 이미지를 실제로 보여주는 미리보기 갤러리(삭제 가능)를 추가
+  - `bodyImages.ts`: `BodyImageSegment`의 image variant에 `start`/`end` 추가, `stripBodyImages`(카드용 순수 텍스트 추출)/`removeBodyImage`(갤러리에서 개별 삭제) 신규
+  - `KanbanCard.tsx`: `splitBodyImageSegments` 렌더링 제거, `stripBodyImages` 기반 truncate 텍스트로 교체
+  - `TaskCreateModal.tsx`: 본문 textarea 아래에 `body`에서 파싱한 이미지 미리보기 그리드 추가(생성/수정 모드 공통, `body` state 파생이라 별도 배선 불필요), 각 썸네일에 ✕ 삭제 버튼(`removeBodyImage`로 해당 마커만 본문에서 제거)
 - [ ] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션 SQL(0014)을 사용자가 Supabase 대시보드 SQL Editor에서 직접 적용 (Claude가 대신 실행 불가)

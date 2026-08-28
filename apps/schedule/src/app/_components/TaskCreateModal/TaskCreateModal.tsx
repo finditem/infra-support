@@ -5,7 +5,12 @@ import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
 import { CornerDownLeft } from "lucide-react";
 import { createTask, deleteTask, updateTask } from "../../_lib/actions";
-import { insertImageMarkdown } from "../../_lib/bodyImages";
+import {
+  insertImageMarkdown,
+  removeBodyImage,
+  splitBodyImageSegments,
+} from "../../_lib/bodyImages";
+import type { BodyImageSegment } from "../../_lib/bodyImages";
 import { uploadBodyImage, validateImageFile } from "../../_lib/imageUpload";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
@@ -85,6 +90,10 @@ const TaskCreateModal = ({
   const weekLabel = getWeekLabel(getMonday(new Date(dueDate)));
   const isEditing = !!task;
   const canAddSubtasks = !isEditing && !parentId;
+  // 본문 textarea는 마크다운 마커 그대로만 보여주므로, 실제 이미지는 이 목록으로 따로 보여준다.
+  const bodyImages = splitBodyImageSegments(body).filter(
+    (segment): segment is Extract<BodyImageSegment, { type: "image" }> => segment.type === "image"
+  );
 
   const addSubtaskDraft = () =>
     setSubtaskDrafts((prev) => [...prev, { id: crypto.randomUUID(), title: "", body: "" }]);
@@ -335,6 +344,29 @@ const TaskCreateModal = ({
             >
               {isUploadingImage ? "업로드 중..." : "+ 이미지"}
             </button>
+
+            {bodyImages.length > 0 && (
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {bodyImages.map((image) => (
+                  <div
+                    key={image.start}
+                    className="group relative aspect-square overflow-hidden rounded-[10px] border border-border"
+                  >
+                    <img alt={image.alt} className="size-full object-cover" src={image.url} />
+                    <button
+                      aria-label="이미지 삭제"
+                      className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-md border border-border bg-surface-elevated text-[11px] text-text-muted opacity-0 hover:bg-fill-neutural-subtle-hover group-hover:opacity-100"
+                      type="button"
+                      onClick={() =>
+                        setBody((prev) => removeBodyImage(prev, image.start, image.end))
+                      }
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {canAddSubtasks && (
