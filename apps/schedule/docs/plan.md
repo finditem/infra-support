@@ -684,3 +684,11 @@
 - [x] middleware.ts/page.tsx의 `auth.getUser()` 중복 호출 제거는 별도 브랜치(PR #173, x-user-id 헤더 재사용 패턴)로 분리해 처리, develop에 먼저 머지됨 — 이 브랜치를 develop에 맞춰 병합하며 `page.tsx`도 `headers().get("x-user-id")` 기반으로 다시 정리
 - [x] pnpm build / pnpm lint 검증 (develop 병합 후 재검증)
 - [ ] 마이그레이션은 SQL 에디터 또는 `supabase db push`로 실제 Supabase 프로젝트에 직접 적용 필요 (사용자가 직접 진행)
+
+## 칸반 카드 드래그 핸들 하이드레이션 경고 수정
+
+사용자가 개발 서버에서 카드 드래그 핸들 버튼의 `aria-describedby` 속성이 서버/클라이언트 렌더링 사이에 값이 달라 하이드레이션 경고가 뜬다고 보고. `useDraggable()`이 반환하는 `attributes.aria-describedby`는 dnd-kit 내부 전역 카운터로 생성되는데, 이 카운터가 서버 요청과 클라이언트 최초 마운트 사이에 서로 다른 값에서 시작해 매번 어긋난다. 화면에 보이지 않는 스크린리더용 설명 id일 뿐 동작에는 영향이 없어, 경고만 억제하는 방식으로 수정.
+
+- [x] `KanbanCard.tsx`: `DraggableKanbanCard`의 드래그 핸들 `<button>`에 `suppressHydrationWarning` 추가
+- [x] `useDraggable`/`useSortable`을 쓰는 다른 컴포넌트(`KanbanColumn.tsx`)는 `useDroppable`만 사용하고 `attributes`를 spread하지 않아 동일 이슈 없음을 확인
+- [x] pnpm build / pnpm lint 검증
