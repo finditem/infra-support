@@ -177,6 +177,10 @@ const DraggableKanbanCard = ({
               : "cursor-grab hover:bg-fill-neutural-subtle-default active:cursor-grabbing"
           )}
           disabled={dragDisabled}
+          // dnd-kit이 attributes.aria-describedby에 넣는 id는 전역 카운터 기반이라
+          // 서버/클라이언트 렌더링 시점마다 값이 달라져 하이드레이션 경고가 발생한다.
+          // 접근성 스크린리더 설명용 id일 뿐 동작에는 영향이 없어 경고만 억제한다.
+          suppressHydrationWarning
           title={dragDisabled ? dragDisabledTitle : undefined}
           type="button"
           {...attributes}
