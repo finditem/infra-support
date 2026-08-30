@@ -684,3 +684,12 @@
 - [x] middleware.ts/page.tsx의 `auth.getUser()` 중복 호출 제거는 별도 브랜치(PR #173, x-user-id 헤더 재사용 패턴)로 분리해 처리, develop에 먼저 머지됨 — 이 브랜치를 develop에 맞춰 병합하며 `page.tsx`도 `headers().get("x-user-id")` 기반으로 다시 정리
 - [x] pnpm build / pnpm lint 검증 (develop 병합 후 재검증)
 - [ ] 마이그레이션은 SQL 에디터 또는 `supabase db push`로 실제 Supabase 프로젝트에 직접 적용 필요 (사용자가 직접 진행)
+
+## 새로고침 시 간헐적으로 칸반보드 전체가 안 뜨는 버그 수정
+
+사용자가 새로고침할 때 가끔 팀원 목록/일정 추가 버튼 등 화면 전체가 안 뜨고 "이번 주 데이터를 불러오지 못했습니다"만 표시된다고 보고. 조사 결과 `getOrCreateWeek`(`_lib/kanban.ts`)가 최초 `select` 쿼리의 에러를 확인하지 않아, 일시적 조회 실패 시 이미 존재하는 주차를 "없다"고 오판하고 `insert`를 시도하다 `weeks_year_week_number_key` unique 제약 위반으로 실패해 `null`을 반환하는 것이 원인으로 파악됨.
+
+- [x] `_lib/kanban.ts`: `getOrCreateWeek`의 최초 `select` 에러를 확인해 로깅하고, insert 실패 시 `error.code === "23505"`(unique violation)면 방금 다른 요청이 먼저 만든 행을 재조회해 반환하도록 수정
+- [x] `_lib/profiles.ts`, `_lib/teams.ts`: Supabase 쿼리 에러를 조용히 버리지 않고 `console.error`로 로깅하도록 수정
+- [x] `src/app/page.tsx` 문구 검토 — "이번 주 데이터를 불러오지 못했습니다."는 이미 실패 상태를 정확히 표현하고 있어("데이터 없음"이 아니라 "불러오지 못함") 별도 수정 불필요로 판단, 변경하지 않음
+- [x] pnpm build / pnpm lint 검증
