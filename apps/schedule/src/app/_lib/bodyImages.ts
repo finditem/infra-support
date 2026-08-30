@@ -1,36 +1,21 @@
 /**
- * 일정 본문(tasks.body)에 마크다운 이미지(![파일명](url))를 인라인으로 삽입/파싱하는 헬퍼.
- * `_lib/mentions.ts`의 "@슬러그" 언급 삽입/파싱 패턴을 그대로 본뜬 것이다 — 본문은 plain
- * <textarea>라 편집 중에는 실제 이미지가 아니라 마크다운 텍스트 그대로 보인다. 대신 일정 생성/수정
- * 모달에는 본문에 담긴 이미지를 실제로 보여주는 미리보기 갤러리가 별도로 있다(TaskCreateModal).
- * 칸반 카드 미리보기는 이미지 없이 텍스트만(이미지만 있는 본문이면 "이미지"라는 문구만) 보여준다.
+ * 일정 본문(tasks.body)에 인라인으로 담기는 마크다운 이미지(![파일명](url)) 파싱/조립 헬퍼.
+ *
+ * 편집 중에는 사용자가 이 마크다운을 직접 보지 않는다 — TaskCreateModal이 프로즈 텍스트와
+ * 이미지 목록을 따로 들고 있다가(첨부한 이미지는 별도 미리보기 갤러리로만 보여준다),
+ * 저장 시점에만 `buildBodyWithImages`로 합쳐 하나의 body 문자열을 만든다. 별도 메타데이터
+ * 테이블 없이 이미지 참조를 body 텍스트 자체에 담아두는 대신, 편집 화면에서 그 텍스트를
+ * 사용자에게 노출하지 않는 쪽으로 타협한 것이다.
+ *
+ * 이미 저장된 본문을 다시 열 때(`extractBodyImages`)와, 칸반 카드 미리보기에서 이미지를 걷어낸
+ * 텍스트만 보여줄 때(`stripBodyImages`/`countBodyImages`) 이 파일의 함수들로 파싱한다.
  */
 
 const BODY_IMAGE_PATTERN = /!\[([^\]]*)\]\(([^)\s]+)\)/g;
 
-export type BodyImageSegment =
-  | { type: "text"; text: string }
-  | { type: "image"; alt: string; url: string; start: number; end: number };
-
-/** 텍스트를 일반 텍스트와 이미지 조각으로 나눈다. 모달의 이미지 미리보기 갤러리를 그릴 때 쓴다. */
-export const splitBodyImageSegments = (text: string): BodyImageSegment[] => {
-  const segments: BodyImageSegment[] = [];
-  let lastIndex = 0;
-
-  for (const match of text.matchAll(BODY_IMAGE_PATTERN)) {
-    const index = match.index ?? 0;
-    const end = index + match[0].length;
-
-    if (index > lastIndex) segments.push({ type: "text", text: text.slice(lastIndex, index) });
-    segments.push({ type: "image", alt: match[1], url: match[2], start: index, end });
-
-    lastIndex = end;
-  }
-
-  if (lastIndex < text.length) segments.push({ type: "text", text: text.slice(lastIndex) });
-
-  return segments;
-};
+/** 저장된 본문에서 이미지 마크다운만 추출한다(alt/url 쌍). 일정을 다시 열 때 미리보기 갤러리를 채운다. */
+export const extractBodyImages = (text: string): { alt: string; url: string }[] =>
+  [...text.matchAll(BODY_IMAGE_PATTERN)].map((match) => ({ alt: match[1], url: match[2] }));
 
 /** 본문에 삽입된 이미지 개수. 칸반 카드 배지에 쓴다. */
 export const countBodyImages = (text: string): number =>
@@ -47,25 +32,14 @@ export const stripBodyImages = (text: string): string =>
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-/**
- * 선택 구간(start~end)을 이미지 마크다운으로 치환한 텍스트와 그 뒤에 놓을 커서 위치를 돌려준다.
- * insertMention과 동일한 모양이다.
- */
-export const insertImageMarkdown = (
+/** 프로즈 텍스트와 이미지 목록을 저장용 본문 문자열 하나로 합친다. 저장할 내용이 없으면 null. */
+export const buildBodyWithImages = (
   text: string,
-  start: number,
-  end: number,
-  altText: string,
-  url: string
-) => {
-  const marker = `![${altText}](${url})`;
+  images: { alt: string; url: string }[]
+): string | null => {
+  const trimmedText = text.trim();
+  const markerText = images.map((image) => `![${image.alt}](${image.url})`).join("\n");
+  const combined = [trimmedText, markerText].filter(Boolean).join("\n\n");
 
-  return {
-    text: `${text.slice(0, start)}${marker}${text.slice(end)}`,
-    caretIndex: start + marker.length,
-  };
+  return combined || null;
 };
-
-/** 모달의 이미지 미리보기 갤러리에서 이미지 하나를 지울 때, 그 마커(start~end)만 본문에서 제거한다. */
-export const removeBodyImage = (text: string, start: number, end: number): string =>
-  `${text.slice(0, start)}${text.slice(end)}`;

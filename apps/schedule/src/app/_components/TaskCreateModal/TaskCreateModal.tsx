@@ -5,12 +5,7 @@ import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
 import { CornerDownLeft } from "lucide-react";
 import { createTask, deleteTask, updateTask } from "../../_lib/actions";
-import {
-  insertImageMarkdown,
-  removeBodyImage,
-  splitBodyImageSegments,
-} from "../../_lib/bodyImages";
-import type { BodyImageSegment } from "../../_lib/bodyImages";
+import { buildBodyWithImages, extractBodyImages, stripBodyImages } from "../../_lib/bodyImages";
 import { uploadBodyImage, validateImageFile } from "../../_lib/imageUpload";
 import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../../_types/kanban";
@@ -27,6 +22,12 @@ interface SubtaskDraft {
   id: string;
   title: string;
   body: string;
+}
+
+interface ImageMarker {
+  id: string;
+  alt: string;
+  url: string;
 }
 
 interface TaskCreateModalProps {
@@ -64,7 +65,14 @@ const TaskCreateModal = ({
   onDeleted,
 }: TaskCreateModalProps) => {
   const [title, setTitle] = useState(task?.title ?? "");
-  const [body, setBody] = useState(task?.body ?? "");
+  // 본문은 프로즈 텍스트(bodyText)와 이미지 목록(imageMarkers)을 따로 들고 있다가 저장 시점에만
+  // buildBodyWithImages로 합친다 — 편집 화면에 이미지 마크다운 텍스트가 그대로 노출되지 않도록.
+  const [bodyText, setBodyText] = useState(() => (task?.body ? stripBodyImages(task.body) : ""));
+  const [imageMarkers, setImageMarkers] = useState<ImageMarker[]>(() =>
+    task?.body
+      ? extractBodyImages(task.body).map((image) => ({ id: crypto.randomUUID(), ...image }))
+      : []
+  );
   const [assigneeId, setAssigneeId] = useState<string | null>(
     task?.assignee_id ?? currentProfileId
   );
@@ -83,17 +91,10 @@ const TaskCreateModal = ({
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  // 파일 선택 대화상자가 뜨는 동안 textarea가 포커스/선택 정보를 잃을 수 있어,
-  // 버튼을 누른 시점의 커서 위치를 미리 잡아둔다.
-  const insertionRangeRef = useRef({ start: 0, end: 0 });
 
   const weekLabel = getWeekLabel(getMonday(new Date(dueDate)));
   const isEditing = !!task;
   const canAddSubtasks = !isEditing && !parentId;
-  // 본문 textarea는 마크다운 마커 그대로만 보여주므로, 실제 이미지는 이 목록으로 따로 보여준다.
-  const bodyImages = splitBodyImageSegments(body).filter(
-    (segment): segment is Extract<BodyImageSegment, { type: "image" }> => segment.type === "image"
-  );
 
   const addSubtaskDraft = () =>
     setSubtaskDrafts((prev) => [...prev, { id: crypto.randomUUID(), title: "", body: "" }]);
@@ -105,15 +106,6 @@ const TaskCreateModal = ({
 
   const removeSubtaskDraft = (id: string) =>
     setSubtaskDrafts((prev) => prev.filter((draft) => draft.id !== id));
-
-  const handleInsertImageClick = () => {
-    const textarea = bodyRef.current;
-    insertionRangeRef.current = {
-      start: textarea?.selectionStart ?? body.length,
-      end: textarea?.selectionEnd ?? body.length,
-    };
-    imageInputRef.current?.click();
-  };
 
   const handleImageFileSelected = async (files: FileList | null) => {
     const file = files?.[0];
@@ -134,16 +126,14 @@ const TaskCreateModal = ({
       return;
     }
 
-    const { start, end } = insertionRangeRef.current;
-    const next = insertImageMarkdown(body, start, end, uploaded.fileName, uploaded.url);
-    setBody(next.text);
-
-    // setBody가 반영된 뒤에 커서를 옮겨야 삽입한 마커 뒤가 아니라 예전 위치로 튀지 않는다.
-    requestAnimationFrame(() => {
-      bodyRef.current?.focus();
-      bodyRef.current?.setSelectionRange(next.caretIndex, next.caretIndex);
-    });
+    setImageMarkers((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), alt: uploaded.fileName, url: uploaded.url },
+    ]);
   };
+
+  const removeImageMarker = (id: string) =>
+    setImageMarkers((prev) => prev.filter((image) => image.id !== id));
 
   const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -157,11 +147,13 @@ const TaskCreateModal = ({
 
     setIsSubmitting(true);
 
+    const composedBody = buildBodyWithImages(bodyText, imageMarkers);
+
     const saved = task
       ? await updateTask({
           id: task.id,
           title: title.trim(),
-          body: body.trim() || null,
+          body: composedBody,
           statusId,
           assigneeId,
           reporterId,
@@ -170,7 +162,7 @@ const TaskCreateModal = ({
         })
       : await createTask({
           title: title.trim(),
-          body: body.trim() || null,
+          body: composedBody,
           statusId,
           assigneeId,
           reporterId,
@@ -322,8 +314,8 @@ const TaskCreateModal = ({
               ref={bodyRef}
               className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none bg-transparent text-[13px] leading-[1.75] text-text-muted outline-none"
               placeholder="설명을 추가하세요..."
-              value={body}
-              onChange={(event) => setBody(event.target.value)}
+              value={bodyText}
+              onChange={(event) => setBodyText(event.target.value)}
             />
 
             <input
@@ -340,16 +332,16 @@ const TaskCreateModal = ({
               className="rounded-md px-1.5 py-1 text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
               disabled={isUploadingImage}
               type="button"
-              onClick={handleInsertImageClick}
+              onClick={() => imageInputRef.current?.click()}
             >
               {isUploadingImage ? "업로드 중..." : "+ 이미지"}
             </button>
 
-            {bodyImages.length > 0 && (
+            {imageMarkers.length > 0 && (
               <div className="mt-2 grid grid-cols-4 gap-2">
-                {bodyImages.map((image) => (
+                {imageMarkers.map((image) => (
                   <div
-                    key={image.start}
+                    key={image.id}
                     className="group relative aspect-square overflow-hidden rounded-[10px] border border-border"
                   >
                     <img alt={image.alt} className="size-full object-cover" src={image.url} />
@@ -357,9 +349,7 @@ const TaskCreateModal = ({
                       aria-label="이미지 삭제"
                       className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-md border border-border bg-surface-elevated text-[11px] text-text-muted opacity-0 hover:bg-fill-neutural-subtle-hover group-hover:opacity-100"
                       type="button"
-                      onClick={() =>
-                        setBody((prev) => removeBodyImage(prev, image.start, image.end))
-                      }
+                      onClick={() => removeImageMarker(image.id)}
                     >
                       ✕
                     </button>

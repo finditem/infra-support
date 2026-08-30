@@ -700,5 +700,8 @@
   - `bodyImages.ts`: `BodyImageSegment`의 image variant에 `start`/`end` 추가, `stripBodyImages`(카드용 순수 텍스트 추출)/`removeBodyImage`(갤러리에서 개별 삭제) 신규
   - `KanbanCard.tsx`: `splitBodyImageSegments` 렌더링 제거, `stripBodyImages` 기반 truncate 텍스트로 교체
   - `TaskCreateModal.tsx`: 본문 textarea 아래에 `body`에서 파싱한 이미지 미리보기 그리드 추가(생성/수정 모드 공통, `body` state 파생이라 별도 배선 불필요), 각 썸네일에 ✕ 삭제 버튼(`removeBodyImage`로 해당 마커만 본문에서 제거)
+- [x] 재구조화: textarea에 마크다운 마커 텍스트가 그대로 보이는 게 불필요하다는 피드백 반영 — `body` 단일 state 대신 프로즈 텍스트(`bodyText`)와 이미지 목록(`imageMarkers`, `{id, alt, url}[]`)을 분리해서 들고 있다가 저장 시점에만 `buildBodyWithImages`로 합침. textarea에는 사용자가 입력한 프로즈만 보이고, 이미지는 미리보기 갤러리에서만 관리(커서 위치 캡처/마커 삽입 로직 전부 제거로 코드도 더 단순해짐)
+  - `bodyImages.ts`: `insertImageMarkdown`/`removeBodyImage`/`splitBodyImageSegments`/`BodyImageSegment` 제거(더 이상 필요 없음), `extractBodyImages`(저장된 본문 재파싱해 alt/url 목록 추출)·`buildBodyWithImages`(프로즈+이미지 목록 → 저장용 문자열) 신규
+  - `TaskCreateModal.tsx`: `body` state를 `bodyText`+`imageMarkers`로 분리, 업로드 시 `imageMarkers`에 push, 갤러리 ✕는 해당 id만 filter, 제출 시 `buildBodyWithImages(bodyText, imageMarkers)`로 최종 body 조립
 - [ ] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션 SQL(0014)을 사용자가 Supabase 대시보드 SQL Editor에서 직접 적용 (Claude가 대신 실행 불가)
