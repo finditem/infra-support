@@ -703,5 +703,6 @@
 - [x] 재구조화: textarea에 마크다운 마커 텍스트가 그대로 보이는 게 불필요하다는 피드백 반영 — `body` 단일 state 대신 프로즈 텍스트(`bodyText`)와 이미지 목록(`imageMarkers`, `{id, alt, url}[]`)을 분리해서 들고 있다가 저장 시점에만 `buildBodyWithImages`로 합침. textarea에는 사용자가 입력한 프로즈만 보이고, 이미지는 미리보기 갤러리에서만 관리(커서 위치 캡처/마커 삽입 로직 전부 제거로 코드도 더 단순해짐)
   - `bodyImages.ts`: `insertImageMarkdown`/`removeBodyImage`/`splitBodyImageSegments`/`BodyImageSegment` 제거(더 이상 필요 없음), `extractBodyImages`(저장된 본문 재파싱해 alt/url 목록 추출)·`buildBodyWithImages`(프로즈+이미지 목록 → 저장용 문자열) 신규
   - `TaskCreateModal.tsx`: `body` state를 `bodyText`+`imageMarkers`로 분리, 업로드 시 `imageMarkers`에 push, 갤러리 ✕는 해당 id만 filter, 제출 시 `buildBodyWithImages(bodyText, imageMarkers)`로 최종 body 조립
+- [x] 업로드 성능 최적화: `imageUpload.ts`에 `resizeImageFile` 추가, `uploadBodyImage`가 업로드 전에 호출. 긴 변 1600px 초과 시에만 canvas로 축소하고 원본 포맷 유지(JPEG/WEBP는 quality 0.85, PNG는 무시되지만 크기 축소는 적용됨), GIF는 애니메이션 보존을 위해 건드리지 않음, 리사이즈 중 에러가 나면 원본 파일로 폴백. 5MB 용량 검증(`validateImageFile`)은 리사이즈 전 원본 기준 그대로 유지
 - [ ] pnpm build / pnpm lint 검증
 - [ ] 마이그레이션 SQL(0014)을 사용자가 Supabase 대시보드 SQL Editor에서 직접 적용 (Claude가 대신 실행 불가)
