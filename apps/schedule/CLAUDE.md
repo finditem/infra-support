@@ -1,6 +1,6 @@
 # schedule
 
-찾아줘! 팀 내부 일정 관리 툴. Next.js App Router SPA(별도 백엔드 앱 없음), 모니터링 프로젝트와는 완전히 분리된 자체 Supabase 프로젝트를 사용한다.
+찾길 팀 내부 일정 관리 툴. Next.js App Router SPA(별도 백엔드 앱 없음), 모니터링 프로젝트와는 완전히 분리된 자체 Supabase 프로젝트를 사용한다.
 
 ## 기술 스택
 
@@ -35,8 +35,9 @@ supabase/
 
 - 서버 컴포넌트/라우트 핸들러에서는 항상 `src/lib/supabase/server.ts`의 `createClient()`를 사용한다.
 - 클라이언트 컴포넌트에서는 `src/lib/supabase/client.ts`의 `createClient()`를 사용한다.
-- 인증 가드는 `src/middleware.ts`에서 처리한다. `/login`을 제외한 모든 경로는 비로그인 시 `/login`으로 리다이렉트된다. 새 공개 경로가 필요하면 `middleware.ts`의 `PUBLIC_PATHS`에 추가한다.
+- 인증 가드는 `src/middleware.ts`에서 처리한다. `NO_AUTH_REQUIRED_PATHS`(비로그인도 접근 가능)와 `GUEST_ONLY_PATHS`(로그인 시 `/`로 리다이렉트)를 분리해서 관리한다 — `/login`처럼 로그인 상태에서 접근하면 안 되는 경로는 두 배열 모두에, `/auth/confirm`처럼 로그인 여부와 무관하게 항상 접근 가능해야 하는 경로는 `NO_AUTH_REQUIRED_PATHS`에만 추가한다.
 - 회원가입 화면은 두지 않는다 — 관리자가 Supabase 대시보드에서 계정을 생성하면 `handle_new_user` 트리거가 `profiles` 행을 자동으로 만든다.
+- `src/middleware.ts`는 `auth.getUser()`로 검증한 유저 id를 `x-user-id` 요청 헤더에 실어 보낸다(클라이언트가 같은 헤더를 보내도 항상 여기서 set/delete로 덮어써 위조되지 않는다). 서버 컴포넌트에서 로그인한 유저 id만 필요하면 `auth.getUser()`를 다시 호출하지 말고 `next/headers`의 `headers().get("x-user-id")`로 재사용한다(예: `src/app/page.tsx`) — 왕복 네트워크 호출을 줄일 수 있다. 세션 자체를 검증해야 하는 민감한 경로라면 여전히 `auth.getUser()`를 직접 호출한다.
 
 ## 데이터/타입
 
@@ -50,7 +51,32 @@ monitor-web과 동일하게 `packages/design-tokens`를 그대로 사용한다 (
 
 주요 색상 토큰: `primary`/`primary-hover`(블루), `secondary`(퍼플), `surface`/`surface-elevated`(배경), `text-default`/`text-muted`/`text-inverse`(텍스트), `border`(보더), `success`/`warning`/`error`, `fg-state-error` 등. 전체 목록은 `packages/design-tokens/dist/tailwind/preset.cjs` 참고. 폰트는 `font-family-base: Pretendard, sans-serif` 토큰을 쓰지만 monitor-web과 마찬가지로 별도 폰트 파일 로드는 하지 않는다(시스템 폴백).
 
-앱 전용 다크 테마(DESIGN.md 기반)는 채택하지 않기로 했다 — 모노레포 전체 색상 일관성을 우선했다.
+라이트/다크 모드를 지원한다. `packages/design-tokens`는 라이트 전용 단일 모드라 건드리지 않고, `apps/schedule` 앱 레벨에서 `tailwind.config.ts`(darkMode: "class")와 `globals.css`의 CSS 변수 오버라이드로 처리한다. DB에 저장된 상태(`task_statuses`) 색상처럼 인라인 style로 쓰는 값은 라이트/다크용 컬럼을 별도로 두고 헬퍼로 선택한다.
+
+조건부로 갈리는 className은 템플릿 리터럴 대신 `src/utils`의 `cn()`을 사용한다.
+
+```tsx
+// bad
+className={`text-xs ${isActive ? "text-primary" : "text-text-muted"}`}
+
+// good
+className={cn("text-xs", isActive ? "text-primary" : "text-text-muted")}
+```
+
+3단 이상 중첩되는 삼항연산자는 금지한다. 분기가 3개 이상이면 `if`를 순서대로 쌓은 별도 함수로 분리해 반환값을 계산한 뒤 JSX에서는 그 결과만 쓴다.
+
+```tsx
+// bad
+const className = a ? "a" : b ? "b" : c ? "c" : "d";
+
+// good
+const getClassName = (a: boolean, b: boolean, c: boolean) => {
+  if (a) return "a";
+  if (b) return "b";
+  if (c) return "c";
+  return "d";
+};
+```
 
 Tailwind 유틸리티 클래스를 쓸 때는 임의값(`p-[4px]`, `w-[16px]` 등) 대신 기본 스페이싱/사이즈 스케일에 대응하는 축약 클래스(`p-1`, `w-4` 등)를 우선 사용한다. 스케일에 없는 값일 때만 임의값을 쓴다.
 
@@ -68,7 +94,15 @@ pnpm lint    # next lint
 
 ## 환경 변수
 
-`.env.example` 참고. `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`는 이 앱 전용 Supabase 프로젝트(모니터링 프로젝트와 별개)의 값을 사용한다. 서버 전용 키(service role)는 쓰지 않는다 — 별도 백엔드 앱이 없고 클라이언트에서 anon key + RLS로 접근하는 구조이기 때문이다.
+`.env.example` 참고. `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`는 이 앱 전용 Supabase 프로젝트(모니터링 프로젝트와 별개)의 값을 사용한다. 일반 페이지/서버 액션은 로그인 세션이 항상 있으므로 여전히 anon key + RLS(`to authenticated`)로 접근한다.
+
+Slack 웹훅(`src/app/api/slack/`)과 cron 라우트(`src/app/api/cron/`)는 예외다. Slack이나 Vercel Cron이 직접 호출하는 요청이라 로그인 세션이 없고, anon key로는 RLS를 통과하지 못한다. 이 라우트들에서만 `src/lib/supabase/service.ts`의 `createServiceClient()`(service role 키, RLS 우회)를 쓴다. service role 키는 절대 클라이언트 컴포넌트/번들에 import하지 않는다.
+
+Slack 알림용 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL`은 서버 전용 값이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다. 서버 액션(`src/app/_lib/actions.ts`)에서만 읽으므로 클라이언트 번들에 포함되지 않는다. 세 값이 없으면 알림만 건너뛰고 일정 저장은 정상 동작한다.
+
+봇 인바운드 연동(Slack 웹훅 수신, cron)에는 추가로 `SUPABASE_SERVICE_ROLE_KEY`(service role 클라이언트), `SLACK_SIGNING_SECRET`(Slack 요청 서명 검증), `OPENAI_API_KEY`(자연어 일정 등록 LLM 파싱, GPT-5 nano), `CRON_SECRET`(cron 엔드포인트 인증)이 필요하다. 모두 서버 전용이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다.
+
+자연어 일정 등록의 OpenAI 호출에는 별도 킬 스위치 `SLACK_AI_TASK_CREATION_ENABLED`가 있다. `OPENAI_API_KEY`가 설정돼 있어도 이 값이 정확히 `"true"`가 아니면 API를 호출하지 않고 "준비 중" 안내만 보낸다(기본값 비활성). 크레딧이 없거나 의도치 않은 토큰 소모를 막고 싶을 때 이 플래그만 끄면 된다.
 
 ## 기획 문서 및 작업 계획
 

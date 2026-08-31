@@ -1,63 +1,73 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useOutsideClose, usePopoverPosition } from "@/hooks";
 import { cn } from "@/utils";
 
-const GAP = 4;
-
 interface PropertyPopoverProps {
-  label: string;
+  label?: string;
+  labelClassName?: string;
   trigger: React.ReactNode;
+  triggerClassName?: string;
   panelClassName?: string;
+  align?: "left" | "center";
   children: (close: () => void) => React.ReactNode;
 }
 
-const PropertyPopover = ({ label, trigger, panelClassName, children }: PropertyPopoverProps) => {
+const PropertyPopover = ({
+  label,
+  labelClassName,
+  trigger,
+  triggerClassName,
+  panelClassName,
+  align = "left",
+  children,
+}: PropertyPopoverProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // 모달 컨테이너의 overflow-hidden에 잘리지 않도록 패널을 body에 Portal로 띄우고,
-  // 트리거 기준 좌표를 직접 계산한다. 아래쪽 공간이 부족하면 위쪽으로 뒤집는다.
-  useLayoutEffect(() => {
-    if (!isOpen || !triggerRef.current) return;
+  // 트리거 기준 좌표를 직접 계산한다.
+  const position = usePopoverPosition({ isOpen, anchorRef: triggerRef, panelRef, align });
+  useOutsideClose(isOpen, [triggerRef, panelRef], () => setIsOpen(false));
 
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const panelHeight = panelRef.current?.offsetHeight ?? 0;
-    const spaceBelow = window.innerHeight - triggerRect.bottom;
-    const showAbove = panelHeight > 0 && spaceBelow < panelHeight + GAP;
-
-    setPosition({
-      top: showAbove ? triggerRect.top - panelHeight - GAP : triggerRect.bottom + GAP,
-      left: triggerRect.left,
-    });
-  }, [isOpen]);
-
+  // ESC는 모달보다 이 팝오버가 먼저 받아야 한다. 모달은 document에서 듣고 있으므로
+  // 그보다 앞서는 window 캡처 단계에서 가로채고, 처리했다는 사실을 preventDefault로 남긴다.
+  // MentionPicker도 같은 방식으로 모달과 층을 나눈다.
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (!triggerRef.current?.contains(target) && !panelRef.current?.contains(target)) {
-        setIsOpen(false);
-      }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+
+      event.preventDefault();
+      setIsOpen(false);
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [isOpen]);
 
   return (
     <>
       <button
         ref={triggerRef}
-        className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left transition hover:bg-fill-neutural-subtle-hover"
+        className={cn(
+          "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left transition hover:bg-fill-neutural-subtle-hover",
+          triggerClassName
+        )}
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
       >
-        <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">{label}</span>
+        {label && (
+          <span
+            className={cn("w-11 shrink-0 text-[11px] font-medium text-text-muted", labelClassName)}
+          >
+            {label}
+          </span>
+        )}
         {trigger}
       </button>
 

@@ -14,7 +14,7 @@ interface KanbanFiltersProps {
 
 const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps) => {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <select
         aria-label="담당자 필터"
         className={SELECT_CLASSNAME}
@@ -24,7 +24,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         <option value="">담당자: 전체</option>
         {profiles.map((profile) => (
           <option key={profile.id} value={profile.id}>
-            {profile.name}
+            담당자: {profile.name}
           </option>
         ))}
       </select>
@@ -38,7 +38,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         <option value="">보고자: 전체</option>
         {profiles.map((profile) => (
           <option key={profile.id} value={profile.id}>
-            {profile.name}
+            보고자: {profile.name}
           </option>
         ))}
       </select>
@@ -57,7 +57,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         <option value="">우선순위: 전체</option>
         {PRIORITY_ORDER.map((priority) => (
           <option key={priority} value={priority}>
-            {PRIORITY_META[priority].label}
+            우선순위: {PRIORITY_META[priority].label}
           </option>
         ))}
       </select>
@@ -67,7 +67,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         className={cn(
           "rounded-full border px-3 py-[6px] text-xs font-semibold transition",
           filter.onlyMine
-            ? "border-primary bg-primary/10 text-primary"
+            ? "bg-primary/10 border-primary text-primary"
             : "border-border text-text-muted"
         )}
         type="button"

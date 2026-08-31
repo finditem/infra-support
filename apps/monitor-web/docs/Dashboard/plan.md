@@ -2,7 +2,7 @@
 
 - [x] DashboardTimeToggle: 24일/7일 토글 상태별 UI 작업
 - [x] DashboardSummaryCard: 사용 중인 아이콘 색상 수정
-- [ ] DashboardResponseTimeChart: 마우스 이벤트로 확대/축소 시 표출되는 차트 수정
+- [x] DashboardResponseTimeChart: 마우스 이벤트로 확대/축소 시 표출되는 차트 수정 — 사용자 판단으로 불필요하다고 결정, 진행 안 함
 - [x] DashboardApiList: 상태 뱃지 디자인 수정
 - [x] MOCK_RESPONSE_TIME_DATA: 7일치 raw 체크 데이터로 확장 (24h/7d 뷰가 동일 소스에서 필터링되도록)
 - [x] ApiResponseTimeChartUtils: 7일 뷰용 일 단위 tick 생성 유틸 추가 (createThreeHourTicks에 대응)
@@ -24,6 +24,7 @@
 - [x] DashboardApiList: 기존 `apis.queries.ts`의 `getApis`(apis 테이블 목록)와 `useApiResponseTimeQuery`(7일치 monitoring_results)를 조합해 API별 최신 상태/응답속도/최근 성공률을 계산하는 `_utils` 함수 추가 — 실제 파일은 `queries/mock/mock.queries.ts`의 `getApis`(plan.md 작성 당시 예정 경로와 다름). 이 김에 `getApis` select에 실제 `apis` 테이블에 없는 `url` 컬럼이 들어있던 버그 발견해 `source`/`category`로 수정 (`DashboardApiList`에 필요한 컬럼이기도 함). `DashboardApiListUtils.ts`에 `buildDashboardApiList` 추가
 - [x] DashboardApiList: `MOCK_DASHBOARD_API_LIST` → 위 조합 데이터로 교체
 - [x] `.env`의 `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` 로컬 설정 여부 사용자 확인 — 최초 확인 시 루트/`apps/monitor-web` 모두 `.env.example`만 존재하고 실제 `.env` 없었음. 이후 사용자가 `apps/monitor-web/.env`에 직접 값 채워 넣어 로컬 연동 정상 동작 확인
+- [x] `queries/mock/mock.queries.ts`를 원래 의도했던 경로인 `queries/apis/apis.queries.ts`로 이동하고 훅 이름을 `useMockListQuery` → `useApiListQuery`로 변경. Sidebar가 같은 목록 쿼리를 공유하게 되면서 "mock"이라는 이름이 실제 내용(Supabase `apis` 실데이터)과 어긋나는 문제가 커졌고, 같은 queryKey(`apisQueryKeys.list()`)로 쿼리가 두 벌 생기는 것을 막기 위함. `DashboardApiList`는 import만 교체
 - [x] 마이그레이션 완료 후 `src/mock/ApiResponseTime.ts`, `src/mock/dashboardApiList.ts` 사용처가 남아있는지 확인 후 삭제 여부 결정 — grep 결과 두 상수 모두 자기 자신 외 참조 없음 확인 후 삭제, `mock/index.ts` barrel export도 함께 정리
 
 ### 해결됨: monitoring_results에 데이터가 안 쌓이던 문제 (2026-07-20)

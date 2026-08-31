@@ -1,8 +1,13 @@
 import { useMemo, useState } from "react";
-import { Badge } from "@/components";
+import { Badge, EmptyState } from "@/components";
 import LogListItem from "./LogListItem";
 import Pagination from "./Pagination";
-import { LOG_LIST_FILTERS, LOG_LIST_PAGE_SIZE, type LogListFilterKey } from "../_constants";
+import {
+  LOG_LIST_EMPTY_MESSAGE,
+  LOG_LIST_FILTERS,
+  LOG_LIST_PAGE_SIZE,
+  type LogListFilterKey,
+} from "../_constants";
 import { cn } from "@/utils";
 import type { LogListItemData } from "../_types";
 
@@ -54,7 +59,7 @@ const LogList = ({ items, onCheckedChange }: LogListProps) => {
       <div
         aria-label="에러 로그 상태 필터"
         role="group"
-        className="flex items-center gap-6 px-12 py-8"
+        className="flex items-center gap-4 px-6 py-5"
       >
         {LOG_LIST_FILTERS.map((filter) => (
           <LogListFilterButton
@@ -69,16 +74,25 @@ const LogList = ({ items, onCheckedChange }: LogListProps) => {
 
       <LogListHeader />
 
-      <ul>
-        {pagedItems.map((item, index) => (
-          <LogListItem
-            key={item.id}
-            data={item}
-            isLast={index === pagedItems.length - 1}
-            onCheckedChange={(checked) => onCheckedChange(item.id, checked)}
-          />
-        ))}
-      </ul>
+      {pagedItems.length === 0 ? (
+        <EmptyState
+          icon="emptyErrorlog"
+          iconSize={60}
+          message={LOG_LIST_EMPTY_MESSAGE[selectedFilter]}
+          messageClassName="typo-header3-bold text-layout-header"
+        />
+      ) : (
+        <ul>
+          {pagedItems.map((item, index) => (
+            <LogListItem
+              key={item.id}
+              data={item}
+              isLast={index === pagedItems.length - 1}
+              onCheckedChange={(checked) => onCheckedChange(item.id, checked)}
+            />
+          ))}
+        </ul>
+      )}
 
       <Pagination currentPage={activePage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </section>
@@ -98,7 +112,7 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
   return (
     <button
       aria-pressed={isActive}
-      className="typo-header3-bold flex items-center gap-2 py-3"
+      className="typo-header4-bold flex items-center gap-2 py-3"
       type="button"
       onClick={onClick}
     >
@@ -117,11 +131,11 @@ const LogListFilterButton = ({ label, value, isActive, onClick }: LogListFilterB
 
 const LogListHeader = () => {
   return (
-    <div className="typo-body2-bold flex items-center justify-between bg-[#F9F9F9] px-12 py-6 text-[#858585]">
+    <div className="typo-body2-bold flex items-center justify-between bg-[#F9F9F9] px-6 py-4 text-[#858585]">
       <span>API 정보</span>
-      <div className="flex items-center gap-6 text-center">
-        <span className="w-[223px]">발생 시간</span>
-        <span className="w-[90px]">상태</span>
+      <div className="flex items-center gap-4 text-center">
+        <span className="w-[180px]">발생 시간</span>
+        <span className="w-[88px]">상태</span>
       </div>
     </div>
   );

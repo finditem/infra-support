@@ -1,0 +1,143 @@
+name: Emergency Merge
+
+# emergency 라벨이 붙은 PR에 관리자가 긴급 사유를 남기면 승인 없이 머지하고 사후 리뷰 이슈를 만든다.
+# 라벨과 사유 코멘트가 모두 있어야 한다. 라벨은 사람이 붙이는 전제 조건이고, 실제 방아쇠는 사람이 쓰는 사유 코멘트다.
+# D 라벨은 처리 기한만 나타내며 이 워크플로와 무관하다.
+# 승인 요구만 건너뛰고 필수 상태 체크는 그대로 기다린다.
+
+on:
+  pull_request_target:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: emergency-merge-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    if: >-
+      (github.event_name == 'pull_request_target' && github.event.label.name == 'emergency') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request != null &&
+       startsWith(github.event.comment.body, '긴급 사유:'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Merge and open follow-up review issue
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          set -euo pipefail
+
+          gh pr view "$PR_NUMBER" \
+            --json number,title,url,author,state,isDraft,baseRefName,labels,reviewRequests,comments \
+            > pr.json
+
+          # 조건을 갖추지 못한 경우는 오류가 아니라 평범한 상태다. 조용히 끝낸다.
+          skip() {
+            echo "$1"
+            exit 0
+          }
+
+          [ "$(jq -r '.state' pr.json)" = "OPEN" ] || skip "이미 닫힌 PR이다."
+          [ "$(jq -r '.isDraft' pr.json)" = "false" ] || skip "초안 PR이다."
+
+          BASE=$(jq -r '.baseRefName' pr.json)
+          case "$BASE" in
+            develop|main) ;;
+            *) skip "긴급 머지 대상 브랜치가 아니다: ${BASE}" ;;
+          esac
+
+          jq -e '[.labels[].name] | index("emergency")' pr.json > /dev/null \
+            || skip "emergency 라벨이 없다."
+
+          # 마지막 긴급 사유 코멘트를 찾는다. 라벨만 있고 사유가 없으면 머지하지 않는다.
+          jq -e '[.comments[] | select(.body | startswith("긴급 사유:"))] | length > 0' pr.json > /dev/null \
+            || skip "긴급 사유 코멘트가 없다. emergency 라벨만으로는 머지하지 않는다."
+
+          REASON=$(jq -r '[.comments[] | select(.body | startswith("긴급 사유:"))] | last | .body' pr.json)
+          REQUESTER=$(jq -r '[.comments[] | select(.body | startswith("긴급 사유:"))] | last | .author.login' pr.json)
+          PR_TITLE=$(jq -r '.title' pr.json)
+          PR_URL=$(jq -r '.url' pr.json)
+          PR_AUTHOR=$(jq -r '.author.login' pr.json)
+          REVIEWERS=$(jq -r '[.reviewRequests[] | (.login // empty)] | join(" ")' pr.json)
+
+          # 사유를 남긴 사람이 저장소를 관리할 권한이 있는지 확인한다.
+          PERMISSION=$(gh api "repos/${GH_REPO}/collaborators/${REQUESTER}/permission" --jq '.permission')
+          if [ "$PERMISSION" != "admin" ] && [ "$PERMISSION" != "maintain" ]; then
+            gh pr comment "$PR_NUMBER" --body "긴급 머지는 저장소 관리 권한이 있는 사람만 요청할 수 있습니다. @${REQUESTER} 님의 권한은 ${PERMISSION} 이라 진행하지 않습니다. 라벨은 그대로 두고 일반 리뷰 절차를 따릅니다."
+            skip "요청자 권한이 부족하다."
+          fi
+
+          # 필수 상태 체크는 그대로 기다린다. 체크가 아직 등록되지 않았으면 잠시 후 다시 본다.
+          CHECKS_OK=0
+          for ATTEMPT in $(seq 1 10); do
+            set +e
+            gh pr checks "$PR_NUMBER" --required --watch --fail-fast --interval 30
+            STATUS=$?
+            set -e
+
+            if [ "$STATUS" -eq 0 ]; then
+              CHECKS_OK=1
+              break
+            fi
+
+            # 종료 코드 8은 아직 보고된 체크가 없다는 뜻이다.
+            if [ "$STATUS" -ne 8 ]; then
+              break
+            fi
+
+            echo "필수 체크가 아직 등록되지 않았다. ${ATTEMPT}번째 재시도."
+            sleep 30
+          done
+
+          if [ "$CHECKS_OK" -ne 1 ]; then
+            gh pr comment "$PR_NUMBER" --body "필수 상태 체크가 통과하지 않아 긴급 머지를 중단합니다. 승인 요구만 건너뛸 수 있고 체크 실패는 건너뛰지 않습니다. 체크를 통과시킨 뒤 긴급 사유를 다시 남겨 주세요."
+            exit 1
+          fi
+
+          gh pr merge "$PR_NUMBER" --merge
+
+          {
+            echo "리뷰 승인 없이 긴급 머지된 PR입니다. 머지된 내용을 사후에 확인해 주세요."
+            echo
+            echo "- 대상 PR: ${PR_URL}"
+            echo "- 작성자: @${PR_AUTHOR}"
+            echo "- 긴급 머지 요청: @${REQUESTER}"
+            echo
+            echo "## 긴급 사유"
+            echo
+            echo "${REASON}"
+            echo
+            echo "## 확인할 것"
+            echo
+            echo "- [ ] 머지된 변경 내용을 리뷰한다."
+            echo "- [ ] 후속 수정이 필요하면 별도 PR로 올린다."
+            echo "- [ ] 같은 상황이 반복되지 않도록 원인을 정리한다."
+          } > issue.md
+
+          ASSIGN_ARGS=(--assignee "$PR_AUTHOR")
+          for REVIEWER in $REVIEWERS; do
+            ASSIGN_ARGS+=(--assignee "$REVIEWER")
+          done
+
+          ISSUE_URL=$(gh issue create \
+            --title "사후 리뷰: #${PR_NUMBER} ${PR_TITLE}" \
+            --body-file issue.md \
+            "${ASSIGN_ARGS[@]}")
+
+          gh pr comment "$PR_NUMBER" --body "긴급 머지를 완료했습니다. 사후 리뷰 이슈를 만들었습니다: ${ISSUE_URL}"
+          echo "긴급 머지 완료. 사후 리뷰 이슈: ${ISSUE_URL}"

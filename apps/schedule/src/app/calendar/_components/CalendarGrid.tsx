@@ -10,43 +10,110 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
+import { useState } from "react";
+import { useEscapeKey } from "@/hooks";
+import type { AvailabilityRow } from "@/types/tables";
+import { cn } from "@/utils";
 import type { ProfileWithColor } from "../../_types/kanban";
-import type { MockAvailabilityBlock } from "../_lib/calendarMockData";
+import { deleteAvailability, deleteAvailabilitySeries } from "../_lib/actions";
+import { formatTimeRange } from "../_lib/time";
+import RecurringDeleteDialog from "./RecurringDeleteDialog";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
+const getDateBadgeClassName = (
+  isCurrentDay: boolean,
+  inMonth: boolean,
+  isSunday: boolean,
+  isHoliday: boolean
+) => {
+  if (isCurrentDay) return "bg-primary font-bold text-text-inverse";
+  if (!inMonth) return "text-text-muted/50";
+  if (isSunday || isHoliday) return "font-semibold text-fg-state-error";
+  return "text-text-default";
+};
+
 interface CalendarGridProps {
   monthStart: Date;
-  availability: MockAvailabilityBlock[];
+  availability: AvailabilityRow[];
+  holidayNames: Record<string, string>;
   profileColorMap: Map<string, ProfileWithColor>;
   selectedProfileId: string | null;
+  onDeleted: (ids: string[]) => void;
   onSelectDate: (date: string) => void;
 }
 
 const CalendarGrid = ({
   monthStart,
   availability,
+  holidayNames,
   profileColorMap,
   selectedProfileId,
+  onDeleted,
   onSelectDate,
 }: CalendarGridProps) => {
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [pendingSeriesBlock, setPendingSeriesBlock] = useState<AvailabilityRow | null>(null);
+
+  useEscapeKey(() => setPendingDeleteId(null), pendingDeleteId !== null);
+
   const gridStart = startOfWeek(startOfMonth(monthStart), { weekStartsOn: 0 });
   const gridEnd = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 0 });
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
   const visibleAvailability = selectedProfileId
-    ? availability.filter((block) => block.profileId === selectedProfileId)
+    ? availability.filter((block) => block.user_id === selectedProfileId)
     : availability;
+
+  const handleDelete = async (id: string) => {
+    const success = await deleteAvailability(id);
+    if (success) onDeleted([id]);
+    setPendingDeleteId(null);
+    setPendingSeriesBlock(null);
+  };
+
+  const handleDeleteFollowing = async (block: AvailabilityRow) => {
+    if (!block.recurrence_group_id) return;
+
+    const deletedIds = await deleteAvailabilitySeries(
+      block.recurrence_group_id,
+      block.user_id,
+      block.available_date
+    );
+
+    if (deletedIds.length > 0) onDeleted(deletedIds);
+    setPendingSeriesBlock(null);
+  };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface-elevated">
+      {/*
+        삭제 확인이 떠 있는 동안 바깥 클릭을 이 레이어가 받아 확인만 닫는다. 뒤 날짜 셀의 등록 모달이 함께 열리지 않도록 클릭을 흡수한다.
+        z-index는 날짜 셀 버튼(z-0)보다 위, 시간 블록 목록(z-10)보다 아래여야 한다. 목록이 스택 컨텍스트를 만들기 때문에
+        그 안의 삭제/취소 버튼은 z-index를 아무리 올려도 이 레이어 위로 올라오지 못한다.
+      */}
+      {pendingDeleteId && (
+        <div aria-hidden className="fixed inset-0 z-[5]" onClick={() => setPendingDeleteId(null)} />
+      )}
+
+      {pendingSeriesBlock && (
+        <RecurringDeleteDialog
+          block={pendingSeriesBlock}
+          profileName={profileColorMap.get(pendingSeriesBlock.user_id)?.name ?? null}
+          onCancel={() => setPendingSeriesBlock(null)}
+          onDeleteFollowing={() => void handleDeleteFollowing(pendingSeriesBlock)}
+          onDeleteOne={() => void handleDelete(pendingSeriesBlock.id)}
+        />
+      )}
+
       <div className="grid grid-cols-7 border-b border-border">
         {WEEKDAYS.map((weekday, index) => (
           <div
             key={weekday}
-            className={`p-[10px] text-center text-xs font-semibold ${
+            className={cn(
+              "p-[10px] text-center text-xs font-semibold",
               index === 0 ? "text-fg-state-error" : index === 6 ? "text-primary" : "text-text-muted"
-            }`}
+            )}
           >
             {weekday}
           </div>
@@ -56,44 +123,95 @@ const CalendarGrid = ({
       <div className="grid grid-cols-7">
         {days.map((day) => {
           const dateKey = format(day, "yyyy-MM-dd");
-          const dayBlocks = visibleAvailability.filter((block) => block.date === dateKey);
+          const dayBlocks = visibleAvailability.filter((block) => block.available_date === dateKey);
           const inMonth = isSameMonth(day, monthStart);
+          const holidayName = holidayNames[dateKey];
+          const isHoliday = Boolean(holidayName);
+          const isSunday = day.getDay() === 0;
 
           return (
-            <button
+            <div
               key={dateKey}
-              className="min-h-[110px] border-b border-r border-border/60 p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
-              type="button"
-              onClick={() => onSelectDate(dateKey)}
+              className="relative min-h-[110px] border-b border-r border-border p-2 text-left last:border-r-0 hover:bg-fill-neutural-subtle-hover"
             >
+              <button
+                aria-label={`${dateKey} 일정 등록`}
+                className="absolute inset-0 z-0"
+                type="button"
+                onClick={() => onSelectDate(dateKey)}
+              />
+
               <span
-                className={`mb-[6px] flex size-6 items-center justify-center rounded-full text-[13px] font-medium ${
-                  isToday(day)
-                    ? "bg-primary font-bold text-text-inverse"
-                    : inMonth
-                      ? "text-text-default"
-                      : "text-text-muted/50"
-                }`}
+                className={cn(
+                  "pointer-events-none relative z-10 flex size-6 items-center justify-center rounded-full text-[13px] font-medium",
+                  getDateBadgeClassName(isToday(day), inMonth, isSunday, isHoliday)
+                )}
               >
                 {format(day, "d")}
               </span>
 
-              <div className="flex flex-col gap-[3px]">
+              {inMonth && isHoliday && (
+                <span className="pointer-events-none absolute left-9 right-2 top-2 z-10 truncate text-[10px] font-medium leading-6 text-fg-state-error">
+                  {holidayName}
+                </span>
+              )}
+
+              <div className="pointer-events-none relative z-10 mt-[3px] flex flex-col gap-[3px]">
                 {dayBlocks.map((block) => {
-                  const profile = profileColorMap.get(block.profileId);
+                  const profile = profileColorMap.get(block.user_id);
+                  const isPendingDelete = pendingDeleteId === block.id;
+                  const blockClassName =
+                    "truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-slate-800";
+                  const blockStyle = { backgroundColor: profile?.color ?? "#9CA3AF" };
+
+                  if (isPendingDelete) {
+                    return (
+                      <span
+                        key={block.id}
+                        className={cn(
+                          "pointer-events-auto flex items-center gap-1",
+                          blockClassName
+                        )}
+                        style={blockStyle}
+                      >
+                        삭제할까요?
+                        <button
+                          className="rounded bg-black/10 px-1 font-bold hover:bg-black/15"
+                          type="button"
+                          onClick={() => void handleDelete(block.id)}
+                        >
+                          삭제
+                        </button>
+                        <button
+                          className="rounded px-1 hover:bg-black/10"
+                          type="button"
+                          onClick={() => setPendingDeleteId(null)}
+                        >
+                          취소
+                        </button>
+                      </span>
+                    );
+                  }
 
                   return (
-                    <span
+                    <button
                       key={block.id}
-                      className="truncate rounded px-[6px] py-[3px] text-[10px] font-semibold text-white"
-                      style={{ backgroundColor: profile?.color ?? "#9CA3AF" }}
+                      className={cn("pointer-events-auto text-left", blockClassName)}
+                      style={blockStyle}
+                      type="button"
+                      onClick={() =>
+                        block.recurrence_group_id
+                          ? setPendingSeriesBlock(block)
+                          : setPendingDeleteId(block.id)
+                      }
                     >
-                      {block.startTime}~{block.endTime}
-                    </span>
+                      {profile && `${profile.name.slice(1)} `}
+                      {formatTimeRange(block.start_time, block.end_time)}
+                    </button>
                   );
                 })}
               </div>
-            </button>
+            </div>
           );
         })}
       </div>

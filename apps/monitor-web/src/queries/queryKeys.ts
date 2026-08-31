@@ -22,7 +22,12 @@
 export const apisQueryKeys = {
   all: ["apis"] as const,
   list: () => [...apisQueryKeys.all, "list"] as const,
+  sources: () => [...apisQueryKeys.all, "sources"] as const,
   detail: (apiId: string) => [...apisQueryKeys.all, "detail", apiId] as const,
+  checkLogs: (apiId: string) => [...apisQueryKeys.detail(apiId), "checkLogs"] as const,
+  affectedFeatures: (apiId: string) =>
+    [...apisQueryKeys.detail(apiId), "affectedFeatures"] as const,
+  errorLogs: (apiId: string) => [...apisQueryKeys.detail(apiId), "errorLogs"] as const,
 };
 
 export const authQueryKeys = {

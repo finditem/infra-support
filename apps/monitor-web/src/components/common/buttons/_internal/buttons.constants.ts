@@ -1,21 +1,33 @@
 export type Size = "big" | "medium" | "small";
 
 export const SIZE_STYLES: Record<Size, string> = {
-  big: "h-11 px-5 text-base font-semibold",
-  medium: "h-10 px-4 text-sm font-semibold",
-  small: "h-9 min-w-16 px-3 text-xs font-semibold",
+  big: "h-10 px-4 text-sm font-semibold",
+  medium: "h-9 px-3.5 text-sm font-semibold",
+  small: "h-8 min-w-14 px-3 text-xs font-semibold",
 };
 
 export const LOADING_SPINNER_SIZE: Record<Size, number> = {
-  big: 20,
-  medium: 18,
-  small: 16,
+  big: 18,
+  medium: 16,
+  small: 14,
 };
 
+export type Variant = "primary" | "outline" | "outline-primary";
+
 export const BASE_STYLES =
-  "relative inline-flex min-w-20 items-center justify-center gap-2 rounded-lg transition-colors text-white";
+  "relative inline-flex min-w-16 items-center justify-center gap-2 rounded-lg transition-colors text-white";
+
+export const VARIANT_STYLES: Record<Variant, string> = {
+  primary:
+    "bg-fill-primary-strong-default hover:bg-fill-primary-strong-hover active:bg-fill-primary-strong-pressed",
+  outline:
+    "border border-border-neutural-normal-default bg-white text-fg-neutural-default hover:bg-fill-neutural-subtle-hover active:bg-fill-neutural-subtle-pressed",
+  // primary 계열에는 neutral의 subtle 스케일에 대응하는 토큰이 없어, hover/pressed에 한 단계 옅은 normal 토큰을 사용한다.
+  "outline-primary":
+    "border border-border-primary-normal-default bg-white text-fill-primary-strong-default hover:bg-fill-primary-normal-default active:bg-fill-primary-normal-hover",
+};
 
 export const STATE_STYLES =
-  "bg-fill-primary-strong-default hover:bg-fill-primary-strong-hover active:bg-fill-primary-strong-pressed disabled:cursor-not-allowed disabled:bg-fill-neutural-subtle-disabled disabled:text-fg-neutural-disabled";
+  "disabled:cursor-not-allowed disabled:bg-fill-neutural-subtle-disabled disabled:text-fg-neutural-disabled";
 
 export const LOADING_STYLES = "pointer-events-none bg-[#C0C0C0]";

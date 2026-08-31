@@ -46,6 +46,32 @@ pnpm lint     # 전체 린트
 
 사용자가 PR 생성을 요청하면 `create-pr` 스킬을 실행한다. `gh pr create` 실행 자체는 항상 사용자 확인 후 진행한다 (5번 규칙).
 
+### 라벨 부여
+
+PR을 생성한 뒤에는 변경 내용에 맞는 라벨을 `gh pr edit <번호> --add-label <라벨>`로 자동 부여한다. 라벨은 브랜치에 포함된 커밋의 type을 기준으로 정하되, 최대 1~2개만 붙인다. 성격이 다른 커밋이 섞여 있어도 전부 붙이지 말고, 브랜치 전체를 대표하는 가장 비중 있는 type 1~2개만 고른다 (예: 메인 기능 구현 중간에 곁들여진 리팩터링/문서/스타일 커밋은 별도 라벨을 붙이지 않는다).
+
+| 커밋 type | 라벨 |
+| --- | --- |
+| `feat` | `feature` |
+| `fix`, `hotfix` | `bug` |
+| `docs` | `docs` |
+| `refactor` | `refactor` |
+| `chore`, `test`, `asset` | `chore` |
+| `rename` | `rename` |
+| `design` | `design` |
+| `a11y` | `a11y` |
+
+다음 라벨은 커밋 type으로 결정되지 않으므로, 변경 내용이 실제로 해당할 때만 추가로 붙인다.
+
+- `performance`: 성능 최적화, 로딩 속도 개선, 코드 스플리팅
+- `UI/UX`: 인터랙션 개선, 사용자 경험 개선
+- `design QA`: 디자이너 피드백 반영, 디자인 QA 점검 사항 수정
+- `main`: main 브랜치 동기화 작업
+
+`D-0`, `D-1`, `D-3`, `D-5`는 처리 기한을 나타내는 라벨이므로 Claude가 임의로 부여하지 않는다. 긴급도는 사람이 판단한다.
+
+라벨 목록은 `gh label list`로 확인할 수 있다. 위 표에 없는 변경이라면 임의로 새 라벨을 만들지 말고 가장 가까운 기존 라벨을 쓰거나, 마땅한 것이 없으면 라벨 없이 두고 보고에 그 사실을 밝힌다.
+
 ## 커밋 컨벤션 (monitor-web 기준, commitlint 강제)
 
 - type: `feat`, `fix`, `docs`, `hotfix`, `refactor`, `test`, `chore`, `rename`, `asset`, `design`, `a11y` 중 하나
@@ -55,5 +81,4 @@ pnpm lint     # 전체 린트
 
 ## 기타 도구
 
-- `.gemini/`: Gemini Code Assist의 PR 자동 리뷰 설정. CLAUDE.md와 별도로 유지되며 PR 리뷰 시점에만 관여한다.
 - CI(`.github/workflows/develop-to-main-pr.yml`)는 lint/build/test 검증 없이 develop→main PR만 자동 생성한다. 즉 로컬에서의 검증(위 3번)이 사실상 유일한 안전망이므로, 사용자가 검증을 생략하자고 하지 않는 한 매번 물어본다.

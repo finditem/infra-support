@@ -21,6 +21,7 @@ import ErrorDot, { type HoveredDotPoint } from "./_component/ErrorDot";
  * @remarks
  * - `apiId`별로 데이터를 그룹화해 API마다 별도 라인을 렌더링하고, 하단에 색상-API 매핑을 보여주는
  *   legend를 직접 그립니다(recharts `Legend`는 축 너비를 고려하지 않아 왼쪽 정렬이 어긋나 미사용).
+ * - 단일 API만 표시해 legend가 필요 없는 화면에서는 `showLegend`를 `false`로 끌 수 있습니다.
  * - `period`가 `24h`면 데이터 구간(최근 24시간)을 3시간 단위로, `7d`면 최근 7일을 1일 단위로 표시합니다.
  * - `outage` 상태인 데이터만 에러 dot으로 표시합니다.
  * - 툴팁은 recharts의 axis 기반 자동 감지 대신, 각 dot의 hover 이벤트로 직접 제어합니다.
@@ -37,6 +38,8 @@ interface ApiResponseTimeChartProps {
   period: ApiResponseTimePeriod;
   /** 차트 컨테이너에 적용할 추가 클래스명 */
   className?: string;
+  /** 하단 색상-API legend 표시 여부 (default: `true`) */
+  showLegend?: boolean;
 }
 
 /**
@@ -50,7 +53,12 @@ interface ApiResponseTimeChartProps {
 
 const Y_AXIS_WIDTH = 64;
 
-const ApiResponseTimeChart = ({ className, data, period }: ApiResponseTimeChartProps) => {
+const ApiResponseTimeChart = ({
+  className,
+  data,
+  period,
+  showLegend = true,
+}: ApiResponseTimeChartProps) => {
   const [hoveredPoint, setHoveredPoint] = useState<HoveredDotPoint | null>(null);
 
   const apiSeries = useMemo(() => {
@@ -169,17 +177,19 @@ const ApiResponseTimeChart = ({ className, data, period }: ApiResponseTimeChartP
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-10 text-[12px]">
-        {legendItems.map((item) => (
-          <div key={item.apiId} className="flex items-center gap-2">
-            <span
-              className="inline-block size-2 shrink-0 rounded-full"
-              style={{ backgroundColor: item.color }}
-            />
-            <span className="text-layout-body">{item.apiName}</span>
-          </div>
-        ))}
-      </div>
+      {showLegend && (
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-6 text-[12px]">
+          {legendItems.map((item) => (
+            <div key={item.apiId} className="flex items-center gap-2">
+              <span
+                className="inline-block size-2 shrink-0 rounded-full"
+                style={{ backgroundColor: item.color }}
+              />
+              <span className="text-layout-body">{item.apiName}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

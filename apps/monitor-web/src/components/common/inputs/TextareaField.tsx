@@ -56,10 +56,10 @@ const TextareaField = ({
   const describedBy = hasError ? errorId : showCaption ? captionId : undefined;
 
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex w-full flex-col gap-2">
       {label && (
         <label
-          className={cn("typo-header4-regular text-layout-header", labelClassName)}
+          className={cn("typo-body2-regular text-layout-header", labelClassName)}
           htmlFor={textareaId}
         >
           {label}
@@ -71,10 +71,10 @@ const TextareaField = ({
         aria-describedby={describedBy}
         aria-invalid={hasError}
         className={cn(
-          "typo-header4-medium w-full rounded-[10px] border border-border-neutural-normal-default px-4 py-5",
+          "typo-body1-regular w-full rounded-lg border border-border-neutural-normal-default px-3.5 py-3",
           "placeholder:text-fg-neutural-placeholder",
           "disabled:cursor-not-allowed disabled:bg-fill-neutural-subtle-disabled disabled:text-fg-neutural-disabled",
-          "h-[300px] resize-none",
+          "h-[200px] resize-none",
           errorMessage && "border-error focus:border-error",
           className
         )}
@@ -85,18 +85,18 @@ const TextareaField = ({
 
       <div className="flex items-center justify-between">
         {errorMessage && (
-          <p id={errorId} className="typo-body1-regular text-error">
+          <p id={errorId} className="typo-body2-regular text-error">
             {errorMessage}
           </p>
         )}
 
         {showCaption && (
-          <p id={captionId} className="typo-body1-regular text-layout-body">
+          <p id={captionId} className="typo-body2-regular text-layout-body">
             {caption}
           </p>
         )}
 
-        <span className="typo-body1-regular ml-auto text-layout-body">
+        <span className="typo-body2-regular ml-auto text-layout-body">
           {String(value ?? "").length}/{props.maxLength ?? 1000}
         </span>
       </div>

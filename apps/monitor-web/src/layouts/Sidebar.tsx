@@ -1,38 +1,43 @@
-import { useEffect, useState } from "react";
-import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { NavLink, useLocation, Link } from "react-router-dom";
 import { BasicButton, Icon } from "@/components";
-import { useLogoutMutation, useUserQuery } from "@/queries";
+import { useApiListQuery, useLogoutMutation, useUserQuery } from "@/queries";
 import { cn } from "@/utils";
-
-const API_NAV_ITEMS = [
-  { id: "kakao-local", label: "Kakao 로컬" },
-  { id: "kakao-map", label: "Kakao 지도" },
-  { id: "kakao-login", label: "Kakao 로그인" },
-  { id: "kakao-share", label: "Kakao 공유" },
-  { id: "vworld-address-search", label: "VWORLD 주소 검색 서비스" },
-  { id: "public-data-found-items", label: "공공데이터포털 습득물 정보 조회" },
-  { id: "public-data-lost-items", label: "공공데이터포털 분실물 정보 조회" },
-];
 
 const ACTIVE_NAV_ITEM_CLASS =
   "rounded-[4px] border-border-neutural-default text-fg-primary-normal-default";
+
+const API_NAV_ITEM_CLASS = "typo-body2-regular block px-12 py-2 text-fg-neutural-default";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isApiDetailOpen, setIsApiDetailOpen] = useState(false);
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const isApiRoute = pathname.startsWith("/api/");
 
   const { data: user } = useUserQuery();
   const { isPending, mutate: logout } = useLogoutMutation();
+  // Sidebar는 ErrorBoundary 바깥에 마운트되므로, 목록 조회 실패로 화면 전체가 깨지지 않도록
+  // 에러를 던지지 않고 isError로 직접 처리한다.
+  const {
+    data: apis,
+    isError: isApiListError,
+    isPending: isApiListPending,
+  } = useApiListQuery({ throwOnError: false });
 
   const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "flex items-center border border-transparent px-2 py-1",
+      "flex items-center gap-2 border border-transparent px-2 py-1",
       isOpen ? "w-full" : "justify-center",
       isActive && ACTIVE_NAV_ITEM_CLASS
     );
+
+  const toggleSidebar = useCallback(() => {
+    setIsOpen((prev) => {
+      if (prev) setIsApiDetailOpen(false);
+      return !prev;
+    });
+  }, []);
 
   useEffect(() => {
     if (isApiRoute) {
@@ -41,48 +46,57 @@ const Sidebar = () => {
     }
   }, [isApiRoute]);
 
+  // 맥은 cmd + b, 윈도우는 ctrl + b로 사이드바를 접고 펼친다.
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+      if (event.key.toLowerCase() !== "b") return;
+
+      event.preventDefault();
+      toggleSidebar();
+    };
+
+    window.addEventListener("keydown", handleShortcut);
+
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [toggleSidebar]);
+
   return (
     <aside
       className={cn(
-        "relative z-10 flex h-screen shrink-0 flex-col gap-5 bg-white px-[10px] pb-5 pt-10",
+        "relative z-10 flex h-screen shrink-0 flex-col gap-4 bg-white px-2 pb-4 pt-6",
         "border border-[#E2E8F0]",
-        isOpen ? "w-[400px]" : "w-[133px]"
+        isOpen ? "w-[280px]" : "w-[92px]"
       )}
     >
-      <div className="flex h-full flex-col px-6 pb-4">
-        <div className="flex min-h-0 flex-1 flex-col gap-5">
+      <div className="flex h-full flex-col px-3 pb-3">
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
           <header
             className={cn(
-              "relative flex items-center gap-[14px]",
+              "relative flex items-center gap-3",
               isOpen ? "justify-start" : "justify-center"
             )}
           >
             <Link
               aria-label="찾아줘! API 모니터링 홈"
-              className="flex items-center gap-[14px] outline-none"
+              className="flex items-center gap-3 outline-none"
               to="/"
             >
-              <Icon name="baseLogo" size={40} />
+              <Icon name="baseLogo" size={32} />
               {isOpen && (
-                <span className="text-[20px] font-bold leading-[28px] text-layout-header">
-                  찾아줘! API 모니터링
-                </span>
+                <span className="typo-header4-bold text-layout-header">찾아줘! API 모니터링</span>
               )}
             </Link>
             <button
+              aria-keyshortcuts="Meta+B Control+B"
               aria-label={isOpen ? "사이드바 접기" : "사이드바 펼치기"}
-              className="absolute -right-14 size-9 rounded-[10px] border border-border-neutural-default bg-white p-2 flex-center"
-              onClick={() => {
-                setIsOpen((prev) => {
-                  if (prev) setIsApiDetailOpen(false);
-                  return !prev;
-                });
-              }}
+              className="absolute -right-10 size-8 rounded-lg border border-border-neutural-default bg-white p-1.5 flex-center"
+              onClick={toggleSidebar}
             >
               <Icon
                 className="text-fg-neutural-default"
                 name={isOpen ? "arrowLeft" : "arrowRight"}
-                size={22}
+                size={18}
               />
             </button>
           </header>
@@ -91,7 +105,7 @@ const Sidebar = () => {
             <ul className={cn("flex flex-col gap-2", !isOpen && "items-center")}>
               <li className={cn(isOpen && "w-full")}>
                 <NavLink className={navLinkClassName} to="/">
-                  <Icon className="p-4" name="sidebarDashboard" size={54} />
+                  <Icon className="p-1" name="sidebarDashboard" size={22} />
                   {isOpen && "대시보드"}
                 </NavLink>
               </li>
@@ -100,7 +114,7 @@ const Sidebar = () => {
                   aria-controls="api-nav-items"
                   aria-expanded={isApiDetailOpen}
                   className={cn(
-                    "flex items-center border border-transparent px-2 py-1",
+                    "flex items-center gap-2 border border-transparent px-2 py-1",
                     isOpen ? "w-full justify-between" : "justify-center",
                     isApiRoute && ACTIVE_NAV_ITEM_CLASS
                   )}
@@ -111,32 +125,44 @@ const Sidebar = () => {
                     });
                   }}
                 >
-                  <div className="flex items-center">
-                    <Icon className="p-4" name="sidebarDetail" size={54} />
+                  <div className="flex items-center gap-2">
+                    <Icon className="p-1" name="sidebarDetail" size={22} />
                     {isOpen && "API 상세"}
                   </div>
                   {isOpen && (
                     <Icon
                       className="text-[#757575]"
                       name={isApiDetailOpen ? "arrowDown" : "arrowUp"}
-                      size={20}
+                      size={16}
                     />
                   )}
                 </button>
                 {isApiDetailOpen && (
                   <ul id="api-nav-items" className="max-h-48 overflow-y-auto">
-                    {API_NAV_ITEMS.map(({ id, label }) => (
+                    {isApiListPending && (
+                      <li role="status" className={API_NAV_ITEM_CLASS}>
+                        불러오는 중입니다.
+                      </li>
+                    )}
+                    {isApiListError && (
+                      <li role="alert" className={API_NAV_ITEM_CLASS}>
+                        API 목록을 불러오지 못했습니다.
+                      </li>
+                    )}
+                    {apis?.length === 0 && (
+                      <li role="status" className={API_NAV_ITEM_CLASS}>
+                        등록된 API가 없습니다.
+                      </li>
+                    )}
+                    {apis?.map(({ id, name }) => (
                       <li key={id}>
                         <NavLink
                           className={({ isActive }) =>
-                            cn(
-                              "block px-[50px] py-[14px] text-fg-neutural-default",
-                              isActive && "text-fg-primary-normal-default"
-                            )
+                            cn(API_NAV_ITEM_CLASS, isActive && "text-fg-primary-normal-default")
                           }
                           to={`/api/${id}`}
                         >
-                          {label}
+                          {name}
                         </NavLink>
                       </li>
                     ))}
@@ -145,7 +171,7 @@ const Sidebar = () => {
               </li>
               <li className={cn(isOpen && "w-full")}>
                 <NavLink className={navLinkClassName} to="/errors">
-                  <Icon className="p-4" name="sidebarError" size={54} />
+                  <Icon className="p-1" name="sidebarError" size={22} />
                   {isOpen && "장애/에러 로그"}
                 </NavLink>
               </li>
@@ -155,31 +181,25 @@ const Sidebar = () => {
 
         <footer
           className={cn(
-            "flex shrink-0 items-center py-3",
+            "flex shrink-0 items-center py-2",
             isOpen ? "justify-between" : "justify-center"
           )}
         >
-          <div className="flex items-center gap-[10px]">
-            <Icon className="rounded-full" name={user ? "baseLogo" : "user"} size={40} />
+          <div className="flex items-center gap-2">
+            <Icon className="rounded-full" name={user ? "baseLogo" : "user"} size={32} />
             {isOpen && (
-              <span className="typo-body1-semibold text-layout-header">
+              <span className="typo-body2-semibold text-layout-header">
                 {user ? "관리자" : "로그인이 필요합니다."}
               </span>
             )}
           </div>
           {isOpen &&
             (user ? (
-              // TODO(지권): outline 스타일 추가 후 변경 예정
-              <BasicButton
-                className="border border-border-primary-normal-default bg-white text-fill-primary-strong-default"
-                loading={isPending}
-                onClick={() => logout()}
-              >
+              <BasicButton loading={isPending} variant="outline-primary" onClick={() => logout()}>
                 로그아웃
               </BasicButton>
             ) : (
-              // TODO(지권): as prop 패턴 추가 후 navigate 제거 예정
-              <BasicButton className="min-h-[43px] min-w-[70px]" onClick={() => navigate("/login")}>
+              <BasicButton className="min-w-[64px]" as={Link} to="/login">
                 로그인
               </BasicButton>
             ))}

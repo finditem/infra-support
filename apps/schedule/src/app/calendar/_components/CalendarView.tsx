@@ -1,8 +1,10 @@
 "use client";
 
+import { Users } from "lucide-react";
 import { useState } from "react";
+import type { AvailabilityRow } from "@/types/tables";
+import type { MentionTarget } from "../../_lib/mentions";
 import type { ProfileWithColor } from "../../_types/kanban";
-import type { MockAvailabilityBlock } from "../_lib/calendarMockData";
 import AvailabilityTimePicker from "./AvailabilityTimePicker";
 import CalendarGrid from "./CalendarGrid";
 import MemberSidebar from "./MemberSidebar";
@@ -11,38 +13,68 @@ interface CalendarViewProps {
   monthStart: Date;
   profiles: ProfileWithColor[];
   profileColorMap: Map<string, ProfileWithColor>;
-  availability: MockAvailabilityBlock[];
+  availability: AvailabilityRow[];
+  currentProfileId: string | null;
+  /** 등록 대상으로 고를 수 있는 팀과 팀원. */
+  targets: MentionTarget[];
+  holidayNames: Record<string, string>;
 }
 
 const CalendarView = ({
   monthStart,
   profiles,
   profileColorMap,
-  availability,
+  availability: initialAvailability,
+  currentProfileId,
+  targets,
+  holidayNames,
 }: CalendarViewProps) => {
+  const [availability, setAvailability] = useState(initialAvailability);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="flex flex-1">
       <MemberSidebar
+        isOpen={isSidebarOpen}
         profiles={profiles}
         selectedProfileId={selectedProfileId}
+        onClose={() => setIsSidebarOpen(false)}
         onSelectProfile={setSelectedProfileId}
       />
 
-      <div className="flex-1 overflow-y-auto p-7">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-7">
+        <button
+          className="mb-4 flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm text-text-muted hover:bg-fill-neutural-subtle-hover sm:hidden"
+          type="button"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <Users aria-hidden size={16} />
+          팀원 필터
+        </button>
+
         <CalendarGrid
           availability={availability}
+          holidayNames={holidayNames}
           monthStart={monthStart}
           profileColorMap={profileColorMap}
           selectedProfileId={selectedProfileId}
+          onDeleted={(ids) =>
+            setAvailability((prev) => prev.filter((block) => !ids.includes(block.id)))
+          }
           onSelectDate={setSelectedDate}
         />
       </div>
 
-      {selectedDate && (
-        <AvailabilityTimePicker date={selectedDate} onCancel={() => setSelectedDate(null)} />
+      {selectedDate && currentProfileId && (
+        <AvailabilityTimePicker
+          currentProfileId={currentProfileId}
+          date={selectedDate}
+          targets={targets}
+          onCancel={() => setSelectedDate(null)}
+          onCreated={(rows) => setAvailability((prev) => [...prev, ...rows])}
+        />
       )}
     </div>
   );

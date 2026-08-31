@@ -1,8 +1,14 @@
-import { format, startOfMonth } from "date-fns";
+import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from "date-fns";
+import { createClient } from "@/lib/supabase/server";
 import { NavBar } from "@/components/NavBar";
+import { buildProfileColorMap } from "../_lib/kanbanUtils";
+import { buildMentionTargets } from "../_lib/mentions";
+import { getRegisteredProfiles } from "../_lib/profiles";
+import { getTeamsWithMembers } from "../_lib/teams";
+import type { ProfileWithColor } from "../_types/kanban";
 import CalendarHeader from "./_components/CalendarHeader";
 import CalendarView from "./_components/CalendarView";
-import { mockAvailability, mockProfileColorMap, mockProfiles } from "./_lib/calendarMockData";
+import { getHolidayNameMap } from "./_lib/holidays";
 
 interface CalendarPageProps {
   searchParams: Promise<{ month?: string }>;
@@ -11,17 +17,49 @@ interface CalendarPageProps {
 const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
   const { month } = await searchParams;
   const monthStart = startOfMonth(month ? new Date(month) : new Date());
-  const availability = mockAvailability(monthStart.getFullYear(), monthStart.getMonth() + 1);
+  const year = monthStart.getFullYear();
+  const holidayNames = getHolidayNameMap([year - 1, year, year + 1]);
+  const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const gridEnd = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 0 });
+
+  const supabase = await createClient();
+
+  const [
+    profiles,
+    { data: availability },
+    {
+      data: { user },
+    },
+  ] = await Promise.all([
+    getRegisteredProfiles(supabase),
+    supabase
+      .from("availability")
+      .select("*")
+      .gte("available_date", format(gridStart, "yyyy-MM-dd"))
+      .lte("available_date", format(gridEnd, "yyyy-MM-dd")),
+    supabase.auth.getUser(),
+  ]);
+
+  // 팀 목록은 가능 시간을 등록할 대상 후보다. 이미 조회한 profiles를 넘겨 중복 조회를 피한다.
+  const teams = await getTeamsWithMembers(supabase, profiles);
+  const profileColorMap = buildProfileColorMap(profiles);
+  const profilesWithColor: ProfileWithColor[] = profiles.map(
+    (profile) => profileColorMap.get(profile.id) as ProfileWithColor
+  );
+  const currentProfileId = profiles.find((profile) => profile.id === user?.id)?.id ?? null;
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
       <NavBar />
       <CalendarHeader monthLabel={format(monthStart, "yyyy'년' M'월'")} monthStart={monthStart} />
       <CalendarView
-        availability={availability}
+        availability={availability ?? []}
+        currentProfileId={currentProfileId}
+        holidayNames={holidayNames}
         monthStart={monthStart}
-        profileColorMap={mockProfileColorMap}
-        profiles={mockProfiles}
+        profileColorMap={profileColorMap}
+        profiles={profilesWithColor}
+        targets={buildMentionTargets(teams, profiles)}
       />
     </main>
   );

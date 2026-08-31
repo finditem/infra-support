@@ -1,67 +1,86 @@
+import { useNavigate, useParams } from "react-router-dom";
 import { Badge, BasicButton, Icon } from "@/components";
+import { useApiManualCheckMutation } from "@/queries";
 import type { ApiDetailData } from "../_types";
 
 interface DetailHeaderProps {
   apiData: ApiDetailData;
+  statusCode: string;
 }
 
-const DetailHeader = ({ apiData }: DetailHeaderProps) => {
+const DetailHeader = ({ apiData, statusCode }: DetailHeaderProps) => {
+  const { apiId = "" } = useParams<{ apiId: string }>();
+  const navigate = useNavigate();
+  const { name, description, category, source, sourceUrl, iconUrl } = apiData;
+  const { mutate: runManualCheck, isPending: isManualChecking } = useApiManualCheckMutation(apiId);
+
   return (
     <section
       aria-labelledby="api-detail-title"
-      className="-mx-8 -mt-8 flex items-center justify-between border border-[#E2E8F0] bg-white p-10"
+      className="-mx-6 -mt-6 flex items-center justify-between border border-[#E2E8F0] bg-white px-6 py-4"
     >
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-4">
-            <img
-              alt={`${apiData.name} 로고}`}
-              className="size-9 rounded-md"
-              src="/src/assets/mocks/api-detail-mock.png"
-            />
-            <h1 id="api-detail-title" className="typo-header2-bold text-layout-header">
-              {apiData.name}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            {iconUrl ? (
+              <img alt={`${name} 로고`} className="size-8 rounded-md" src={iconUrl} />
+            ) : (
+              <div aria-hidden className="size-8 rounded-md bg-fill-neutural-subtle-default" />
+            )}
+            <h1 id="api-detail-title" className="typo-header3-bold text-layout-header">
+              {name}
             </h1>
             <Badge
-              aria-label={`HTTP 상태 코드: ${apiData.statusCode}`}
-              label={apiData.statusCode}
+              aria-label={`HTTP 상태 코드: ${statusCode}`}
+              className="typo-caption1-semibold shrink-0 border-border-neutural-default text-layout-body"
+              label={statusCode}
             />
           </div>
-          <p className="typo-body2-regular text-layout-body">
-            카카오 지도 표시 및 좌표·주소 변환에 사용하는 지도 API입니다.
-          </p>
+          {description && <p className="typo-body2-regular text-layout-body">{description}</p>}
         </div>
 
-        <div className="typo-body2-medium flex items-center gap-6">
+        <div className="typo-body2-medium flex items-center gap-4">
           <div className="flex gap-3">
             <span className="text-layout-body">카테고리</span>
-            <span className="typo-header3-bold text-layout-header">map</span>
+            <span className="typo-body2-semibold text-layout-header">{category}</span>
           </div>
           <div className="flex gap-3">
             <span className="text-layout-body">출처</span>
-            <a
-              aria-label="Kakao developers 개발자 센터 (새 창 열림)"
-              className="typo-header3-bold flex text-yellow-400 hover:underline hover:underline-offset-2"
-              href="https://developers.kakao.com/console/app/1353127"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              Kakao <Icon name="arrowUpRight" size={28} />
-            </a>
+            {sourceUrl ? (
+              <a
+                aria-label={`${source} 출처 링크 (새 창 열림)`}
+                className="typo-body2-semibold flex text-yellow-400 hover:underline hover:underline-offset-2"
+                href={sourceUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {source} <Icon name="arrowUpRight" size={14} />
+              </a>
+            ) : (
+              <span className="typo-body2-semibold text-layout-header">{source}</span>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <BasicButton className="min-h-[56px] w-[150px] py-4">
+      <div className="flex items-center gap-3">
+        <BasicButton
+          className="min-h-[44px] w-[128px] py-2"
+          loading={isManualChecking}
+          onClick={() => runManualCheck()}
+        >
           <span className="flex gap-2">
-            <Icon name="arrowRotateRight" size={24} />
+            <Icon name="arrowRotateRight" size={20} />
             <span className="typo-header4-bold">수동요청</span>
           </span>
         </BasicButton>
-        <BasicButton className="min-h-[56px] min-w-[115px] border border-border-neutural-normal-default bg-white py-4 text-[#5D5D5D]">
+        <BasicButton
+          className="min-h-[44px] min-w-[96px] py-2 text-[#5D5D5D]"
+          variant="outline"
+          onClick={() => navigate(`/api/${apiId}/edit`)}
+        >
           <span className="flex items-center gap-1">
-            <Icon name="editPencil" size={24} />
+            <Icon name="editPencil" size={20} />
             <span className="typo-header4-semibold">수정</span>
           </span>
         </BasicButton>
