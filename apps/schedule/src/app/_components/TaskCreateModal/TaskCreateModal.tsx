@@ -143,7 +143,9 @@ const TaskCreateModal = ({
   };
 
   const handleSubmit = async () => {
-    if (!title.trim() || isSubmitting) return;
+    // 업로드 중에 저장하면 아직 imageMarkers에 반영되지 않은 이미지가 body에서 빠진 채
+    // 일정이 저장되고, 뒤늦게 끝난 업로드 결과는 Storage에 고아로 남는다.
+    if (!title.trim() || isSubmitting || isUploadingImage) return;
 
     setIsSubmitting(true);
 
@@ -450,7 +452,7 @@ const TaskCreateModal = ({
             </button>
             <button
               className="flex items-center gap-1 rounded-[7px] bg-primary px-4 py-1.5 text-xs font-semibold text-text-inverse hover:bg-primary-hover disabled:opacity-50"
-              disabled={!title.trim() || isSubmitting || isDeleting}
+              disabled={!title.trim() || isSubmitting || isDeleting || isUploadingImage}
               type="button"
               onClick={() => void handleSubmit()}
             >

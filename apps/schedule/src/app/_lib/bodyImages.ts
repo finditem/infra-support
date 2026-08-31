@@ -11,11 +11,23 @@
  * 텍스트만 보여줄 때(`stripBodyImages`/`countBodyImages`) 이 파일의 함수들로 파싱한다.
  */
 
-const BODY_IMAGE_PATTERN = /!\[([^\]]*)\]\(([^)\s]+)\)/g;
+// alt 그룹은 이스케이프된 \[, \], \\를 그대로 통과시켜야 해서, "]가 아닌 문자 또는 \로 시작하는
+// 이스케이프 시퀀스"를 반복하는 형태로 잡는다. 파일명에 대괄호가 들어가면(예: "screen [1].png")
+// alt 텍스트 안의 리터럴 ]가 마크다운 구분자로 오인돼 파싱이 깨지는 문제를 막기 위해서다.
+const BODY_IMAGE_PATTERN = /!\[((?:[^\]\\]|\\.)*)\]\(([^)\s]+)\)/g;
+
+/** alt 텍스트에 들어간 \, [, ]를 이스케이프한다. buildBodyWithImages가 직렬화할 때 쓴다. */
+const escapeAlt = (text: string): string => text.replace(/[\\[\]]/g, (char) => `\\${char}`);
+
+/** escapeAlt로 이스케이프된 텍스트를 원래 문자로 되돌린다. extractBodyImages가 파싱할 때 쓴다. */
+const unescapeAlt = (text: string): string => text.replace(/\\([\\[\]])/g, "$1");
 
 /** 저장된 본문에서 이미지 마크다운만 추출한다(alt/url 쌍). 일정을 다시 열 때 미리보기 갤러리를 채운다. */
 export const extractBodyImages = (text: string): { alt: string; url: string }[] =>
-  [...text.matchAll(BODY_IMAGE_PATTERN)].map((match) => ({ alt: match[1], url: match[2] }));
+  [...text.matchAll(BODY_IMAGE_PATTERN)].map((match) => ({
+    alt: unescapeAlt(match[1]),
+    url: match[2],
+  }));
 
 /** 본문에 삽입된 이미지 개수. 칸반 카드 배지에 쓴다. */
 export const countBodyImages = (text: string): number =>
@@ -38,7 +50,7 @@ export const buildBodyWithImages = (
   images: { alt: string; url: string }[]
 ): string | null => {
   const trimmedText = text.trim();
-  const markerText = images.map((image) => `![${image.alt}](${image.url})`).join("\n");
+  const markerText = images.map((image) => `![${escapeAlt(image.alt)}](${image.url})`).join("\n");
   const combined = [trimmedText, markerText].filter(Boolean).join("\n\n");
 
   return combined || null;
