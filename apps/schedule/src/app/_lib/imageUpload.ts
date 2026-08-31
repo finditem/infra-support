@@ -1,4 +1,6 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { extractBodyImages } from "./bodyImages";
 
 // 0014_add_task_attachments.sql의 버킷 설정(file_size_limit/allowed_mime_types)과 값을 맞춘다.
 export const ATTACHMENT_BUCKET = "task-attachments";
@@ -35,7 +37,7 @@ const MAX_IMAGE_DIMENSION = 1600;
  * GIF는 canvas로 다시 그리면 애니메이션이 첫 프레임 정지 이미지로 깨지므로 건드리지 않는다.
  * 리사이즈 중 무엇이든 실패하면(브라우저 호환성 등) 원본 파일을 그대로 돌려줘 업로드 자체는 막지 않는다.
  */
-const resizeImageFile = async (file: File): Promise<File> => {
+export const resizeImageFile = async (file: File): Promise<File> => {
   if (file.type === "image/gif") return file;
 
   try {
@@ -75,22 +77,23 @@ const resizeImageFile = async (file: File): Promise<File> => {
 };
 
 /**
- * 일정 본문에 인라인으로 삽입할 이미지를 Storage에 올린다. DB에 남길 메타데이터가 없으므로
- * (이미지 참조는 본문 텍스트 자체의 마크다운으로 저장된다) 서버 액션을 거치지 않고 브라우저에서
+ * 이미 리사이즈된 이미지를 Storage에 올린다. 저장 버튼을 누른 시점에만 호출된다 — 그 전까지는
+ * 선택된 파일을 로컬 blob URL로만 미리보기하고 실제 업로드는 하지 않아, 저장하지 않고 취소하거나
+ * 마커를 지운 이미지가 Storage에 고아로 남지 않는다. DB에 남길 메타데이터가 없으므로(이미지
+ * 참조는 본문 텍스트 자체의 마크다운으로 저장된다) 서버 액션을 거치지 않고 브라우저에서
  * 바로 업로드한다. 아직 저장되지 않은 새 일정을 작성하는 중에도 바로 삽입할 수 있어야 해서,
  * 경로에 taskId를 쓰지 않는다.
  */
-export const uploadBodyImage = async (
+export const uploadImageFile = async (
   file: File
 ): Promise<{ url: string; fileName: string } | null> => {
   const supabase = createClient();
-  const resizedFile = await resizeImageFile(file);
   const extension = EXTENSION_BY_MIME_TYPE[file.type] ?? "bin";
   const storagePath = `${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage
     .from(ATTACHMENT_BUCKET)
-    .upload(storagePath, resizedFile, { contentType: file.type });
+    .upload(storagePath, file, { contentType: file.type });
 
   if (error) {
     console.error(error);
@@ -100,4 +103,39 @@ export const uploadBodyImage = async (
   const { data } = supabase.storage.from(ATTACHMENT_BUCKET).getPublicUrl(storagePath);
 
   return { url: data.publicUrl, fileName: file.name };
+};
+
+/** getPublicUrl()이 만드는 공개 URL에서 Storage 오브젝트 경로만 뽑아낸다. 다른 버킷을
+ * 가리키거나 형식이 맞지 않으면 null. */
+export const extractStoragePathFromUrl = (url: string): string | null => {
+  const marker = `/storage/v1/object/public/${ATTACHMENT_BUCKET}/`;
+  const index = url.indexOf(marker);
+  if (index === -1) return null;
+
+  const path = url.slice(index + marker.length);
+  return path ? decodeURIComponent(path) : null;
+};
+
+/** 본문 텍스트에 남아있는 이미지 마크다운에서 Storage 경로만 뽑는다. 일정/하위 일정 삭제,
+ * 저장 시 제거된 기존 이미지 정리에 쓴다. */
+export const getStoragePathsFromBody = (body: string | null): string[] =>
+  body
+    ? extractBodyImages(body)
+        .map((image) => extractStoragePathFromUrl(image.url))
+        .filter((path): path is string => path !== null)
+    : [];
+
+/** 더 이상 어떤 일정 본문에서도 참조되지 않는 이미지를 Storage에서 지운다. 정리 실패는
+ * 저장/삭제 자체를 막을 이유가 아니므로 로그만 남기고 흐름을 이어간다. */
+export const deleteStorageImages = async (
+  supabase: SupabaseClient,
+  paths: string[]
+): Promise<void> => {
+  if (paths.length === 0) return;
+
+  const { error } = await supabase.storage.from(ATTACHMENT_BUCKET).remove(paths);
+
+  if (error) {
+    console.error(error);
+  }
 };
