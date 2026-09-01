@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { parseISO } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import type { TasksInsert, TasksRow, TasksUpdate } from "@/types/tables";
+import { deleteStorageImages, getStoragePathsFromBody } from "./imageUpload";
 import { getOrCreateWeek } from "./kanban";
 import { getMonday } from "./kanbanUtils";
 import { notifyTaskCreated, notifyTaskDeleted, notifyTaskUpdated } from "./taskNotification";
@@ -173,8 +174,11 @@ export const deleteTask = async (id: string): Promise<string[] | null> => {
 
   if (!task) return null;
 
-  const { data: subtasks } = await supabase.from("tasks").select("id, title").eq("parent_id", id);
-  const subtaskRows: { id: string; title: string }[] = subtasks ?? [];
+  const { data: subtasks } = await supabase
+    .from("tasks")
+    .select("id, title, body")
+    .eq("parent_id", id);
+  const subtaskRows: { id: string; title: string; body: string | null }[] = subtasks ?? [];
 
   const { error } = await supabase.from("tasks").delete().eq("id", id);
 
@@ -183,13 +187,18 @@ export const deleteTask = async (id: string): Promise<string[] | null> => {
     return null;
   }
 
-  after(() =>
-    notifyTaskDeleted(
+  after(() => {
+    const imagePaths = [task.body, ...subtaskRows.map((subtask) => subtask.body)].flatMap(
+      getStoragePathsFromBody
+    );
+    void deleteStorageImages(supabase, imagePaths);
+
+    void notifyTaskDeleted(
       supabase,
       task,
       subtaskRows.map((subtask) => subtask.title)
-    )
-  );
+    );
+  });
 
   return [id, ...subtaskRows.map((subtask) => subtask.id)];
 };
