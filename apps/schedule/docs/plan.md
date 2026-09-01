@@ -684,3 +684,10 @@
 - [x] middleware.ts/page.tsx의 `auth.getUser()` 중복 호출 제거는 별도 브랜치(PR #173, x-user-id 헤더 재사용 패턴)로 분리해 처리, develop에 먼저 머지됨 — 이 브랜치를 develop에 맞춰 병합하며 `page.tsx`도 `headers().get("x-user-id")` 기반으로 다시 정리
 - [x] pnpm build / pnpm lint 검증 (develop 병합 후 재검증)
 - [ ] 마이그레이션은 SQL 에디터 또는 `supabase db push`로 실제 Supabase 프로젝트에 직접 적용 필요 (사용자가 직접 진행)
+
+## 월의 1일이 포함된 주를 항상 해당 월 1주차로 표시
+
+`getWeekLabel`이 "월의 1일이 월요일이 아니면 그 달의 첫 번째 월요일을 1주차로 삼는" 방식이라, 1일이 화~일요일에 걸리면 그 주(1일이 포함된 주)는 오히려 이전 달의 마지막 주차로 표시되고 있었다. 예: 2026년 9월 1일(화)이 포함된 주가 "2026년 8월 5주차"로 보임. 1일이 포함된 주는 항상 그 달의 1주차로 보이도록, "1일이 포함된 주의 월요일"을 1주차 기준(anchor)으로 바꾼다.
+
+- [x] `kanbanUtils.ts`: `getWeekLabel`을 주(월~일) 안에 `getDate(d) === 1`인 날짜가 있으면 그 날짜가 속한 달을 라벨 월로 쓰고, 라벨 월의 1일이 속한 주의 월요일(`startOfWeek(monthStart, { weekStartsOn: 1 })`)을 1주차 anchor로 삼도록 수정
+- [x] pnpm build / pnpm lint 검증
