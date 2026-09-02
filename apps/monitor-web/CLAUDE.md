@@ -75,6 +75,7 @@ src/
 
 - eslint `perfectionist/sort-jsx-props`가 JSX prop 순서를 자동 강제한다 (key/ref → id → accessibility → className/style → 나머지 → on\* 콜백). 수동으로 신경 쓸 필요 없이 `pnpm lint`가 잡아준다.
 - 커밋 시 husky pre-commit이 `lint-staged`(prettier + eslint --fix)를 자동 실행한다.
+- Tailwind 유틸리티 클래스를 쓸 때는 임의값(`p-[4px]`, `w-[16px]` 등) 대신 기본 스페이싱/사이즈 스케일에 대응하는 축약 클래스(`p-1`, `w-4` 등)를 우선 사용한다. 스케일에 없는 값일 때만 임의값을 쓴다.
 
 ## 검증 커맨드
 

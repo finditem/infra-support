@@ -674,6 +674,21 @@
 - [ ] `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `OPENAI_API_KEY`, `CRON_SECRET`을 `.env`/Vercel 환경변수에 등록
 - [ ] Vercel 배포 후 Cron 활성화 확인
 
+## Slack 봇 구조화 일정추가 명령(기획서 5-1) + AI 자연어 폴백 정리
+
+지금까지는 "일정추가" 없이 자유 텍스트를 보내면 무조건 AI(5-2)로 파싱했고, 기획서 5-1의 구조화 명령(`일정추가 [제목] [담당자(선택)] [날짜(선택)]`)은 `router.ts` 커밋 메시지에만 예고된 채 구현되지 않았다. AI 사용 크레딧이 충전돼 `SLACK_AI_TASK_CREATION_ENABLED`를 켤 수 있는 상황이라, 이번엔 구조화 명령을 우선 매칭하고 매칭 안 되는 자유 텍스트만 AI로 폴백하도록 정리한다. 제목에 공백이 있을 때 뒤 토큰이 담당자로 잘못 넘어가는 걸 막기 위해, 왼쪽부터가 아니라 오른쪽부터(날짜 패턴 → 실제 프로필 이름) 매칭해서 떼어내고 남는 부분 전체를 제목으로 쓴다.
+
+- [x] `src/lib/slack/commands/matchTaskCreateCommand.ts` 신규: "일정추가" 트리거 감지하는 순수 함수. 트리거 없으면 null 반환(자연어 폴백으로 이어지도록), 있으면 트리거 이후 나머지 텍스트를 반환
+- [x] `src/lib/slack/commands/createTaskFromStructuredCommand.ts` 신규: 나머지 텍스트를 공백으로 토큰화 후 오른쪽부터 날짜(`\d{1,2}/\d{1,2}` 패턴) → 담당자(`profiles.name` 정확 일치) 순으로 떼어내고 남은 토큰을 제목으로 사용. 담당자 미명시 시 발신자 자신, 날짜 미명시 시 기존 `getDefaultDueDate()`(이번주 일요일) 재사용. 제목이 끝내 비면 사용법 안내와 함께 에러 메시지
+- [x] `createTaskFromMessage.ts`와 겹치는 insert 로직(상태 조회, `getOrCreateWeek`, insert, `notifyTaskCreated`)을 `src/lib/slack/commands/insertTaskAndNotify.ts`로 추출해 두 경로가 공유하도록 리팩터
+- [x] `src/lib/slack/commands/router.ts`: 상태변경 분기 다음·AI 자연어 폴백 이전에 구조화 명령 분기 추가
+- [x] `src/lib/slack/commands/help.ts`: 구조화 명령(`일정추가 [제목] [담당자(선택)] [날짜(선택)]`) 안내를 자연어 안내 위에 추가
+- [ ] pnpm build / pnpm lint 검증
+
+### 사용자가 직접 진행 (Claude 불가)
+
+- [ ] `SLACK_AI_TASK_CREATION_ENABLED`를 `.env`/Vercel 환경변수에서 `"true"`로 설정 (AI 크레딧 충전 완료로 이제 켤 수 있음)
+
 ## 칸반보드 데이터 로딩 성능 개선
 
 사용자가 "다음 주" 버튼을 포함해 데이터 로딩이 전반적으로 느리다고 보고해 원인 조사 후 진행.
