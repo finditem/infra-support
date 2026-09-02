@@ -32,22 +32,55 @@ export const createTaskFromStructuredCommand = async (
   if (tokens.length > 0 && DATE_TOKEN_PATTERN.test(tokens[tokens.length - 1])) {
     const parsedDate = parseDueDateToken(tokens[tokens.length - 1]);
 
-    if (parsedDate) {
-      tokens.pop();
-      dueDateObj = parsedDate;
-      dueDateIsAuto = false;
+    if (!parsedDate) {
+      await postSlackMessage({
+        channel: slackUserId,
+        text: "입력한 마감일이 올바르지 않아 일정을 등록하지 못했어요.\n예) 일정추가 필드브레인워크 이지은 7/10",
+      });
+      return;
     }
+
+    tokens.pop();
+    dueDateObj = parsedDate;
+    dueDateIsAuto = false;
   }
 
   let assigneeProfile = senderProfile;
   let assigneeIsAuto = true;
 
   if (tokens.length > 0) {
-    const { data: matchedAssignee } = await createServiceClient()
+    const { data: matchedAssignees, error } = await createServiceClient()
       .from("profiles")
       .select("*")
       .eq("name", tokens[tokens.length - 1])
-      .maybeSingle();
+      .limit(2);
+
+    if (error) {
+      console.error("Slack 일정 담당자 조회 실패", error);
+      await postSlackMessage({
+        channel: slackUserId,
+        text: "담당자를 확인하지 못해 일정을 등록하지 못했어요.",
+      });
+      return;
+    }
+
+    if (!matchedAssignees) {
+      await postSlackMessage({
+        channel: slackUserId,
+        text: "담당자를 확인하지 못해 일정을 등록하지 못했어요.",
+      });
+      return;
+    }
+
+    if (matchedAssignees.length > 1) {
+      await postSlackMessage({
+        channel: slackUserId,
+        text: "이름이 같은 담당자가 여러 명이라 일정을 등록하지 못했어요. 담당자 이름을 고유하게 설정한 뒤 다시 시도해주세요.",
+      });
+      return;
+    }
+
+    const [matchedAssignee] = matchedAssignees;
 
     if (matchedAssignee) {
       tokens.pop();
