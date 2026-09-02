@@ -674,6 +674,21 @@
 - [ ] `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_SIGNING_SECRET`, `OPENAI_API_KEY`, `CRON_SECRET`을 `.env`/Vercel 환경변수에 등록
 - [ ] Vercel 배포 후 Cron 활성화 확인
 
+## Slack 봇 구조화 일정추가 명령(기획서 5-1) + AI 자연어 폴백 정리
+
+지금까지는 "일정추가" 없이 자유 텍스트를 보내면 무조건 AI(5-2)로 파싱했고, 기획서 5-1의 구조화 명령(`일정추가 [제목] [담당자(선택)] [날짜(선택)]`)은 `router.ts` 커밋 메시지에만 예고된 채 구현되지 않았다. AI 사용 크레딧이 충전돼 `SLACK_AI_TASK_CREATION_ENABLED`를 켤 수 있는 상황이라, 이번엔 구조화 명령을 우선 매칭하고 매칭 안 되는 자유 텍스트만 AI로 폴백하도록 정리한다. 제목에 공백이 있을 때 뒤 토큰이 담당자로 잘못 넘어가는 걸 막기 위해, 왼쪽부터가 아니라 오른쪽부터(날짜 패턴 → 실제 프로필 이름) 매칭해서 떼어내고 남는 부분 전체를 제목으로 쓴다.
+
+- [x] `src/lib/slack/commands/matchTaskCreateCommand.ts` 신규: "일정추가" 트리거 감지하는 순수 함수. 트리거 없으면 null 반환(자연어 폴백으로 이어지도록), 있으면 트리거 이후 나머지 텍스트를 반환
+- [x] `src/lib/slack/commands/createTaskFromStructuredCommand.ts` 신규: 나머지 텍스트를 공백으로 토큰화 후 오른쪽부터 날짜(`\d{1,2}/\d{1,2}` 패턴) → 담당자(`profiles.name` 정확 일치) 순으로 떼어내고 남은 토큰을 제목으로 사용. 담당자 미명시 시 발신자 자신, 날짜 미명시 시 기존 `getDefaultDueDate()`(이번주 일요일) 재사용. 제목이 끝내 비면 사용법 안내와 함께 에러 메시지
+- [x] `createTaskFromMessage.ts`와 겹치는 insert 로직(상태 조회, `getOrCreateWeek`, insert, `notifyTaskCreated`)을 `src/lib/slack/commands/insertTaskAndNotify.ts`로 추출해 두 경로가 공유하도록 리팩터
+- [x] `src/lib/slack/commands/router.ts`: 상태변경 분기 다음·AI 자연어 폴백 이전에 구조화 명령 분기 추가
+- [x] `src/lib/slack/commands/help.ts`: 구조화 명령(`일정추가 [제목] [담당자(선택)] [날짜(선택)]`) 안내를 자연어 안내 위에 추가
+- [ ] pnpm build / pnpm lint 검증
+
+### 사용자가 직접 진행 (Claude 불가)
+
+- [ ] `SLACK_AI_TASK_CREATION_ENABLED`를 `.env`/Vercel 환경변수에서 `"true"`로 설정 (AI 크레딧 충전 완료로 이제 켤 수 있음)
+
 ## 칸반보드 데이터 로딩 성능 개선
 
 사용자가 "다음 주" 버튼을 포함해 데이터 로딩이 전반적으로 느리다고 보고해 원인 조사 후 진행.
@@ -684,6 +699,28 @@
 - [x] middleware.ts/page.tsx의 `auth.getUser()` 중복 호출 제거는 별도 브랜치(PR #173, x-user-id 헤더 재사용 패턴)로 분리해 처리, develop에 먼저 머지됨 — 이 브랜치를 develop에 맞춰 병합하며 `page.tsx`도 `headers().get("x-user-id")` 기반으로 다시 정리
 - [x] pnpm build / pnpm lint 검증 (develop 병합 후 재검증)
 - [ ] 마이그레이션은 SQL 에디터 또는 `supabase db push`로 실제 Supabase 프로젝트에 직접 적용 필요 (사용자가 직접 진행)
+
+## 일정 본문에 이미지 인라인 삽입
+
+일정에 이미지를 첨부하고 싶다는 요청. 처음에는 댓글처럼 별도 "이미지" 갤러리 섹션으로 구현했으나, 사용자가 원한 건 본문(body) 텍스트 안에 마크다운 이미지처럼 인라인으로 삽입하는 방식이었다. 댓글의 "@슬러그" 언급 마커 패턴(`_lib/mentions.ts`)을 그대로 본떠 재구현했다. 상세 설계는 `~/.claude/plans/cached-tickling-mango.md` 참고.
+
+- [x] `supabase/migrations/0014_add_task_attachments.sql`: `task-attachments` Storage 버킷 생성(public, 5MB, 이미지 4종) + `storage.objects` RLS(authenticated read/insert). 별도 메타데이터 테이블은 두지 않는다(이미지 참조가 body 텍스트 자체에 마크다운으로 저장되므로)
+- [x] `src/app/_lib/imageUpload.ts` 신규 작성: `validateImageFile`, `uploadBodyImage`(taskId 없이 브라우저에서 Storage로 직접 업로드, 서버 액션 불필요 — 아직 저장 안 된 새 일정 작성 중에도 바로 삽입 가능해야 해서)
+- [x] `src/app/_lib/bodyImages.ts` 신규 작성: `insertImageMarkdown`(mentions.ts의 insertMention과 동일한 모양), `splitBodyImageSegments`/`countBodyImages`(mentions.ts의 splitMentionSegments를 미러링, 정규식 `!\[([^\]]*)\]\(([^)\s]+)\)`)
+- [x] `TaskCreateModal.tsx`: 본문 textarea 아래 "+ 이미지" 버튼 + 숨김 파일 input 추가. 클릭 시 커서 위치를 미리 캡처해두고(파일 대화상자로 포커스 이탈 대비) 업로드 성공 시 그 위치에 마커 삽입, 커서를 마커 뒤로 이동(CommentEditor의 멘션 삽입과 동일 타이밍). 생성/수정 모드 구분 없이 동일하게 동작(본문 편집 자체가 항상 가능하므로 별도 draft/즉시반영 분기 불필요)
+- [x] `KanbanCard.tsx`: 본문 미리보기를 `splitBodyImageSegments`로 렌더링(텍스트는 그대로, 이미지 마커는 작은 인라인 `<img>`), 첨부 개수 배지를 `countBodyImages(task.body)`로 prop 없이 자체 계산
+- [x] 업로드 버그 수정: 파일명(한글/공백 포함)을 Storage 경로에 그대로 쓰면 `Invalid key` 에러가 나서, `imageUpload.ts`가 MIME 타입 기반 확장자(`{uuid}.{ext}`)로 경로를 만들도록 수정. 화면에 보이는 이름(마크다운 alt)은 원본 파일명 유지
+- [x] dnd-kit `DndContext`에 `id` 미지정으로 인한 하이드레이션 경고 수정(`KanbanBoard.tsx`, 이미지 기능과 무관한 기존 버그)
+- [x] 사용성 피드백 반영: 칸반 카드는 더 이상 이미지를 렌더링하지 않고 텍스트만 한 줄 truncate로 보여줌(이미지만 있는 본문이면 "이미지" 문구), 대신 일정 생성/수정 모달에 본문에 담긴 이미지를 실제로 보여주는 미리보기 갤러리(삭제 가능)를 추가
+  - `bodyImages.ts`: `BodyImageSegment`의 image variant에 `start`/`end` 추가, `stripBodyImages`(카드용 순수 텍스트 추출)/`removeBodyImage`(갤러리에서 개별 삭제) 신규
+  - `KanbanCard.tsx`: `splitBodyImageSegments` 렌더링 제거, `stripBodyImages` 기반 truncate 텍스트로 교체
+  - `TaskCreateModal.tsx`: 본문 textarea 아래에 `body`에서 파싱한 이미지 미리보기 그리드 추가(생성/수정 모드 공통, `body` state 파생이라 별도 배선 불필요), 각 썸네일에 ✕ 삭제 버튼(`removeBodyImage`로 해당 마커만 본문에서 제거)
+- [x] 재구조화: textarea에 마크다운 마커 텍스트가 그대로 보이는 게 불필요하다는 피드백 반영 — `body` 단일 state 대신 프로즈 텍스트(`bodyText`)와 이미지 목록(`imageMarkers`, `{id, alt, url}[]`)을 분리해서 들고 있다가 저장 시점에만 `buildBodyWithImages`로 합침. textarea에는 사용자가 입력한 프로즈만 보이고, 이미지는 미리보기 갤러리에서만 관리(커서 위치 캡처/마커 삽입 로직 전부 제거로 코드도 더 단순해짐)
+  - `bodyImages.ts`: `insertImageMarkdown`/`removeBodyImage`/`splitBodyImageSegments`/`BodyImageSegment` 제거(더 이상 필요 없음), `extractBodyImages`(저장된 본문 재파싱해 alt/url 목록 추출)·`buildBodyWithImages`(프로즈+이미지 목록 → 저장용 문자열) 신규
+  - `TaskCreateModal.tsx`: `body` state를 `bodyText`+`imageMarkers`로 분리, 업로드 시 `imageMarkers`에 push, 갤러리 ✕는 해당 id만 filter, 제출 시 `buildBodyWithImages(bodyText, imageMarkers)`로 최종 body 조립
+- [x] 업로드 성능 최적화: `imageUpload.ts`에 `resizeImageFile` 추가, `uploadBodyImage`가 업로드 전에 호출. 긴 변 1600px 초과 시에만 canvas로 축소하고 원본 포맷 유지(JPEG/WEBP는 quality 0.85, PNG는 무시되지만 크기 축소는 적용됨), GIF는 애니메이션 보존을 위해 건드리지 않음, 리사이즈 중 에러가 나면 원본 파일로 폴백. 5MB 용량 검증(`validateImageFile`)은 리사이즈 전 원본 기준 그대로 유지
+- [x] pnpm build / pnpm lint 검증
+- [x] 마이그레이션 SQL(0014)을 사용자가 Supabase 대시보드 SQL Editor에서 직접 적용 (task-attachments 버킷 존재 확인으로 재검증 완료)
 
 ## 월의 1일이 포함된 주를 항상 해당 월 1주차로 표시
 
