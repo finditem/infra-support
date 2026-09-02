@@ -721,3 +721,10 @@
 - [x] 업로드 성능 최적화: `imageUpload.ts`에 `resizeImageFile` 추가, `uploadBodyImage`가 업로드 전에 호출. 긴 변 1600px 초과 시에만 canvas로 축소하고 원본 포맷 유지(JPEG/WEBP는 quality 0.85, PNG는 무시되지만 크기 축소는 적용됨), GIF는 애니메이션 보존을 위해 건드리지 않음, 리사이즈 중 에러가 나면 원본 파일로 폴백. 5MB 용량 검증(`validateImageFile`)은 리사이즈 전 원본 기준 그대로 유지
 - [x] pnpm build / pnpm lint 검증
 - [x] 마이그레이션 SQL(0014)을 사용자가 Supabase 대시보드 SQL Editor에서 직접 적용 (task-attachments 버킷 존재 확인으로 재검증 완료)
+
+## 월의 1일이 포함된 주를 항상 해당 월 1주차로 표시
+
+`getWeekLabel`이 "월의 1일이 월요일이 아니면 그 달의 첫 번째 월요일을 1주차로 삼는" 방식이라, 1일이 화~일요일에 걸리면 그 주(1일이 포함된 주)는 오히려 이전 달의 마지막 주차로 표시되고 있었다. 예: 2026년 9월 1일(화)이 포함된 주가 "2026년 8월 5주차"로 보임. 1일이 포함된 주는 항상 그 달의 1주차로 보이도록, "1일이 포함된 주의 월요일"을 1주차 기준(anchor)으로 바꾼다.
+
+- [x] `kanbanUtils.ts`: `getWeekLabel`을 주(월~일) 안에 `getDate(d) === 1`인 날짜가 있으면 그 날짜가 속한 달을 라벨 월로 쓰고, 라벨 월의 1일이 속한 주의 월요일(`startOfWeek(monthStart, { weekStartsOn: 1 })`)을 1주차 anchor로 삼도록 수정
+- [x] pnpm build / pnpm lint 검증
