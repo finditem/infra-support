@@ -190,6 +190,7 @@ const KanbanBoard = ({
       </div>
 
       <DndContext
+        id="kanban-board"
         collisionDetection={closestCorners}
         sensors={sensors}
         onDragCancel={() => setActiveTask(null)}
@@ -267,14 +268,9 @@ const KanbanBoard = ({
           }}
           onSaved={(saved) => {
             const savedIds = new Set(saved.map((row) => row.id));
-            const visibleSaved = parentId
-              ? saved
-              : saved.filter((row) => row.week_id === weekId);
+            const visibleSaved = parentId ? saved : saved.filter((row) => row.week_id === weekId);
 
-            setTasks((prev) => [
-              ...prev.filter((row) => !savedIds.has(row.id)),
-              ...visibleSaved,
-            ]);
+            setTasks((prev) => [...prev.filter((row) => !savedIds.has(row.id)), ...visibleSaved]);
             setCreatingStatusId(null);
             setEditingTask(null);
           }}
