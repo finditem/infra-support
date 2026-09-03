@@ -15,11 +15,18 @@ export const getTeamsWithMembers = async (
   supabase: SupabaseClient,
   profiles?: ProfileWithColor[]
 ): Promise<TeamWithMembers[]> => {
-  const [{ data: teams }, { data: memberships }, registeredProfiles] = await Promise.all([
+  const [
+    { data: teams, error: teamsError },
+    { data: memberships, error: membershipsError },
+    registeredProfiles,
+  ] = await Promise.all([
     supabase.from("teams").select("*").order("name"),
     supabase.from("team_members").select("*"),
     profiles ? Promise.resolve(profiles) : getRegisteredProfiles(supabase),
   ]);
+
+  if (teamsError) console.error(teamsError);
+  if (membershipsError) console.error(membershipsError);
 
   const memberIdsByTeam = new Map<string, Set<string>>();
   ((memberships ?? []) as TeamMembersRow[]).forEach(({ team_id, profile_id }) => {

@@ -12,16 +12,29 @@ export const getOrCreateWeek = async (
   const year = getISOWeekYear(weekStart);
   const weekNumber = getISOWeek(weekStart);
 
-  const { data: existing } = await supabase
-    .from("weeks")
-    .select("*")
-    .eq("year", year)
-    .eq("week_number", weekNumber)
-    .maybeSingle();
+  let existing: WeeksRow | null = null;
+
+  // 일시적인 조회 실패로 이미 존재하는 주차를 놓치지 않도록 한 번 더 조회한다.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const { data, error } = await supabase
+      .from("weeks")
+      .select("*")
+      .eq("year", year)
+      .eq("week_number", weekNumber)
+      .maybeSingle();
+
+    if (!error) {
+      existing = data;
+      break;
+    }
+
+    console.error(error);
+    if (attempt === 1) return null;
+  }
 
   if (existing) return existing;
 
-  const { data: created, error } = await supabase
+  const { data: created, error: insertError } = await supabase
     .from("weeks")
     .insert({
       year,
@@ -32,7 +45,26 @@ export const getOrCreateWeek = async (
     .select("*")
     .single();
 
-  if (error) {
+  if (insertError) {
+    // 동시 요청이 같은 주차를 먼저 만들었다면 unique(year, week_number) 위반이 나므로,
+    // 실패로 보지 않고 방금 생성된 행을 다시 조회해 반환한다.
+    if (insertError.code === "23505") {
+      const { data: existingAfterConflict, error: refetchError } = await supabase
+        .from("weeks")
+        .select("*")
+        .eq("year", year)
+        .eq("week_number", weekNumber)
+        .maybeSingle();
+
+      if (refetchError) {
+        console.error(refetchError);
+        return null;
+      }
+
+      return existingAfterConflict;
+    }
+
+    console.error(insertError);
     return null;
   }
 

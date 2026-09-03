@@ -6,11 +6,16 @@ import type { ProfilesRow } from "@/types/tables";
  * 초대만 되고 비밀번호 설정을 마치지 않은 사용자는 registered_at이 null이라 제외된다.
  */
 export const getRegisteredProfiles = async (supabase: SupabaseClient): Promise<ProfilesRow[]> => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .not("registered_at", "is", null)
     .order("name");
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
 
   return data ?? [];
 };
