@@ -1,8 +1,10 @@
 import {
+  addDays,
   addWeeks,
   differenceInCalendarDays,
   endOfWeek,
   format,
+  getDate,
   getDay,
   isBefore,
   startOfMonth,
@@ -15,16 +17,16 @@ import type { KanbanFilterState, KanbanProgressEntry, ProfileWithColor } from ".
 export const getMonday = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
 
 export const getWeekLabel = (weekStart: Date) => {
-  const monthStart = startOfMonth(weekStart);
-  // 월의 1일이 월요일이 아니면, 그 달의 첫 번째 월요일을 1주차 기준으로 삼는다.
-  // (그렇지 않으면 1일이 월요일이 아닌 달에서 "N월 1주차"가 아예 존재하지 않는 경우가 생긴다.)
-  const firstMondayOfMonth =
-    getDay(monthStart) === 1
-      ? monthStart
-      : startOfWeek(addWeeks(monthStart, 1), { weekStartsOn: 1 });
-  const weekOfMonth = Math.round(differenceInCalendarDays(weekStart, firstMondayOfMonth) / 7) + 1;
+  // 월의 1일이 주(월~일) 안에 포함되어 있으면, 1일이 아무리 뒤쪽 요일이어도 그 주를 해당 월의 1주차로 본다.
+  // (그렇지 않으면 1일이 월요일이 아닌 달에서 1일이 포함된 주가 전달의 마지막 주차로 표시된다.)
+  const firstOfMonthInWeek = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)).find(
+    (date) => getDate(date) === 1
+  );
+  const monthStart = startOfMonth(firstOfMonthInWeek ?? weekStart);
+  const firstWeekStartOfMonth = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const weekOfMonth = differenceInCalendarDays(weekStart, firstWeekStartOfMonth) / 7 + 1;
 
-  return `${format(weekStart, "yyyy'년' M'월'")} ${weekOfMonth}주차`;
+  return `${format(monthStart, "yyyy'년' M'월'")} ${weekOfMonth}주차`;
 };
 
 export const getInitial = (name: string) => name.slice(-1);
