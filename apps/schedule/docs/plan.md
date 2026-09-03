@@ -722,6 +722,13 @@
 - [x] pnpm build / pnpm lint 검증
 - [x] 마이그레이션 SQL(0014)을 사용자가 Supabase 대시보드 SQL Editor에서 직접 적용 (task-attachments 버킷 존재 확인으로 재검증 완료)
 
+## 칸반 카드 드래그 핸들 하이드레이션 경고 수정
+
+사용자가 개발 서버에서 카드 드래그 핸들 버튼의 `aria-describedby` 속성이 서버/클라이언트 렌더링 사이에 값이 달라 하이드레이션 경고가 뜬다고 보고. `useDraggable()`이 반환하는 `attributes.aria-describedby`는 dnd-kit 내부 전역 카운터로 생성되는데, 이 카운터가 서버 요청과 클라이언트 최초 마운트 사이에 서로 다른 값에서 시작해 매번 어긋난다. 위 이미지 첨부 작업에서 `DndContext`에 `id="kanban-board"`를 지정해 한 차례 시도했으나 `aria-describedby`는 그 id와 무관한 별도 카운터라 여전히 어긋났다. 화면에 보이지 않는 스크린리더용 설명 id일 뿐 동작에는 영향이 없어, 경고만 억제하는 방식으로 수정.
+
+- [x] `KanbanCard.tsx`: `DraggableKanbanCard`의 드래그 핸들 `<button>`에 `suppressHydrationWarning` 추가
+- [x] `useDraggable`/`useSortable`을 쓰는 다른 컴포넌트(`KanbanColumn.tsx`)는 `useDroppable`만 사용하고 `attributes`를 spread하지 않아 동일 이슈 없음을 확인
+
 ## 월의 1일이 포함된 주를 항상 해당 월 1주차로 표시
 
 `getWeekLabel`이 "월의 1일이 월요일이 아니면 그 달의 첫 번째 월요일을 1주차로 삼는" 방식이라, 1일이 화~일요일에 걸리면 그 주(1일이 포함된 주)는 오히려 이전 달의 마지막 주차로 표시되고 있었다. 예: 2026년 9월 1일(화)이 포함된 주가 "2026년 8월 5주차"로 보임. 1일이 포함된 주는 항상 그 달의 1주차로 보이도록, "1일이 포함된 주의 월요일"을 1주차 기준(anchor)으로 바꾼다.
@@ -737,4 +744,5 @@
 - [x] PR #178 코드 리뷰 반영: 최초 `select`가 일시적으로 실패하면 즉시 중단하지 않고 한 차례 재시도한 뒤, 두 번 모두 실패한 경우에만 `null`을 반환하도록 수정
 - [x] `_lib/profiles.ts`, `_lib/teams.ts`: Supabase 쿼리 에러를 조용히 버리지 않고 `console.error`로 로깅하도록 수정
 - [x] `src/app/page.tsx` 문구 검토 — "이번 주 데이터를 불러오지 못했습니다."는 이미 실패 상태를 정확히 표현하고 있어("데이터 없음"이 아니라 "불러오지 못함") 별도 수정 불필요로 판단, 변경하지 않음
+
 - [x] pnpm build / pnpm lint 검증
