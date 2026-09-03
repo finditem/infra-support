@@ -2,11 +2,12 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { format } from "date-fns";
-import { ExternalLink, GripVertical, MessageSquare } from "lucide-react";
+import { ExternalLink, GripVertical, Image as ImageIcon, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import type { KeyboardEvent, ReactNode, Ref } from "react";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
+import { countBodyImages, stripBodyImages } from "../_lib/bodyImages";
 import { isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
 import ProfileAvatar from "./ProfileAvatar";
@@ -50,6 +51,10 @@ const KanbanCardView = ({
 }: KanbanCardViewProps) => {
   const priority = PRIORITY_META[task.priority];
   const overdue = isTaskOverdue(task, statuses);
+  const attachmentCount = task.body ? countBodyImages(task.body) : 0;
+  const bodyText = task.body ? stripBodyImages(task.body) : "";
+  // 본문이 이미지로만 채워져 있으면(텍스트가 하나도 안 남으면) "이미지"라는 문구만 보여준다.
+  const bodyPreviewText = bodyText || (attachmentCount > 0 ? "이미지" : "");
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!onSelect) return;
@@ -102,7 +107,7 @@ const KanbanCardView = ({
 
       <h3 className="text-sm font-semibold text-text-default">{task.title}</h3>
 
-      {task.body && <p className="text-xs text-text-muted">{task.body}</p>}
+      {bodyPreviewText && <p className="truncate text-xs text-text-muted">{bodyPreviewText}</p>}
 
       <div className="flex items-center justify-between text-xs text-text-muted">
         <div className="flex items-center gap-3">
@@ -129,7 +134,7 @@ const KanbanCardView = ({
         )}
       </div>
 
-      {(subtaskCount > 0 || commentCount > 0) && (
+      {(subtaskCount > 0 || commentCount > 0 || attachmentCount > 0) && (
         <div className="flex items-center gap-3 border-t border-border pt-2 text-xs text-text-muted">
           {subtaskCount > 0 && <span>하위 일정 {subtaskCount}개</span>}
 
@@ -137,6 +142,13 @@ const KanbanCardView = ({
             <span className="flex items-center gap-1">
               <MessageSquare aria-hidden className="size-3" />
               {commentCount}
+            </span>
+          )}
+
+          {attachmentCount > 0 && (
+            <span className="flex items-center gap-1">
+              <ImageIcon aria-hidden className="size-3" />
+              {attachmentCount}
             </span>
           )}
         </div>
@@ -177,6 +189,10 @@ const DraggableKanbanCard = ({
               : "cursor-grab hover:bg-fill-neutural-subtle-default active:cursor-grabbing"
           )}
           disabled={dragDisabled}
+          // dnd-kit이 attributes.aria-describedby에 넣는 id는 전역 카운터 기반이라
+          // 서버/클라이언트 렌더링 시점마다 값이 달라져 하이드레이션 경고가 발생한다.
+          // 접근성 스크린리더 설명용 id일 뿐 동작에는 영향이 없어 경고만 억제한다.
+          suppressHydrationWarning
           title={dragDisabled ? dragDisabledTitle : undefined}
           type="button"
           {...attributes}
