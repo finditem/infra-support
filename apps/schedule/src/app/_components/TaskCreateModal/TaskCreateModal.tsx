@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
 import { CornerDownLeft } from "lucide-react";
-import { createTask, deleteTask, updateTask } from "../../_lib/actions";
+import { createSubtasks, createTask, deleteTask, updateTask } from "../../_lib/actions";
 import { buildBodyWithImages, extractBodyImages, stripBodyImages } from "../../_lib/bodyImages";
 import {
   deleteStorageImages,
@@ -249,38 +249,33 @@ const TaskCreateModal = ({
       void deleteStorageImages(createClient(), removedPaths);
     }
 
-    const savedRows: TasksRow[] = [saved];
-    const failedTitles: string[] = [];
+    const drafts = canAddSubtasks
+      ? subtaskDrafts
+          .filter((draft) => draft.title.trim())
+          .map((draft) => ({ title: draft.title.trim(), body: draft.body.trim() || null }))
+      : [];
 
-    if (canAddSubtasks) {
-      for (const draft of subtaskDrafts) {
-        if (!draft.title.trim()) continue;
-
-        const savedSubtask = await createTask({
-          title: draft.title.trim(),
-          body: draft.body.trim() || null,
-          statusId,
-          assigneeId: null,
-          reporterId: null,
-          priority: "medium",
-          dueDate,
-          createdBy: currentProfileId,
-          parentId: saved.id,
-        });
-
-        if (savedSubtask) {
-          savedRows.push(savedSubtask);
-        } else {
-          failedTitles.push(draft.title.trim());
-        }
-      }
-    }
+    // 하위 일정은 상위 일정과 마감일이 같아 주차도 같으므로, 방금 저장된 상위 일정의 주차를 그대로 넘긴다.
+    // 적을 것이 없으면 서버 액션 자체를 호출하지 않아 왕복을 한 번 더 만들지 않는다.
+    const savedSubtasks =
+      drafts.length > 0
+        ? await createSubtasks({
+            parentId: saved.id,
+            weekId: saved.week_id,
+            statusId,
+            dueDate,
+            createdBy: currentProfileId,
+            drafts,
+          })
+        : [];
 
     setIsSubmitting(false);
-    onSaved(savedRows);
+    onSaved([saved, ...(savedSubtasks ?? [])]);
 
-    if (failedTitles.length > 0) {
-      window.alert(`다음 하위 일정 생성에 실패했습니다: ${failedTitles.join(", ")}`);
+    if (savedSubtasks === null) {
+      window.alert(
+        `다음 하위 일정 생성에 실패했습니다: ${drafts.map((draft) => draft.title).join(", ")}`
+      );
     }
   };
 
