@@ -6,6 +6,8 @@ import {
   format,
   getDate,
   getDay,
+  getISOWeek,
+  getISOWeekYear,
   isBefore,
   startOfMonth,
   startOfToday,
@@ -15,6 +17,15 @@ import type { ProfilesRow, TaskStatusesRow, TasksRow } from "@/types/tables";
 import type { KanbanFilterState, KanbanProgressEntry, ProfileWithColor } from "../_types/kanban";
 
 export const getMonday = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
+
+/**
+ * weeks 테이블을 찾는 키를 계산한다.
+ * 주차 행 조회와 그 주차의 일정 조회가 같은 기준으로 주차를 특정하도록 한곳에서 계산한다.
+ */
+export const getIsoWeekKey = (weekStart: Date) => ({
+  year: getISOWeekYear(weekStart),
+  weekNumber: getISOWeek(weekStart),
+});
 
 export const getWeekLabel = (weekStart: Date) => {
   // 월의 1일이 주(월~일) 안에 포함되어 있으면, 1일이 아무리 뒤쪽 요일이어도 그 주를 해당 월의 1주차로 본다.
@@ -86,6 +97,18 @@ export const isTaskOverdue = (task: TasksRow, statuses: TaskStatusesRow[]) => {
   );
 };
 
+/** 하위 일정을 상위 일정 id별로 묶는다. 상위 일정이 아닌(parent_id가 없는) 일정은 제외한다. */
+export const groupTasksByParent = (tasks: TasksRow[]) => {
+  const map = new Map<string, TasksRow[]>();
+
+  tasks.forEach((task) => {
+    if (!task.parent_id) return;
+    map.set(task.parent_id, [...(map.get(task.parent_id) ?? []), task]);
+  });
+
+  return map;
+};
+
 /**
  * 하위 일정이 있는 상위 일정이 메인 칸반보드에서 어느 상태 컬럼에 표시될지 계산한다.
  * 우선순위: 하나라도 지연됨 > 하나라도 미완료 > 전부 완료 > 전부 검토 중 > 하나라도 시작(할 일이 아님) > 상위 일정 자신의 상태.
@@ -115,6 +138,16 @@ export const resolveEffectiveStatusId = (
 
   return null;
 };
+
+/**
+ * 일정이 실제로 표시되는 상태 컬럼의 id를 구한다.
+ * 하위 일정이 표시 컬럼을 결정하면 그 값을, 아니면 일정 자신의 status_id를 쓴다.
+ */
+export const getEffectiveStatusId = (
+  task: TasksRow,
+  childrenByParent: Map<string, TasksRow[]>,
+  statuses: TaskStatusesRow[]
+) => resolveEffectiveStatusId(childrenByParent.get(task.id) ?? [], statuses) ?? task.status_id;
 
 /**
  * 하위 일정의 상태로 표시 컬럼이 결정되는 상위 일정인지 판정한다.

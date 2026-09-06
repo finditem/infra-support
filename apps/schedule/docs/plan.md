@@ -746,3 +746,38 @@
 - [x] `src/app/page.tsx` 문구 검토 — "이번 주 데이터를 불러오지 못했습니다."는 이미 실패 상태를 정확히 표현하고 있어("데이터 없음"이 아니라 "불러오지 못함") 별도 수정 불필요로 판단, 변경하지 않음
 
 - [x] pnpm build / pnpm lint 검증
+
+## 지난주 미완료 일정을 이번 주로 자동 이월
+
+지난주에 완료하지 못한 일정이 지난주 보드에 그대로 남아, 이번 주 보드만 보는 팀원에게는 보이지 않는 문제가 있었다. 매주 월요일 09:00 KST에 cron으로 지난주 미완료 일정의 `week_id`를 이번 주 주차로 옮긴다. 마감일(`due_date`)은 바꾸지 않아 이월된 카드가 이번 주 보드에서도 마감 초과로 강조되고, 마감일 기준으로 집계하는 주간 리포트와 마감 초과 알림 결과도 달라지지 않는다.
+
+- [x] `_lib/kanbanUtils.ts`: `KanbanBoard`에 인라인으로 있던 하위 일정 그룹핑과 표시 상태 계산을 `groupTasksByParent`, `getEffectiveStatusId`로 분리해 이월 로직과 공유
+- [x] `_components/KanbanBoard.tsx`: 분리한 두 함수를 사용하도록 교체
+- [x] `_lib/carryOverTasks.ts`: 지난주 미완료 상위 일정과 그 미완료 하위 일정의 `week_id`를 이번 주로 갱신하는 `carryOverIncompleteTasks` 추가. 완료 여부는 보드에 실제로 표시되는 컬럼(`getEffectiveStatusId`) 기준으로 판정한다
+- [x] `api/cron/carry-over/route.ts`: `verifyCronRequest`로 인증하고 service 클라이언트로 이월을 실행하는 cron 라우트 추가
+- [x] `vercel.json`: `/api/cron/carry-over`를 월요일(`0 0 * * 1`) 스케줄로 등록
+- [x] pnpm build / pnpm lint 검증
+
+### 코드 리뷰 반영
+
+- [x] `_lib/kanban.ts`: `getTasksForWeek`이 조회 실패를 삼키지 않고 `null`을 반환하도록 변경. 기존에는 상위 조회 실패 시 빈 배열, 하위 조회 실패 시 상위 일정만 돌려주어 호출부가 실패를 "일정 없음"이나 "하위 일정 없음"과 구분할 수 없었다
+- [x] `_lib/carryOverTasks.ts`: 지난주 일정 조회가 실패하면 `null`을 반환해 cron 라우트가 500으로 끝나게 했다. 이전에는 아무것도 옮기지 않고 성공으로 응답했는데, 다음 실행은 그다음 주를 지난주로 보므로 해당 주의 미완료 일정이 영구히 이월되지 않았다
+- [x] `src/app/page.tsx`: 일정 조회 실패 시 빈 보드 대신 "이번 주 데이터를 불러오지 못했습니다." 문구를 보여주도록 변경
+- [x] `_lib/actions.ts`: `updateTask`가 마감일이 실제로 바뀐 경우에만 `week_id`를 다시 계산하도록 변경. 이월된 일정은 지난주 마감일을 유지한 채 이번 주 주차에 들어 있어, 마감일로 재계산하면 저장할 때마다 지난주 보드로 되돌아가 이번 주 보드에서 사라졌다
+
+## 페이지 이동과 저장 응답 속도 개선
+
+사용자가 칸반보드의 주차 화살표를 누를 때 반응이 느리다고 보고. 조사해 보니 원인이 두 가지였다. 하나는 페이지가 필요한 데이터를 순차 왕복으로 가져오고 있었던 것이고(미들웨어 인증 조회부터 댓글 조회까지 5단), 다른 하나는 주차 이동이 searchParams만 바뀌는 이동이라 `app/loading.tsx`가 뜨지 않아 응답이 올 때까지 화면이 멈춘 것처럼 보였던 것이다. 같은 관점으로 앱 전체를 훑어 캘린더, 일정 상세, 설정 팀 관리에서도 같은 형태의 순차 왕복을 찾았고, 하위 일정 저장이 개수에 비례해 느려지는 문제도 함께 확인했다. Supabase 왕복 1회는 약 150ms로 측정된 값을 기준으로 삼았다.
+
+- [x] `_lib/taskEmbed.ts` 신규 작성: 상위 일정과 하위 일정, 양쪽 댓글을 한 번에 받아오는 임베드 구문(`TASK_EMBED_SELECT`)과 그 결과를 화면이 쓰는 평평한 배열로 펼치는 `flattenEmbeddedTasks`. 임베드는 댓글을 일정별로 묶어 돌려주므로 마지막에 작성순으로 다시 정렬한다
+- [x] `_lib/kanban.ts`: 화면이 쓰던 `getTasksForWeek`(상위 조회 후 하위 조회로 2회 순차)와 `getCommentsForTasks`(그 뒤 순차 1회)를 `getWeekBoard` 하나로 대체. `weeks`를 inner join으로 걸러 `(year, week_number)`로 직접 조회하므로 weeks 행 조회를 기다리지 않는다. `getTasksForWeek`는 댓글이 필요 없고 주차 id를 이미 아는 이월 cron이 계속 쓰므로 남겨 두었고, `getCommentsForTasks`는 사용처가 없어져 삭제했다
+- [x] `_lib/kanbanUtils.ts`: 주차 행 조회와 일정 조회가 같은 기준을 쓰도록 ISO 주차 키 계산을 `getIsoWeekKey`로 분리
+- [x] `src/app/page.tsx`: 2단계로 나뉘어 있던 조회를 한 단계 병렬로 합침. 순차 왕복 5단이 2단(미들웨어 인증 + 조회 한 묶음)으로 줄어 대기 시간이 약 750ms에서 약 300ms로 감소
+- [x] `src/components/NavArrowLink.tsx` 신규 작성: `useLinkStatus`로 이동 중에 화살표 자리에 스피너를 띄우는 공용 링크. 칸반의 주차 화살표와 캘린더의 월 화살표가 함께 쓴다
+- [x] `_lib/kanban.ts`에 `getTaskWithSubtasks` 추가, `task/[id]/page.tsx`: 하위 일정과 댓글이 경로의 id만으로 조회 가능한데도 상위 일정 조회를 기다리고 있던 구조를 한 단계 병렬로 합침. 불필요한 `auth.getUser()`도 `x-user-id` 헤더로 대체(4단 -> 2단)
+- [x] `_lib/teams.ts`: `getTeamsWithMembers`가 profiles를 프로미스로도 받도록 넓혀, 호출하는 화면이 profiles를 기다리지 않고 팀 조회를 나란히 출발시킬 수 있게 함
+- [x] `settings/teams/page.tsx`: 완전히 직렬이던 `auth.getUser()` -> profiles -> teams를 한 단계로 합침(4단 -> 2단)
+- [x] `calendar/page.tsx`: profiles를 기다리던 팀 조회를 같은 단계로 끌어올리고 `auth.getUser()`를 `x-user-id` 헤더로 대체
+- [x] `calendar/_components/MonthPickerPopover.tsx`: 월을 고르면 `useTransition`으로 이동 상태를 잡아 월 라벨 자리에 진행 표시를 띄움
+- [x] `_lib/actions.ts`에 `createSubtasks` 추가, `TaskCreateModal.tsx`: 하위 일정을 하나씩 `createTask`로 만들던 루프를 일괄 삽입 한 번으로 교체. 서버 액션은 순서대로 처리되는 데다 호출마다 같은 주차를 다시 조회하고 있어서 하위 일정 5개면 왕복이 18회였는데, 상위 일정이 확정한 주차를 그대로 쓰고 삽입을 묶어 개수와 무관하게 4회로 줄었다. 부분 실패 대신 전부 실패로 바뀌므로 실패 시에는 아무것도 만들지 않는다
+- [x] pnpm build / pnpm lint 검증
