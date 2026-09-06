@@ -9,11 +9,13 @@ import { getRegisteredProfiles } from "./profiles";
  * 이후 캘린더/칸반의 팀 언급 기능에서도 같은 형태가 필요해서 분리해 둔 조회 함수다.
  *
  * 가입된 팀원 목록을 이미 조회한 화면은 profiles를 넘겨 중복 조회를 피할 수 있다.
+ * 아직 기다리지 않은 프로미스를 그대로 넘겨도 된다. 그러면 팀 조회가 profiles를 기다리지 않고
+ * 나란히 출발하므로, 화면 입장에서는 순차 왕복이 한 단계 줄어든다.
  * 멤버 순서는 profiles 조회 순서(이름순)를 그대로 따른다.
  */
 export const getTeamsWithMembers = async (
   supabase: SupabaseClient,
-  profiles?: ProfileWithColor[]
+  profiles?: ProfileWithColor[] | Promise<ProfileWithColor[]>
 ): Promise<TeamWithMembers[]> => {
   const [
     { data: teams, error: teamsError },

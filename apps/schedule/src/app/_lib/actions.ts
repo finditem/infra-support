@@ -65,6 +65,65 @@ export const createTask = async ({
   return data;
 };
 
+interface CreateSubtasksInput {
+  parentId: string;
+  /** 상위 일정이 이미 확정한 주차. 하위 일정은 마감일이 같아서 주차를 다시 계산할 필요가 없다. */
+  weekId: string | null;
+  statusId: string;
+  dueDate: string;
+  createdBy: string | null;
+  drafts: { title: string; body: string | null }[];
+}
+
+/**
+ * 하위 일정 여러 건을 한 번에 만든다.
+ *
+ * 이전에는 화면에서 하위 일정마다 createTask를 따로 호출했는데, 서버 액션은 순서대로 처리되는 데다
+ * 호출할 때마다 같은 주차를 다시 조회해서 개수에 비례해 저장이 느려졌다. 주차는 상위 일정이 이미
+ * 확정한 값을 그대로 쓰고, 삽입도 한 번에 묶어 왕복 횟수를 개수와 무관하게 만든다.
+ *
+ * 하나라도 실패하면 아무것도 만들지 않고 null을 반환한다.
+ */
+export const createSubtasks = async ({
+  parentId,
+  weekId,
+  statusId,
+  dueDate,
+  createdBy,
+  drafts,
+}: CreateSubtasksInput): Promise<TasksRow[] | null> => {
+  if (drafts.length === 0) return [];
+
+  const supabase = await createClient();
+
+  const insertPayload: TasksInsert[] = drafts.map(({ title, body }) => ({
+    title,
+    body,
+    status_id: statusId,
+    week_id: weekId,
+    assignee_id: null,
+    reporter_id: null,
+    priority: "medium",
+    due_date: dueDate,
+    created_by: createdBy,
+    parent_id: parentId,
+  }));
+
+  const { data, error } = await supabase.from("tasks").insert(insertPayload).select("*");
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  const created = data ?? [];
+
+  // Slack 전송은 응답을 반환한 뒤에 실행한다. 알림이 느려도 저장 성공 응답이 지연되지 않는다.
+  after(() => Promise.all(created.map((task) => notifyTaskCreated(supabase, task))));
+
+  return created;
+};
+
 interface UpdateTaskInput {
   id: string;
   title: string;

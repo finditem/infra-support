@@ -6,6 +6,8 @@ import {
   format,
   getDate,
   getDay,
+  getISOWeek,
+  getISOWeekYear,
   isBefore,
   startOfMonth,
   startOfToday,
@@ -15,6 +17,15 @@ import type { ProfilesRow, TaskStatusesRow, TasksRow } from "@/types/tables";
 import type { KanbanFilterState, KanbanProgressEntry, ProfileWithColor } from "../_types/kanban";
 
 export const getMonday = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
+
+/**
+ * weeks 테이블을 찾는 키를 계산한다.
+ * 주차 행 조회와 그 주차의 일정 조회가 같은 기준으로 주차를 특정하도록 한곳에서 계산한다.
+ */
+export const getIsoWeekKey = (weekStart: Date) => ({
+  year: getISOWeekYear(weekStart),
+  weekNumber: getISOWeek(weekStart),
+});
 
 export const getWeekLabel = (weekStart: Date) => {
   // 월의 1일이 주(월~일) 안에 포함되어 있으면, 1일이 아무리 뒤쪽 요일이어도 그 주를 해당 월의 1주차로 본다.
