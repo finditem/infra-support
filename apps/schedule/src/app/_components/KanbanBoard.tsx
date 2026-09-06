@@ -17,8 +17,9 @@ import {
   buildProfileColorMap,
   calculateMemberProgress,
   filterTasks,
+  getEffectiveStatusId,
+  groupTasksByParent,
   isStatusDerivedFromSubtasks,
-  resolveEffectiveStatusId,
   sortByPriorityDesc,
 } from "../_lib/kanbanUtils";
 import type { MentionTarget } from "../_lib/mentions";
@@ -105,17 +106,10 @@ const KanbanBoard = ({
     [comments, editingTask]
   );
 
-  const childrenByParent = useMemo(() => {
-    const map = new Map<string, TasksRow[]>();
-    tasks.forEach((task) => {
-      if (!task.parent_id) return;
-      map.set(task.parent_id, [...(map.get(task.parent_id) ?? []), task]);
-    });
-    return map;
-  }, [tasks]);
+  const childrenByParent = useMemo(() => groupTasksByParent(tasks), [tasks]);
 
   const effectiveStatusId = (task: TasksRow) =>
-    resolveEffectiveStatusId(childrenByParent.get(task.id) ?? [], statuses) ?? task.status_id;
+    getEffectiveStatusId(task, childrenByParent, statuses);
 
   const derivedStatusTaskIds = useMemo(
     () =>
