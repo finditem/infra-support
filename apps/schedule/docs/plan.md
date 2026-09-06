@@ -746,3 +746,14 @@
 - [x] `src/app/page.tsx` 문구 검토 — "이번 주 데이터를 불러오지 못했습니다."는 이미 실패 상태를 정확히 표현하고 있어("데이터 없음"이 아니라 "불러오지 못함") 별도 수정 불필요로 판단, 변경하지 않음
 
 - [x] pnpm build / pnpm lint 검증
+
+## 지난주 미완료 일정을 이번 주로 자동 이월
+
+지난주에 완료하지 못한 일정이 지난주 보드에 그대로 남아, 이번 주 보드만 보는 팀원에게는 보이지 않는 문제가 있었다. 매주 월요일 09:00 KST에 cron으로 지난주 미완료 일정의 `week_id`를 이번 주 주차로 옮긴다. 마감일(`due_date`)은 바꾸지 않아 이월된 카드가 이번 주 보드에서도 마감 초과로 강조되고, 마감일 기준으로 집계하는 주간 리포트와 마감 초과 알림 결과도 달라지지 않는다.
+
+- [x] `_lib/kanbanUtils.ts`: `KanbanBoard`에 인라인으로 있던 하위 일정 그룹핑과 표시 상태 계산을 `groupTasksByParent`, `getEffectiveStatusId`로 분리해 이월 로직과 공유
+- [x] `_components/KanbanBoard.tsx`: 분리한 두 함수를 사용하도록 교체
+- [x] `_lib/carryOverTasks.ts`: 지난주 미완료 상위 일정과 그 미완료 하위 일정의 `week_id`를 이번 주로 갱신하는 `carryOverIncompleteTasks` 추가. 완료 여부는 보드에 실제로 표시되는 컬럼(`getEffectiveStatusId`) 기준으로 판정한다
+- [x] `api/cron/carry-over/route.ts`: `verifyCronRequest`로 인증하고 service 클라이언트로 이월을 실행하는 cron 라우트 추가
+- [x] `vercel.json`: `/api/cron/carry-over`를 월요일(`0 0 * * 1`) 스케줄로 등록
+- [x] pnpm build / pnpm lint 검증
