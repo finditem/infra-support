@@ -146,9 +146,17 @@ export const updateTask = async ({
   dueDate,
 }: UpdateTaskInput): Promise<TasksRow | null> => {
   const supabase = await createClient();
-  const week = await getOrCreateWeek(supabase, getMonday(parseISO(dueDate)));
 
-  if (!week) {
+  const { data: before } = await supabase.from("tasks").select("*").eq("id", id).maybeSingle();
+
+  // 마감일이 그대로면 주차를 다시 계산하지 않는다. 이월된 일정(carryOverTasks)은 지난주 마감일을
+  // 유지한 채 이번 주 주차에 들어 있어, 마감일로 다시 계산하면 지난주 보드로 되돌아가 버린다.
+  const isDueDateChanged = before?.due_date !== dueDate;
+  const week = isDueDateChanged
+    ? await getOrCreateWeek(supabase, getMonday(parseISO(dueDate)))
+    : null;
+
+  if (isDueDateChanged && !week) {
     return null;
   }
 
@@ -156,14 +164,12 @@ export const updateTask = async ({
     title,
     body,
     status_id: statusId,
-    week_id: week.id,
     assignee_id: assigneeId,
     reporter_id: reporterId,
     priority,
     due_date: dueDate,
+    ...(week ? { week_id: week.id } : {}),
   };
-
-  const { data: before } = await supabase.from("tasks").select("*").eq("id", id).maybeSingle();
 
   const { data, error } = await supabase
     .from("tasks")

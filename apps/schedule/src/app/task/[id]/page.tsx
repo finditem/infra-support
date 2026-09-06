@@ -36,6 +36,19 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
     ]
   );
 
+  // 조회 자체가 실패한 경우(null)는 없는 일정과 구분한다. 실패를 404로 읽으면
+  // 일시적인 오류에 멀쩡한 일정이 사라진 것처럼 보인다.
+  if (!detail) {
+    return (
+      <main className="flex min-h-screen flex-col bg-surface">
+        <NavBar />
+        <div className="flex-1 px-4 py-6 sm:px-8">
+          <p className="text-sm text-text-muted">일정을 불러오지 못했습니다.</p>
+        </div>
+      </main>
+    );
+  }
+
   // 임베드 결과의 첫 번째 원소가 상위 일정이고 나머지가 하위 일정이다.
   // 댓글은 양쪽 것이 함께 들어 있어, 상위 일정 것은 아래 댓글 카드가, 하위 일정 것은
   // 칸반 카드의 개수 배지가 각각 걸러서 쓴다.
