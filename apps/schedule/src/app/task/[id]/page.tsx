@@ -1,9 +1,9 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { TasksRow } from "@/types/tables";
 import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "../../_components/KanbanBoard";
-import { getCommentsForTasks } from "../../_lib/kanban";
+import { getTaskWithSubtasks } from "../../_lib/kanban";
 import { buildMentionTargets } from "../../_lib/mentions";
 import { getRegisteredProfiles } from "../../_lib/profiles";
 import { getTeamsWithMembers } from "../../_lib/teams";
@@ -18,33 +18,33 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
   const { id } = await params;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // 미들웨어가 이미 검증해 x-user-id 헤더로 넘겨준 값을 재사용한다(auth.getUser() 왕복 1회 절약).
+  const userId = (await headers()).get("x-user-id");
 
-  const { data: parentTask } = await supabase.from("tasks").select("*").eq("id", id).maybeSingle();
+  // 하위 일정과 댓글은 상위 일정 행이 아니라 경로의 id만 있으면 조회할 수 있어서,
+  // 상위 일정 조회를 기다리지 않고 나머지와 한 단계에서 병렬로 가져온다.
+  const profilesPromise = getRegisteredProfiles(supabase);
+  const [{ data: statuses }, profiles, detail, { data: currentProfile }, teams] = await Promise.all(
+    [
+      supabase.from("task_statuses").select("*").order("order_index"),
+      profilesPromise,
+      getTaskWithSubtasks(supabase, id),
+      userId
+        ? supabase.from("profiles").select("*").eq("id", userId).maybeSingle()
+        : Promise.resolve({ data: null }),
+      getTeamsWithMembers(supabase, profilesPromise),
+    ]
+  );
+
+  // 임베드 결과의 첫 번째 원소가 상위 일정이고 나머지가 하위 일정이다.
+  // 댓글은 양쪽 것이 함께 들어 있어, 상위 일정 것은 아래 댓글 카드가, 하위 일정 것은
+  // 칸반 카드의 개수 배지가 각각 걸러서 쓴다.
+  const [parentTask, ...childTasks] = detail.tasks;
 
   if (!parentTask || parentTask.parent_id) {
     notFound();
   }
 
-  const [{ data: statuses }, profiles, { data: subtasks }, { data: currentProfile }] =
-    await Promise.all([
-      supabase.from("task_statuses").select("*").order("order_index"),
-      getRegisteredProfiles(supabase),
-      supabase.from("tasks").select("*").eq("parent_id", id).order("created_at"),
-      user
-        ? supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
-        : Promise.resolve({ data: null }),
-    ]);
-
-  // 상위 일정과 하위 일정의 댓글을 한 번에 가져온다. 상위 일정 것은 아래 댓글 카드가,
-  // 하위 일정 것은 칸반 카드의 개수 배지가 사용한다.
-  const childTasks: TasksRow[] = subtasks ?? [];
-  const [comments, teams] = await Promise.all([
-    getCommentsForTasks(supabase, [parentTask.id, ...childTasks.map((task) => task.id)]),
-    getTeamsWithMembers(supabase, profiles),
-  ]);
   const mentionTargets = buildMentionTargets(teams, profiles);
 
   return (
@@ -54,7 +54,7 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
 
       <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-8">
         <KanbanBoard
-          comments={comments.filter((comment) => comment.task_id !== parentTask.id)}
+          comments={detail.comments.filter((comment) => comment.task_id !== parentTask.id)}
           currentProfileId={currentProfile?.id ?? null}
           mentionTargets={mentionTargets}
           parentId={parentTask.id}
@@ -67,7 +67,7 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
 
         <TaskCommentsPanel
           currentProfileId={currentProfile?.id ?? null}
-          initialComments={comments.filter((comment) => comment.task_id === parentTask.id)}
+          initialComments={detail.comments.filter((comment) => comment.task_id === parentTask.id)}
           mentionTargets={mentionTargets}
           profiles={profiles}
           taskId={parentTask.id}

@@ -1,6 +1,13 @@
-import { addDays, format, getISOWeek, getISOWeekYear } from "date-fns";
+import { addDays, format } from "date-fns";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { SprintsRow, TaskCommentsRow, TasksRow, WeeksRow } from "@/types/tables";
+import type { SprintsRow, WeeksRow } from "@/types/tables";
+import { getIsoWeekKey } from "./kanbanUtils";
+import {
+  flattenEmbeddedTasks,
+  TASK_EMBED_SELECT,
+  type EmbeddedTaskRow,
+  type FlattenedTasks,
+} from "./taskEmbed";
 
 /**
  * 주어진 주(월요일 기준)에 해당하는 weeks 행을 조회하고, 없으면 새로 생성한다.
@@ -9,8 +16,7 @@ export const getOrCreateWeek = async (
   supabase: SupabaseClient,
   weekStart: Date
 ): Promise<WeeksRow | null> => {
-  const year = getISOWeekYear(weekStart);
-  const weekNumber = getISOWeek(weekStart);
+  const { year, weekNumber } = getIsoWeekKey(weekStart);
 
   let existing: WeeksRow | null = null;
 
@@ -72,68 +78,58 @@ export const getOrCreateWeek = async (
 };
 
 /**
- * 여러 일정의 댓글을 한 번의 쿼리로 가져온다.
+ * 해당 주차의 상위 일정과, 상태 집계에 필요한 모든 하위 일정, 그리고 그 일정들의 댓글을 한 번에 가져온다.
+ * 하위 일정은 자체 마감 주차와 관계없이 상위 카드의 개수와 상태 계산에 포함한다.
  *
- * 칸반 카드마다 개수를 세려고 일정별로 조회하면 곧바로 N+1이 되므로,
- * 페이지 서버 컴포넌트에서 화면에 필요한 일정 전체를 묶어 한 번만 조회한다.
+ * 주차는 weeks를 inner join으로 걸러 특정하므로, 호출하는 쪽에서 weeks 행 조회가 끝나기를
+ * 기다리지 않고 다른 조회와 나란히 실행할 수 있다.
  */
-export const getCommentsForTasks = async (
+export const getWeekBoard = async (
   supabase: SupabaseClient,
-  taskIds: string[]
-): Promise<TaskCommentsRow[]> => {
-  if (taskIds.length === 0) return [];
+  weekStart: Date
+): Promise<FlattenedTasks> => {
+  const { year, weekNumber } = getIsoWeekKey(weekStart);
 
   const { data, error } = await supabase
-    .from("task_comments")
-    .select("*")
-    .in("task_id", taskIds)
-    .order("created_at");
+    .from("tasks")
+    .select(`*, weeks!inner(year, week_number), ${TASK_EMBED_SELECT}`)
+    .eq("weeks.year", year)
+    .eq("weeks.week_number", weekNumber)
+    .is("parent_id", null)
+    .order("created_at")
+    .order("created_at", { referencedTable: "subtasks" });
 
   if (error) {
     console.error(error);
-    return [];
+    return { tasks: [], comments: [] };
   }
 
-  return data ?? [];
+  return flattenEmbeddedTasks((data ?? []) as EmbeddedTaskRow[]);
 };
 
 /**
- * 해당 주차의 상위 일정과 상태 집계에 필요한 모든 하위 일정을 가져온다.
- * 하위 일정은 자체 마감 주차와 관계없이 상위 카드의 개수와 상태 계산에 포함한다.
+ * 일정 상세 화면에 필요한 상위 일정과 그 하위 일정, 양쪽의 댓글을 한 번에 가져온다.
+ * 첫 번째 원소가 상위 일정이고 나머지가 하위 일정이다.
+ *
+ * 하위 일정과 댓글이 상위 일정 조회 결과를 기다리지 않도록, id 하나로 임베드해서 받아온다.
  */
-export const getTasksForWeek = async (
+export const getTaskWithSubtasks = async (
   supabase: SupabaseClient,
-  weekId: string
-): Promise<TasksRow[]> => {
-  const { data: rootTasks, error: rootError } = await supabase
+  taskId: string
+): Promise<FlattenedTasks> => {
+  const { data, error } = await supabase
     .from("tasks")
-    .select("*")
-    .eq("week_id", weekId)
-    .is("parent_id", null)
-    .order("created_at");
+    .select(`*, ${TASK_EMBED_SELECT}`)
+    .eq("id", taskId)
+    .order("created_at", { referencedTable: "subtasks" })
+    .maybeSingle();
 
-  if (rootError) {
-    console.error(rootError);
-    return [];
+  if (error) {
+    console.error(error);
+    return { tasks: [], comments: [] };
   }
 
-  if (!rootTasks || rootTasks.length === 0) return [];
-
-  const { data: childTasks, error: childError } = await supabase
-    .from("tasks")
-    .select("*")
-    .in(
-      "parent_id",
-      rootTasks.map((task) => task.id)
-    )
-    .order("created_at");
-
-  if (childError) {
-    console.error(childError);
-    return rootTasks;
-  }
-
-  return [...rootTasks, ...(childTasks ?? [])];
+  return flattenEmbeddedTasks(data ? [data as EmbeddedTaskRow] : []);
 };
 
 /**
