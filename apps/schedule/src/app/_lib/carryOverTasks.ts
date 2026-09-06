@@ -23,7 +23,7 @@ export interface CarryOverResult {
  *
  * @param supabase - RLS를 우회해야 하므로 cron 라우트에서는 service 클라이언트를 넘긴다.
  * @param today - 기준 날짜. 이 날짜가 속한 주를 이번 주로, 그 직전 주를 지난주로 본다.
- * @returns 옮긴 일정 수. 주차 정보나 상태 목록을 읽지 못하면 null.
+ * @returns 옮긴 일정 수. 주차 정보나 상태 목록, 지난주 일정을 읽지 못하거나 갱신에 실패하면 null.
  */
 export const carryOverIncompleteTasks = async (
   supabase: SupabaseClient,
@@ -46,6 +46,11 @@ export const carryOverIncompleteTasks = async (
   if (!doneStatusId) return null;
 
   const lastWeekTasks = await getTasksForWeek(supabase, lastWeek.id);
+
+  // 지난주 일정을 못 읽으면 미완료 판정을 할 수 없다. 빈 목록으로 보고 넘어가면 아무것도 옮기지
+  // 않은 채 성공으로 끝나는데, 다음 실행은 그다음 주를 지난주로 보므로 이 주는 다시 처리되지 않는다.
+  if (!lastWeekTasks) return null;
+
   const childrenByParent = groupTasksByParent(lastWeekTasks);
 
   const tasksToMove = lastWeekTasks.filter(

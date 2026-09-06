@@ -100,11 +100,17 @@ export const getCommentsForTasks = async (
 /**
  * 해당 주차의 상위 일정과 상태 집계에 필요한 모든 하위 일정을 가져온다.
  * 하위 일정은 자체 마감 주차와 관계없이 상위 카드의 개수와 상태 계산에 포함한다.
+ *
+ * 조회에 실패하면 null을 반환한다. 빈 배열이나 하위 일정이 빠진 목록을 대신 돌려주면
+ * 호출부가 실패를 "일정 없음"이나 "하위 일정 없음"으로 잘못 읽어, 화면에 빈 보드를
+ * 그리거나 하위 일정 상태를 잘못 집계한 채로 일정을 옮기게 된다.
+ *
+ * @returns 상위 일정과 그 하위 일정을 합친 목록. 두 조회 중 하나라도 실패하면 null.
  */
 export const getTasksForWeek = async (
   supabase: SupabaseClient,
   weekId: string
-): Promise<TasksRow[]> => {
+): Promise<TasksRow[] | null> => {
   const { data: rootTasks, error: rootError } = await supabase
     .from("tasks")
     .select("*")
@@ -114,7 +120,7 @@ export const getTasksForWeek = async (
 
   if (rootError) {
     console.error(rootError);
-    return [];
+    return null;
   }
 
   if (!rootTasks || rootTasks.length === 0) return [];
@@ -130,7 +136,7 @@ export const getTasksForWeek = async (
 
   if (childError) {
     console.error(childError);
-    return rootTasks;
+    return null;
   }
 
   return [...rootTasks, ...(childTasks ?? [])];

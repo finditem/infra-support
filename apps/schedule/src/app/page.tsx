@@ -38,7 +38,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
   const [{ data: statuses }, profiles, tasks, { data: currentProfile }, teams] = await Promise.all([
     supabase.from("task_statuses").select("*").order("order_index"),
     getRegisteredProfiles(supabase),
-    weekRow ? getTasksForWeek(supabase, weekRow.id) : Promise.resolve([]),
+    weekRow ? getTasksForWeek(supabase, weekRow.id) : Promise.resolve(null),
     userId
       ? supabase.from("profiles").select("*").eq("id", userId).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -48,7 +48,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
   // 주차 일정 전체의 댓글을 여기서 한 번에 가져와, 카드마다 개수를 조회하는 N+1을 피한다.
   const comments = await getCommentsForTasks(
     supabase,
-    tasks.map((task) => task.id)
+    (tasks ?? []).map((task) => task.id)
   );
 
   return (
@@ -61,7 +61,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
       />
 
       <div className="flex-1 px-4 py-6 sm:px-8">
-        {weekRow ? (
+        {weekRow && tasks ? (
           <KanbanBoard
             key={weekRow.id}
             comments={comments}
