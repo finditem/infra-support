@@ -757,3 +757,10 @@
 - [x] `api/cron/carry-over/route.ts`: `verifyCronRequest`로 인증하고 service 클라이언트로 이월을 실행하는 cron 라우트 추가
 - [x] `vercel.json`: `/api/cron/carry-over`를 월요일(`0 0 * * 1`) 스케줄로 등록
 - [x] pnpm build / pnpm lint 검증
+
+### 코드 리뷰 반영
+
+- [x] `_lib/kanban.ts`: `getTasksForWeek`이 조회 실패를 삼키지 않고 `null`을 반환하도록 변경. 기존에는 상위 조회 실패 시 빈 배열, 하위 조회 실패 시 상위 일정만 돌려주어 호출부가 실패를 "일정 없음"이나 "하위 일정 없음"과 구분할 수 없었다
+- [x] `_lib/carryOverTasks.ts`: 지난주 일정 조회가 실패하면 `null`을 반환해 cron 라우트가 500으로 끝나게 했다. 이전에는 아무것도 옮기지 않고 성공으로 응답했는데, 다음 실행은 그다음 주를 지난주로 보므로 해당 주의 미완료 일정이 영구히 이월되지 않았다
+- [x] `src/app/page.tsx`: 일정 조회 실패 시 빈 보드 대신 "이번 주 데이터를 불러오지 못했습니다." 문구를 보여주도록 변경
+- [x] `_lib/actions.ts`: `updateTask`가 마감일이 실제로 바뀐 경우에만 `week_id`를 다시 계산하도록 변경. 이월된 일정은 지난주 마감일을 유지한 채 이번 주 주차에 들어 있어, 마감일로 재계산하면 저장할 때마다 지난주 보드로 되돌아가 이번 주 보드에서 사라졌다
