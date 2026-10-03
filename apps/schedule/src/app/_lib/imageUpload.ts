@@ -76,6 +76,16 @@ export const resizeImageFile = async (file: File): Promise<File> => {
   }
 };
 
+/** 리사이즈본의 Storage 경로나 공개 URL로부터, 같은 이미지의 고해상도 원본 경로/URL을 유도한다
+ * ("{uuid}.ext" -> "{uuid}-original.ext"). 원본이 실제로 업로드되지 않았을 수도 있지만(리사이즈가
+ * 생략된 경우, GIF, 업로드 실패, 이 기능 이전에 저장된 이미지), 존재하지 않는 경로를 참조/삭제하는
+ * 것은 무해하므로 호출 쪽에서 존재 여부를 미리 따지지 않고 항상 이 함수로 유도해 쓴다. */
+export const deriveOriginalImagePath = (pathOrUrl: string): string => {
+  const lastDot = pathOrUrl.lastIndexOf(".");
+  if (lastDot === -1) return `${pathOrUrl}-original`;
+  return `${pathOrUrl.slice(0, lastDot)}-original${pathOrUrl.slice(lastDot)}`;
+};
+
 /**
  * 이미 리사이즈된 이미지를 Storage에 올린다. 저장 버튼을 누른 시점에만 호출된다 — 그 전까지는
  * 선택된 파일을 로컬 blob URL로만 미리보기하고 실제 업로드는 하지 않아, 저장하지 않고 취소하거나
@@ -83,9 +93,14 @@ export const resizeImageFile = async (file: File): Promise<File> => {
  * 참조는 본문 텍스트 자체의 마크다운으로 저장된다) 서버 액션을 거치지 않고 브라우저에서
  * 바로 업로드한다. 아직 저장되지 않은 새 일정을 작성하는 중에도 바로 삽입할 수 있어야 해서,
  * 경로에 taskId를 쓰지 않는다.
+ *
+ * originalFile을 함께 넘기면(리사이즈로 실제로 축소된 경우) 같은 uuid의 "-original" 경로로
+ * 고해상도 원본도 함께 올린다. 라이트박스에서 원본을 보여주기 위한 것으로, 실패해도 저장
+ * 자체를 막지 않는다(리사이즈본으로 자동 폴백).
  */
 export const uploadImageFile = async (
-  file: File
+  file: File,
+  originalFile?: File | null
 ): Promise<{ url: string; fileName: string } | null> => {
   const supabase = createClient();
   const extension = EXTENSION_BY_MIME_TYPE[file.type] ?? "bin";
@@ -98,6 +113,16 @@ export const uploadImageFile = async (
   if (error) {
     console.error(error);
     return null;
+  }
+
+  if (originalFile) {
+    const { error: originalError } = await supabase.storage
+      .from(ATTACHMENT_BUCKET)
+      .upload(deriveOriginalImagePath(storagePath), originalFile, {
+        contentType: originalFile.type,
+      });
+
+    if (originalError) console.error(originalError);
   }
 
   const { data } = supabase.storage.from(ATTACHMENT_BUCKET).getPublicUrl(storagePath);
@@ -120,9 +145,10 @@ export const extractStoragePathFromUrl = (url: string): string | null => {
  * 저장 시 제거된 기존 이미지 정리에 쓴다. */
 export const getStoragePathsFromBody = (body: string | null): string[] =>
   body
-    ? extractBodyImages(body)
-        .map((image) => extractStoragePathFromUrl(image.url))
-        .filter((path): path is string => path !== null)
+    ? extractBodyImages(body).flatMap((image) => {
+        const path = extractStoragePathFromUrl(image.url);
+        return path ? [path, deriveOriginalImagePath(path)] : [];
+      })
     : [];
 
 /** 더 이상 어떤 일정 본문에서도 참조되지 않는 이미지를 Storage에서 지운다. 정리 실패는
