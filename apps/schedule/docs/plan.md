@@ -781,3 +781,13 @@
 - [x] `calendar/_components/MonthPickerPopover.tsx`: 월을 고르면 `useTransition`으로 이동 상태를 잡아 월 라벨 자리에 진행 표시를 띄움
 - [x] `_lib/actions.ts`에 `createSubtasks` 추가, `TaskCreateModal.tsx`: 하위 일정을 하나씩 `createTask`로 만들던 루프를 일괄 삽입 한 번으로 교체. 서버 액션은 순서대로 처리되는 데다 호출마다 같은 주차를 다시 조회하고 있어서 하위 일정 5개면 왕복이 18회였는데, 상위 일정이 확정한 주차를 그대로 쓰고 삽입을 묶어 개수와 무관하게 4회로 줄었다. 부분 실패 대신 전부 실패로 바뀌므로 실패 시에는 아무것도 만들지 않는다
 - [x] pnpm build / pnpm lint 검증
+
+## 일정 작성 폼 첨부 이미지 클릭 시 고해상도 원본 보기 (라이트박스)
+
+일정 작성/수정 모달(`TaskCreateModal.tsx`)의 이미지 첨부 영역이 4등분 그리드에 `object-cover`로 크롭된 정사각형 썸네일만 보여주고 클릭 동작이 없어, 전체 이미지를 확인할 수 없다는 피드백을 받았다. 처음에는 저장된 리사이즈본(1600px, `_lib/imageUpload.ts`의 `resizeImageFile`)을 크롭 없이 크게 보여주는 것으로 계획했으나, 사용자가 리사이즈 전 고해상도 원본을 원한다고 확인해 범위를 넓혔다. 리사이즈 전 원본 파일도 `{uuid}-original.{ext}` 이름 규칙으로 같은 Storage 버킷에 함께 업로드하고, 라이트박스는 그 경로를 먼저 시도하다 없으면(리사이즈가 애초에 생략된 작은 이미지, GIF, 이 기능 이전에 저장된 기존 이미지, 원본 업로드 실패) 리사이즈본으로 폴백한다. DB 마이그레이션/메타데이터 테이블은 필요 없음. 상세 계획은 `docs/image-lightbox-plan.md` 참고.
+
+- [x] `_lib/imageUpload.ts`: `deriveOriginalImagePath` 추가, `uploadImageFile`이 `originalFile?: File | null`을 받아 같은 uuid의 `-original` 경로로 함께 업로드, `getStoragePathsFromBody`가 원본 경로도 함께 반환하도록 수정(삭제 정리 시 `actions.ts`의 `deleteTask`에도 자동 전파)
+- [x] `TaskCreateModal.tsx`: `ImageMarker`의 `pending`에 `originalFile: File | null` 추가(리사이즈가 실제로 일어났을 때만 채움), `handleSubmit`의 업로드 호출/롤백용 `uploadedPaths`/수정 저장 시 `finalPaths`에 원본 경로 포함하도록 수정(누락 시 계속 쓰이는 이미지의 원본이 삭제돼 버리는 버그가 생기므로 주의)
+- [x] `_components/TaskCreateModal/ImageLightbox.tsx` 신규 작성 (`ModalOverlay` 재사용, `deriveOriginalImagePath`로 고해상도 먼저 시도 후 `onError` 시 리사이즈본으로 폴백, `object-contain`, 닫기 버튼, `z-[300]`)
+- [x] `TaskCreateModal.tsx`: 썸네일 `<img>`를 클릭 가능한 `<button aria-label="이미지 확대보기">`로 감싸고, 클릭 시 `previewImage` state로 `ImageLightbox` 오픈. 최상위 리턴을 Fragment로 감싸 `ModalOverlay` 형제로 `ImageLightbox` 조건부 렌더링 추가
+- [x] pnpm build / pnpm lint 검증
