@@ -328,7 +328,7 @@ const TaskCreateModal = ({
 
   return (
     <>
-      <ModalOverlay className="z-[200] p-5" onClose={onClose}>
+      <ModalOverlay className="z-[200] p-5" disableEscape={!!previewImage} onClose={onClose}>
         <div
           className="flex max-h-[85vh] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
           onKeyDown={handleKeyDown}
