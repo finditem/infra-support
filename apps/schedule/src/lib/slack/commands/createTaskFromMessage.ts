@@ -1,14 +1,11 @@
 import { format } from "date-fns";
-import { getOrCreateWeek } from "@/app/_lib/kanban";
-import { getDefaultDueDate, getMonday } from "@/app/_lib/kanbanUtils";
-import { notifyTaskCreated } from "@/app/_lib/taskNotification";
+import { getDefaultDueDate } from "@/app/_lib/kanbanUtils";
 import { createServiceClient } from "@/lib/supabase/service";
-import type { ProfilesRow, TasksInsert } from "@/types/tables";
+import type { ProfilesRow } from "@/types/tables";
 import { parseTaskFromMessage } from "../ai/parseTaskFromMessage";
 import { escapeSlackText } from "../escapeSlackText";
 import { postSlackMessage } from "../postSlackMessage";
-
-const DEFAULT_STATUS_NAME = "할 일";
+import { insertTaskAndNotify } from "./insertTaskAndNotify";
 
 /**
  * OpenAI 호출 자체를 막는 킬 스위치. 기본값은 비활성(false)이고, 명시적으로 "true"로 설정해야만 켜진다.
@@ -41,25 +38,9 @@ export const createTaskFromMessage = async (
     return;
   }
 
-  const supabase = createServiceClient();
-
-  const { data: status } = await supabase
-    .from("task_statuses")
-    .select("id")
-    .eq("name", DEFAULT_STATUS_NAME)
-    .maybeSingle();
-
-  if (!status) {
-    await postSlackMessage({
-      channel: slackUserId,
-      text: "⚠️ 기본 상태를 찾을 수 없어 일정을 등록하지 못했어요.",
-    });
-    return;
-  }
-
   const reporterMatch = parsed.reporterName
     ? (
-        await supabase
+        await createServiceClient()
           .from("profiles")
           .select("*")
           .ilike("name", `%${parsed.reporterName}%`)
@@ -68,42 +49,20 @@ export const createTaskFromMessage = async (
     : null;
 
   const dueDateObj = getDefaultDueDate();
-  const dueDate = format(dueDateObj, "yyyy-MM-dd");
-  const week = await getOrCreateWeek(supabase, getMonday(dueDateObj));
 
-  if (!week) {
-    await postSlackMessage({
-      channel: slackUserId,
-      text: "⚠️ 주차 정보를 만들지 못해 일정을 등록하지 못했어요.",
-    });
-    return;
-  }
-
-  const insertPayload: TasksInsert = {
+  const task = await insertTaskAndNotify({
     title: parsed.title,
     body: parsed.body,
-    status_id: status.id,
-    week_id: week.id,
-    assignee_id: assigneeProfile.id,
-    reporter_id: reporterMatch?.id ?? null,
-    due_date: dueDate,
-    created_by: assigneeProfile.id,
-  };
+    assigneeId: assigneeProfile.id,
+    reporterId: reporterMatch?.id ?? null,
+    dueDate: dueDateObj,
+    createdBy: assigneeProfile.id,
+    slackUserId,
+  });
 
-  const { data: task, error } = await supabase
-    .from("tasks")
-    .insert(insertPayload)
-    .select("*")
-    .single();
+  if (!task) return;
 
-  if (error || !task) {
-    console.error("Slack 자연어 일정 등록 실패", error);
-    await postSlackMessage({ channel: slackUserId, text: "⚠️ 일정 등록 중 오류가 발생했어요." });
-    return;
-  }
-
-  await notifyTaskCreated(supabase, task, assigneeProfile.id);
-
+  const dueDate = format(dueDateObj, "yyyy-MM-dd");
   const lines = ["✅ *일정이 등록됐어요!*", `*제목*: ${escapeSlackText(parsed.title)}`];
 
   if (parsed.body) lines.push(`*본문*: ${escapeSlackText(parsed.body)}`);

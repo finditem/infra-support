@@ -1,4 +1,5 @@
 import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from "date-fns";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { NavBar } from "@/components/NavBar";
 import { buildProfileColorMap } from "../_lib/kanbanUtils";
@@ -24,29 +25,27 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
 
   const supabase = await createClient();
 
-  const [
-    profiles,
-    { data: availability },
-    {
-      data: { user },
-    },
-  ] = await Promise.all([
-    getRegisteredProfiles(supabase),
+  // 미들웨어가 이미 검증해 x-user-id 헤더로 넘겨준 값을 재사용한다(auth.getUser() 왕복 1회 절약).
+  const userId = (await headers()).get("x-user-id");
+
+  // 팀 목록은 가능 시간을 등록할 대상 후보다. 이미 조회하는 profiles를 프로미스째 넘겨,
+  // 같은 목록을 두 번 조회하지 않으면서도 팀 조회가 profiles를 기다리지 않게 한다.
+  const profilesPromise = getRegisteredProfiles(supabase);
+  const [profiles, { data: availability }, teams] = await Promise.all([
+    profilesPromise,
     supabase
       .from("availability")
       .select("*")
       .gte("available_date", format(gridStart, "yyyy-MM-dd"))
       .lte("available_date", format(gridEnd, "yyyy-MM-dd")),
-    supabase.auth.getUser(),
+    getTeamsWithMembers(supabase, profilesPromise),
   ]);
 
-  // 팀 목록은 가능 시간을 등록할 대상 후보다. 이미 조회한 profiles를 넘겨 중복 조회를 피한다.
-  const teams = await getTeamsWithMembers(supabase, profiles);
   const profileColorMap = buildProfileColorMap(profiles);
   const profilesWithColor: ProfileWithColor[] = profiles.map(
     (profile) => profileColorMap.get(profile.id) as ProfileWithColor
   );
-  const currentProfileId = profiles.find((profile) => profile.id === user?.id)?.id ?? null;
+  const currentProfileId = profiles.find((profile) => profile.id === userId)?.id ?? null;
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">

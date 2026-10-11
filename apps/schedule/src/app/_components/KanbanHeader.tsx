@@ -1,6 +1,6 @@
 import { addWeeks, format } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { NavArrowLink } from "@/components/NavArrowLink";
 
 interface KanbanHeaderProps {
   weekLabel: string;
@@ -20,23 +20,15 @@ const KanbanHeader = ({ weekLabel, weekStart, sprintName }: KanbanHeaderProps) =
         )}
       </div>
       <div className="flex items-center gap-2">
-        <Link
-          aria-label="이전 주"
-          className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
-          href={`?week=${prevWeekParam}`}
-        >
+        <NavArrowLink href={`?week=${prevWeekParam}`} label="이전 주">
           <ChevronLeft size={16} />
-        </Link>
+        </NavArrowLink>
         <span className="min-w-[150px] text-center text-sm font-medium text-text-default">
           {weekLabel}
         </span>
-        <Link
-          aria-label="다음 주"
-          className="flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-fill-neutural-subtle-hover"
-          href={`?week=${nextWeekParam}`}
-        >
+        <NavArrowLink href={`?week=${nextWeekParam}`} label="다음 주">
           <ChevronRight size={16} />
-        </Link>
+        </NavArrowLink>
       </div>
     </header>
   );

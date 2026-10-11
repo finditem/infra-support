@@ -1,7 +1,9 @@
 import { createTaskFromMessage } from "./createTaskFromMessage";
+import { createTaskFromStructuredCommand } from "./createTaskFromStructuredCommand";
 import { postSlackMessage } from "../postSlackMessage";
 import { resolveProfileFromSlackUser } from "../resolveProfileFromSlackUser";
 import { sendHelpMessage } from "./help";
+import { matchTaskCreateCommand } from "./matchTaskCreateCommand";
 import { sendMyTasks } from "./myTasks";
 import { handleStatusChange, matchStatusCommand } from "./updateStatus";
 
@@ -14,7 +16,7 @@ interface RouteSlackMessageParams {
 
 /**
  * 봇 DM으로 들어온 메시지를 명령별로 분기한다.
- * 도움말/내일정/상태변경 어디에도 매칭되지 않으면 자연어 일정 등록(5-2)으로 처리한다.
+ * 도움말/내일정/상태변경/구조화 일정추가(5-1) 어디에도 매칭되지 않으면 자연어 일정 등록(5-2)으로 처리한다.
  */
 export const routeSlackMessage = async ({ text, slackUserId }: RouteSlackMessageParams) => {
   const trimmed = text.trim();
@@ -44,6 +46,13 @@ export const routeSlackMessage = async ({ text, slackUserId }: RouteSlackMessage
   if (statusCommand) {
     const [statusName, titleQuery] = statusCommand;
     await handleStatusChange(profile, statusName, titleQuery, slackUserId);
+    return;
+  }
+
+  const taskCreateRemainder = matchTaskCreateCommand(trimmed);
+
+  if (taskCreateRemainder !== null) {
+    await createTaskFromStructuredCommand(profile, taskCreateRemainder, slackUserId);
     return;
   }
 

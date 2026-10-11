@@ -10,6 +10,10 @@ interface ModalOverlayProps {
   children: ReactNode;
   /** ESC와 딤 레이어 클릭 모두 이 콜백으로 닫는다. */
   onClose: () => void;
+  /** 이 레이어 위에 다른 ModalOverlay(예: 라이트박스)가 떠 있는 동안 true로 넘긴다.
+   * 두 ModalOverlay가 각자 document에 독립적으로 ESC 리스너를 붙이므로, 끄지 않으면
+   * 위 레이어를 닫으려던 ESC가 이 레이어까지 함께 닫아버린다. */
+  disableEscape?: boolean;
 }
 
 /**
@@ -19,8 +23,13 @@ interface ModalOverlayProps {
  * click이 아니라 mousedown을 보는 이유는 모달 안에서 시작한 드래그가 레이어 위에서 끝났을 때
  * 모달이 닫히지 않게 하기 위해서다.
  */
-export const ModalOverlay = ({ className, children, onClose }: ModalOverlayProps) => {
-  useEscapeKey(onClose);
+export const ModalOverlay = ({
+  className,
+  children,
+  onClose,
+  disableEscape = false,
+}: ModalOverlayProps) => {
+  useEscapeKey(onClose, !disableEscape);
   useBodyScrollLock();
 
   const handleMouseDown = (event: MouseEvent<HTMLDivElement>) => {
