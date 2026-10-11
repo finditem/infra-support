@@ -1,5 +1,26 @@
 # apps/schedule 작업 계획
 
+## 설문 기반 메인 화면 디자인 개선
+
+- [x] 기존 화면의 생성형 UI 패턴 진단 (단색 면, 반복 아이콘, 임의 그림자, 동일한 큰 모서리)
+- [ ] 운영·모바일·어드민·모니터링 프로젝트 탐색 UI 재설계 (기존 사이드바 시안 제거)
+- [x] 일정 생성·수정 시 프로젝트를 선택할 수 있도록 tasks 스키마와 모달 확장
+- [x] 메인 화면에 실제 일정 기반 전체·진행·지연·완료율 대시보드 추가
+- [x] 상위 일정 카드에 하위 일정 완료 Progress 표시
+- [x] 칸반 카드에서 작업 설명을 숨기고 클릭 후 수정 모달에서만 표시
+- [x] 칸반 6개 컬럼을 고정 flex 대신 균등 grid로 조정하고 내부 스크롤로 제한
+- [x] 내비게이션, 버튼, 카드의 모서리·그림자·포커스 표현 정리
+- [x] TypeScript 검사 및 프로덕션 빌드
+- [ ] `0014_add_task_project.sql`을 Supabase에 적용한 뒤 프로젝트별 생성·필터 실제 데이터 검증
+
+## 초대 가입 완료 게이트
+
+- [x] 초대 세션 사용자의 `profiles.registered_at`을 미들웨어에서 확인
+- [x] 가입 미완료 사용자는 `/invite/setup` 외 업무 화면 접근 차단
+- [x] 비밀번호 해시가 존재할 때만 가입 완료를 기록하는 DB 함수 추가
+- [x] 가입 미완료 세션의 업무 테이블 접근을 막는 제한적 RLS 정책 추가
+- [ ] `0015_require_completed_registration.sql`을 Supabase에 적용한 뒤 신규 초대 흐름 검증
+
 - [x] 주차 계산/조회 유틸 (현재 주 월요일 계산, weeks 테이블에서 해당 주 없으면 자동 생성) — `src/app/_lib/kanban.ts`, `_lib/kanbanUtils.ts`
 - [x] 칸반보드 데이터 조회 함수 (task_statuses, profiles, 해당 주 tasks 조회 - Server Component에서 사용) — `src/app/page.tsx`
 - [x] KanbanHeader: 주차 네비게이션 (`?week=` 쿼리 파라미터로 서버 라우팅, 로그아웃)

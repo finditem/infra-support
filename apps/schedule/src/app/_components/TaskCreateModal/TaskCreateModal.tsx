@@ -27,6 +27,7 @@ import DatePickerPopover from "./DatePickerPopover";
 import { ImageLightbox } from "./ImageLightbox";
 import PriorityPickerPopover from "./PriorityPickerPopover";
 import StatusPickerPopover from "./StatusPickerPopover";
+import { DEFAULT_PROJECT_KEY, PROJECTS, type ProjectKey } from "../../_lib/projects";
 
 interface SubtaskDraft {
   id: string;
@@ -55,6 +56,7 @@ interface TaskCreateModalProps {
   initialStatusId: string;
   parentId?: string | null;
   parentTitle?: string | null;
+  initialProjectKey?: ProjectKey;
   task?: TasksRow | null;
   /** 편집 모드에서만 쓰는 이 일정의 댓글 목록. 생성 모드에서는 아직 일정이 없어 댓글도 없다. */
   comments?: TaskCommentsRow[];
@@ -74,6 +76,7 @@ const TaskCreateModal = ({
   initialStatusId,
   parentId = null,
   parentTitle = null,
+  initialProjectKey = DEFAULT_PROJECT_KEY,
   task = null,
   comments = [],
   mentionTargets = [],
@@ -106,6 +109,7 @@ const TaskCreateModal = ({
     format(task?.due_date ? new Date(task.due_date) : getDefaultDueDate(), "yyyy-MM-dd")
   );
   const [statusId, setStatusId] = useState(task?.status_id ?? initialStatusId);
+  const [projectKey, setProjectKey] = useState<ProjectKey>(task?.project_key ?? initialProjectKey);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [subtaskDrafts, setSubtaskDrafts] = useState<SubtaskDraft[]>([]);
@@ -232,6 +236,7 @@ const TaskCreateModal = ({
           reporterId,
           priority,
           dueDate,
+          projectKey,
         })
       : await createTask({
           title: title.trim(),
@@ -243,6 +248,7 @@ const TaskCreateModal = ({
           dueDate,
           createdBy: currentProfileId,
           parentId,
+          projectKey,
         });
 
     if (!saved) {
@@ -282,6 +288,7 @@ const TaskCreateModal = ({
             statusId,
             dueDate,
             createdBy: currentProfileId,
+            projectKey,
             drafts,
           })
         : [];
@@ -386,6 +393,23 @@ const TaskCreateModal = ({
                 statuses={statuses}
                 onSelect={setStatusId}
               />
+              <label className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
+                <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">
+                  프로젝트
+                </span>
+                <select
+                  aria-label="프로젝트"
+                  className="min-w-0 flex-1 bg-transparent text-xs text-text-default outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  value={projectKey}
+                  onChange={(event) => setProjectKey(event.target.value as ProjectKey)}
+                >
+                  {PROJECTS.map((project) => (
+                    <option key={project.key} value={project.key}>
+                      {project.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
                 <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">주차</span>
                 <span className="text-xs text-text-default">{weekLabel}</span>

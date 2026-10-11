@@ -69,6 +69,7 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
         <KanbanBoard
           comments={detail.comments.filter((comment) => comment.task_id !== parentTask.id)}
           currentProfileId={currentProfile?.id ?? null}
+          defaultProjectKey={parentTask.project_key}
           mentionTargets={mentionTargets}
           parentId={parentTask.id}
           parentTitle={parentTask.title}

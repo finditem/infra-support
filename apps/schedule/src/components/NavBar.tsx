@@ -22,19 +22,30 @@ export const NavBar = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap items-center justify-between gap-y-2 border-b border-border bg-surface-elevated px-4 py-3 sm:px-8">
+    <nav
+      aria-label="주요 메뉴"
+      className="flex flex-wrap items-center justify-between gap-y-2 border-b border-border bg-surface-elevated px-4 py-3 sm:px-8"
+    >
       <div className="flex flex-wrap items-center gap-3 sm:gap-6">
-        <span className="text-sm font-bold text-text-default">찾길 일정관리</span>
+        <Link className="flex items-center gap-2 text-sm font-bold text-text-default" href="/">
+          <span
+            aria-hidden
+            className="flex size-7 items-center justify-center rounded-md bg-primary text-xs font-black text-text-inverse"
+          >
+            찾
+          </span>
+          찾길 업무관리
+        </Link>
 
         <div className="flex items-center gap-1">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               className={cn(
-                "rounded-md px-3 py-[6px] text-sm",
+                "border-b-2 px-3 py-[6px] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                 isNavItemActive(pathname, item.href)
-                  ? "font-semibold text-text-default"
-                  : "text-text-muted hover:text-text-default"
+                  ? "border-primary font-semibold text-text-default"
+                  : "border-transparent text-text-muted hover:text-text-default"
               )}
               href={item.href}
             >
