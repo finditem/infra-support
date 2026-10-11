@@ -4,7 +4,7 @@ import { Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
-import { createClient } from "@/lib/supabase/client";
+import { completeInviteSetup } from "./actions";
 
 const InviteSetupPage = () => {
   const router = useRouter();
@@ -31,28 +31,12 @@ const InviteSetupPage = () => {
 
     setIsSubmitting(true);
 
-    const supabase = createClient();
-    const { data, error: updateUserError } = await supabase.auth.updateUser({
-      password,
-      data: { name: trimmedName },
-    });
-
-    if (updateUserError || !data.user) {
-      setIsSubmitting(false);
-      setErrorMessage("설정에 실패했습니다. 다시 시도해주세요.");
-      return;
-    }
-
-    // DB 함수가 auth.users의 비밀번호 해시 존재를 확인한 뒤에만 registered_at을 기록한다.
-    // 초대 세션만 얻은 사용자가 profiles를 직접 수정해 가입 완료를 우회하지 못하게 한다.
-    const { error: completeProfileError } = await supabase.rpc("complete_invite_profile", {
-      display_name: trimmedName,
-    });
+    const result = await completeInviteSetup(trimmedName, password);
 
     setIsSubmitting(false);
 
-    if (completeProfileError) {
-      setErrorMessage("계정 설정 완료 처리에 실패했습니다. 다시 시도해주세요.");
+    if (!result.success) {
+      setErrorMessage(result.message);
       return;
     }
 
