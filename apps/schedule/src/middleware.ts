@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const NO_AUTH_REQUIRED_PATHS = ["/login", "/auth/confirm"];
 const GUEST_ONLY_PATHS = ["/login"];
+const INVITE_SETUP_PATH = "/invite/setup";
 
 export const middleware = async (request: NextRequest) => {
   let response = NextResponse.next({ request });
@@ -34,6 +35,7 @@ export const middleware = async (request: NextRequest) => {
     NO_AUTH_REQUIRED_PATHS.includes(request.nextUrl.pathname) ||
     request.nextUrl.pathname.startsWith("/api/");
   const isGuestOnlyPath = GUEST_ONLY_PATHS.includes(request.nextUrl.pathname);
+  const isApiPath = request.nextUrl.pathname.startsWith("/api/");
 
   if (!user && !isNoAuthRequiredPath) {
     const redirectResponse = NextResponse.redirect(new URL("/login", request.url));
@@ -41,6 +43,34 @@ export const middleware = async (request: NextRequest) => {
       redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
     });
     return redirectResponse;
+  }
+
+  if (user && !isApiPath) {
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("registered_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    const isRegistrationComplete = !profileError && !!profile?.registered_at;
+    const isInviteSetupPath = request.nextUrl.pathname === INVITE_SETUP_PATH;
+
+    // 초대 링크 확인으로 생긴 세션은 이름·비밀번호 설정이 끝날 때까지 설정 화면에서만 쓴다.
+    // 프로필 조회 실패도 완료로 간주하지 않아 업무 화면이 열리는 것을 막는다.
+    if (!isRegistrationComplete && !isInviteSetupPath) {
+      const redirectResponse = NextResponse.redirect(new URL(INVITE_SETUP_PATH, request.url));
+      response.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+      });
+      return redirectResponse;
+    }
+
+    if (isRegistrationComplete && isInviteSetupPath) {
+      const redirectResponse = NextResponse.redirect(new URL("/", request.url));
+      response.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+      });
+      return redirectResponse;
+    }
   }
 
   if (user && isGuestOnlyPath) {

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
-import type { ProfilesUpdate } from "@/types/tables";
 
 const InviteSetupPage = () => {
   const router = useRouter();
@@ -18,6 +17,12 @@ const InviteSetupPage = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage("");
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      setErrorMessage("이름을 입력해주세요.");
+      return;
+    }
 
     if (password !== passwordConfirm) {
       setErrorMessage("비밀번호가 일치하지 않습니다.");
@@ -29,7 +34,7 @@ const InviteSetupPage = () => {
     const supabase = createClient();
     const { data, error: updateUserError } = await supabase.auth.updateUser({
       password,
-      data: { name },
+      data: { name: trimmedName },
     });
 
     if (updateUserError || !data.user) {
@@ -38,16 +43,16 @@ const InviteSetupPage = () => {
       return;
     }
 
-    const profileUpdate: ProfilesUpdate = { name, registered_at: new Date().toISOString() };
-    const { error: updateProfileError } = await supabase
-      .from("profiles")
-      .update(profileUpdate)
-      .eq("id", data.user.id);
+    // DB 함수가 auth.users의 비밀번호 해시 존재를 확인한 뒤에만 registered_at을 기록한다.
+    // 초대 세션만 얻은 사용자가 profiles를 직접 수정해 가입 완료를 우회하지 못하게 한다.
+    const { error: completeProfileError } = await supabase.rpc("complete_invite_profile", {
+      display_name: trimmedName,
+    });
 
     setIsSubmitting(false);
 
-    if (updateProfileError) {
-      setErrorMessage("이름 저장에 실패했습니다. 다시 시도해주세요.");
+    if (completeProfileError) {
+      setErrorMessage("계정 설정 완료 처리에 실패했습니다. 다시 시도해주세요.");
       return;
     }
 
