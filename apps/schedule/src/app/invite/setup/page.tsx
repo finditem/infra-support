@@ -4,8 +4,7 @@ import { Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
-import { createClient } from "@/lib/supabase/client";
-import type { ProfilesUpdate } from "@/types/tables";
+import { completeInviteSetup } from "./actions";
 
 const InviteSetupPage = () => {
   const router = useRouter();
@@ -18,6 +17,12 @@ const InviteSetupPage = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage("");
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      setErrorMessage("이름을 입력해주세요.");
+      return;
+    }
 
     if (password !== passwordConfirm) {
       setErrorMessage("비밀번호가 일치하지 않습니다.");
@@ -26,28 +31,12 @@ const InviteSetupPage = () => {
 
     setIsSubmitting(true);
 
-    const supabase = createClient();
-    const { data, error: updateUserError } = await supabase.auth.updateUser({
-      password,
-      data: { name },
-    });
-
-    if (updateUserError || !data.user) {
-      setIsSubmitting(false);
-      setErrorMessage("설정에 실패했습니다. 다시 시도해주세요.");
-      return;
-    }
-
-    const profileUpdate: ProfilesUpdate = { name, registered_at: new Date().toISOString() };
-    const { error: updateProfileError } = await supabase
-      .from("profiles")
-      .update(profileUpdate)
-      .eq("id", data.user.id);
+    const result = await completeInviteSetup(trimmedName, password);
 
     setIsSubmitting(false);
 
-    if (updateProfileError) {
-      setErrorMessage("이름 저장에 실패했습니다. 다시 시도해주세요.");
+    if (!result.success) {
+      setErrorMessage(result.message);
       return;
     }
 
