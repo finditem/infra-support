@@ -1,5 +1,26 @@
 # apps/schedule 작업 계획
 
+## 아이콘 레일 사이드바 + 프로젝트별 라우트 분리 + 작업 흐름(타임라인) 페이지
+
+기존 "운영·모바일·어드민·모니터링 프로젝트 탐색 UI 재설계" 항목(아래 절)에서 제거됐던 사이드바 시안을 사용자가 명시적으로 다시 요청했다. Supabase 스타일 아이콘 레일(hover 시 라벨 확장)로 만들고, 프로젝트별 보기를 같은 페이지의 필터가 아니라 별도 라우트로 분리한다.
+
+사이드바 디자인은 아티팩트(lucide 아이콘 후보 + hover 라이브 목업)로 비교한 뒤 아래와 같이 확정했다.
+
+- 프로젝트 4종 구조: **중첩형** — 칸반보드 아이콘 하위에 운영/모바일/어드민/모니터링 4개를 서브 링크로 둔다(평면형 채택 안 함)
+- 칸반보드: `LayoutGrid`
+- 캘린더: `Calendar`
+- 작업 흐름: `Workflow`
+- 스프린트 설정: `SlidersHorizontal`
+- 프로젝트 4종(운영/모바일/어드민/모니터링) 서브 링크: 아이콘 없음, 기존 `projects.ts`의 프로젝트 색 점(dot)만 사용
+
+- [ ] 라우트 구조 변경: `page.tsx`를 `app/project/[projectKey]/page.tsx`로 옮기고 `project_key`로 tasks를 필터링, `app/page.tsx`는 `/project/operations`로 redirect하는 얇은 라우트로 교체
+- [ ] `KanbanBoard`의 `projectTasks` 계산을 `parentId` 유무와 무관하게 항상 `defaultProjectKey`로 필터링하도록 정리(`defaultProjectKey`를 필수 prop으로)
+- [ ] 인증 필요 페이지(`/`, `/project/[projectKey]`, `/calendar`, `/settings`, `/settings/teams`, `/task/[id]`, 신규 작업 흐름 페이지)를 `app/(authenticated)/layout.tsx` 라우트 그룹으로 묶어 `Sidebar`를 한 곳에서 렌더링(`/login`, `/invite/setup`은 제외)
+- [ ] `Sidebar` 컴포넌트: 기본 폭 아이콘 레일 고정, hover 시 라벨이 보이도록 폭 확장(오버레이, 레이아웃 리플로우 없음). 메뉴 순서 — 칸반보드(`LayoutGrid`, 하위 프로젝트 4개 서브 링크) → 캘린더(`Calendar`) → 작업 흐름(`Workflow`) → 스프린트 설정(`SlidersHorizontal`)
+- [ ] 기존 `NavBar`(상단 바)를 사이드바로 대체하면서 로그아웃 버튼 위치 재배치
+- [ ] 작업 흐름(타임라인) 페이지는 범위가 커서 별도로 스코핑 — 상위/하위 일정을 깃허브 브랜치처럼 시각화하는 구체 데이터 모델(가지치기 기준, 시간 축 단위, 색상 규칙)을 먼저 정하고 체크리스트를 추가한다. 사이드바 메뉴에는 미리 자리만 잡아두고(`Workflow` 아이콘), 페이지 자체는 모델이 정해진 뒤 구현한다
+- [ ] `pnpm --filter @infra-support/schedule build` / `lint` 검증
+
 ## 설문 기반 메인 화면 디자인 개선
 
 - [x] 기존 화면의 생성형 UI 패턴 진단 (단색 면, 반복 아이콘, 임의 그림자, 동일한 큰 모서리)
