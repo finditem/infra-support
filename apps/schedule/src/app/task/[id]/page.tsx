@@ -1,7 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "../../_components/KanbanBoard";
 import { getTaskWithSubtasks } from "../../_lib/kanban";
 import { buildMentionTargets } from "../../_lib/mentions";
@@ -41,7 +40,6 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
   if (!detail) {
     return (
       <main className="flex min-h-screen flex-col bg-surface">
-        <NavBar />
         <div className="flex-1 px-4 py-6 sm:px-8">
           <p className="text-sm text-text-muted">일정을 불러오지 못했습니다.</p>
         </div>
@@ -62,7 +60,6 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
-      <NavBar />
       <TaskDetailHeader title={parentTask.title} />
 
       <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-8">

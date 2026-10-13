@@ -29,7 +29,7 @@ import KanbanColumn from "./KanbanColumn";
 import KanbanFilters from "./KanbanFilters";
 import TaskCreateModal from "./TaskCreateModal/TaskCreateModal";
 import WorkspaceOverview from "./WorkspaceOverview";
-import { DEFAULT_PROJECT_KEY, type ProjectKey } from "../_lib/projects";
+import { getProject, type ProjectKey } from "../_lib/projects";
 
 const INITIAL_FILTER: KanbanFilterState = {
   assigneeId: null,
@@ -50,7 +50,8 @@ interface KanbanBoardProps {
   currentProfileId: string | null;
   parentId?: string | null;
   parentTitle?: string | null;
-  defaultProjectKey?: ProjectKey;
+  /** 이 보드가 보여줄 프로젝트. 메인은 라우트의 projectKey, 하위 일정 보드는 상위 일정의 프로젝트를 넘긴다. */
+  defaultProjectKey: ProjectKey;
 }
 
 const KanbanBoard = ({
@@ -63,7 +64,7 @@ const KanbanBoard = ({
   currentProfileId,
   parentId = null,
   parentTitle = null,
-  defaultProjectKey = DEFAULT_PROJECT_KEY,
+  defaultProjectKey,
 }: KanbanBoardProps) => {
   const [tasks, setTasks] = useState(initialTasks);
   const [comments, setComments] = useState(initialComments);
@@ -183,10 +184,10 @@ const KanbanBoard = ({
     setTasks((prev) => prev.map((row) => (row.id === saved.id ? saved : row)));
   };
 
+  // 메인 보드는 라우트가 정한 한 프로젝트만, 하위 일정 보드는 상위 일정과 같은 프로젝트만 보여준다.
   const projectTasks = useMemo(
-    () =>
-      parentId ? scopedTasks.filter((task) => task.project_key === defaultProjectKey) : scopedTasks,
-    [defaultProjectKey, parentId, scopedTasks]
+    () => scopedTasks.filter((task) => task.project_key === defaultProjectKey),
+    [defaultProjectKey, scopedTasks]
   );
 
   const filteredTasks = useMemo(
@@ -199,7 +200,9 @@ const KanbanBoard = ({
     [projectTasks, profileMap, statuses]
   );
 
-  const projectLabel = parentId ? (parentTitle ?? "하위 일정") : "전체 프로젝트";
+  const projectLabel = parentId
+    ? (parentTitle ?? "하위 일정")
+    : getProject(defaultProjectKey).label;
 
   return (
     <div className="-mx-4 -my-6 min-h-[calc(100vh-137px)] bg-surface sm:-mx-8">
