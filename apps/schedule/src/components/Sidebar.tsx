@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, LayoutGrid, LogOut, SlidersHorizontal, Workflow } from "lucide-react";
+import { BarChart3, Calendar, LayoutGrid, LogOut, SlidersHorizontal, Workflow } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { DEFAULT_PROJECT_KEY, PROJECTS } from "@/app/_lib/projects";
@@ -29,6 +29,13 @@ const NAV_ITEMS = [
     href: "/flow",
     Icon: Workflow,
     isActive: (pathname: string) => pathname.startsWith("/flow"),
+  },
+  {
+    key: "report",
+    label: "분석 리포트",
+    href: "/report",
+    Icon: BarChart3,
+    isActive: (pathname: string) => pathname.startsWith("/report"),
   },
   {
     key: "settings",

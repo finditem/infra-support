@@ -22,6 +22,18 @@
 - [ ] 알려진 한계: hover/focus 확장은 마우스·키보드만 커버. 터치에서는 프로젝트 서브 링크가 펼쳐지지 않음 — 터치 대응은 후속 과제
 - [ ] `pnpm --filter @infra-support/schedule build` / `lint` 검증
 
+## 일정 분석 리포트 (팀원별 완료율·일정관리 활용도)
+
+범위: 전체 통합(프로젝트 구분 없이 합산), 기간은 최근 7일/30일/90일 중 선택, 지표는 완료율·마감일 준수율·평균 완료 소요 시간·설명/하위일정 작성 충실도·댓글 협업 활동량.
+
+- [x] `status_history` 상태 변경 기록 추가(`updateTask`/`updateTaskStatus`에서 상태가 실제로 바뀔 때만 기록) — 과거 데이터는 소급 불가, 이 시점 이후 완료 건만 마감일 준수율/평균 소요 시간에 집계된다
+- [x] `StatusHistoryRow`/`Insert`/`Update` 타입 추가(`types/tables/status_history.ts`). 기존 `task_reasons.ts`는 컬럼이 완전히 같은데 어디서도 안 쓰이는 이름 어긋난 파일로 보여 그대로 두고 건드리지 않았다
+- [x] `app/report/_lib/report.ts`: 기간별 팀원 통계 계산(`getMemberReportStats`). 완료율/설명 작성률/하위일정 보유율은 `tasks.due_date` 기준, 마감일 준수율/평균 소요 시간은 `status_history`의 "완료" 전환 기록 기준
+- [x] `app/report/page.tsx`: 기간 탭(최근 7/30/90일) + 팀원별 테이블. 추적 기록이 없으면 "—" 표시와 안내 문구
+- [x] 사이드바에 `분석 리포트`(`BarChart3`) 메뉴 추가, 스프린트 설정 바로 위
+- [ ] `status_history`가 아직 아무 기록이 없어(방금 추적을 시작함), 마감일 준수율/평균 완료 소요 시간은 실 사용이 쌓이기 전까지 전부 "—"로 보인다 — 정상 동작이며 버그 아님
+- [ ] `pnpm --filter @infra-support/schedule build` / `lint` 검증
+
 ## 설문 기반 메인 화면 디자인 개선
 
 - [x] 기존 화면의 생성형 UI 패턴 진단 (단색 면, 반복 아이콘, 임의 그림자, 동일한 큰 모서리)
