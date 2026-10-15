@@ -2,12 +2,36 @@
 
 import { after } from "next/server";
 import { parseISO } from "date-fns";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { TasksInsert, TasksRow, TasksUpdate } from "@/types/tables";
+import type { StatusHistoryInsert, TasksInsert, TasksRow, TasksUpdate } from "@/types/tables";
 import { deleteStorageImages, getStoragePathsFromBody } from "./imageUpload";
 import { getOrCreateWeek } from "./kanban";
 import { getMonday } from "./kanbanUtils";
 import { notifyTaskCreated, notifyTaskDeleted, notifyTaskUpdated } from "./taskNotification";
+
+/**
+ * 상태가 실제로 바뀌었을 때만 status_history에 기록한다. 마감일 준수율·평균 완료 소요 시간
+ * 리포트는 이 기록이 쌓인 시점 이후의 완료 건만 집계한다(과거 데이터는 소급할 수 없다).
+ * 알림과 마찬가지로 저장 응답을 기다리지 않는 부가 효과라 실패해도 본 작업을 막지 않는다.
+ */
+const recordStatusChange = (
+  supabase: SupabaseClient,
+  input: { taskId: string; statusId: string; changedBy: string | null }
+) => {
+  const insertPayload: StatusHistoryInsert = {
+    task_id: input.taskId,
+    status_id: input.statusId,
+    created_by: input.changedBy,
+  };
+
+  return supabase
+    .from("status_history")
+    .insert(insertPayload)
+    .then(({ error }) => {
+      if (error) console.error(error);
+    });
+};
 
 interface CreateTaskInput {
   title: string;
@@ -140,6 +164,8 @@ interface UpdateTaskInput {
   priority: TasksRow["priority"];
   dueDate: string;
   projectKey: TasksRow["project_key"];
+  /** 상태가 바뀔 때 status_history에 남길 변경 주체. */
+  changedBy: string | null;
 }
 
 export const updateTask = async ({
@@ -152,6 +178,7 @@ export const updateTask = async ({
   priority,
   dueDate,
   projectKey,
+  changedBy,
 }: UpdateTaskInput): Promise<TasksRow | null> => {
   const supabase = await createClient();
 
@@ -194,6 +221,10 @@ export const updateTask = async ({
 
   if (before) {
     after(() => notifyTaskUpdated(supabase, before, data));
+
+    if (before.status_id !== statusId) {
+      after(() => recordStatusChange(supabase, { taskId: id, statusId, changedBy }));
+    }
   }
 
   return data;
@@ -208,9 +239,12 @@ export const updateTask = async ({
 export const updateTaskStatus = async ({
   id,
   statusId,
+  changedBy,
 }: {
   id: string;
   statusId: string;
+  /** 상태 변경을 status_history에 남길 변경 주체. */
+  changedBy: string | null;
 }): Promise<TasksRow | null> => {
   const supabase = await createClient();
 
@@ -232,6 +266,10 @@ export const updateTaskStatus = async ({
   // 비교 기준을 "갱신된 행에서 상태만 이전 값으로 되돌린 것"으로 잡아 알림에 상태 변경만 실리게 한다.
   if (before) {
     after(() => notifyTaskUpdated(supabase, { ...data, status_id: before.status_id }, data));
+
+    if (before.status_id !== statusId) {
+      after(() => recordStatusChange(supabase, { taskId: id, statusId, changedBy }));
+    }
   }
 
   return data;

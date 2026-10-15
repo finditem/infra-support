@@ -172,7 +172,11 @@ const KanbanBoard = ({
     setTaskStatus(task.id, nextStatusId);
     setTaskPending(task.id, true);
 
-    const saved = await updateTaskStatus({ id: task.id, statusId: nextStatusId });
+    const saved = await updateTaskStatus({
+      id: task.id,
+      statusId: nextStatusId,
+      changedBy: currentProfileId,
+    });
     setTaskPending(task.id, false);
 
     if (!saved) {
