@@ -48,7 +48,7 @@ const WorkspaceOverview = ({ projectLabel, progress, statuses, tasks }: Workspac
             <p className="text-xl font-semibold tabular-nums text-text-default">{tasks.length}</p>
           </div>
 
-          <div aria-hidden className="mt-2 flex h-2 gap-[2px]">
+          <div aria-hidden className="mt-2 flex h-2 gap-[2px] rounded-sm border border-border p-px">
             <div
               className="h-full first:rounded-l-sm last:rounded-r-sm"
               style={{
@@ -113,7 +113,7 @@ const WorkspaceOverview = ({ projectLabel, progress, statuses, tasks }: Workspac
           </div>
           <div
             aria-hidden
-            className="mt-2 h-[6px] overflow-hidden rounded-full bg-fill-neutural-subtle-default"
+            className="mt-2 h-[6px] overflow-hidden rounded-full border border-border bg-fill-neutural-subtle-default"
           >
             <div className="h-full rounded-full bg-primary" style={{ width: `${completion}%` }} />
           </div>
