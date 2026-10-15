@@ -34,6 +34,13 @@
 - [ ] `status_history`가 아직 아무 기록이 없어(방금 추적을 시작함), 마감일 준수율/평균 완료 소요 시간은 실 사용이 쌓이기 전까지 전부 "—"로 보인다 — 정상 동작이며 버그 아님
 - [ ] `pnpm --filter @infra-support/schedule build` / `lint` 검증
 
+### 알려진 이슈: `project_key` 마이그레이션 미적용으로 실제 일정이 전부 가려짐
+
+실제 Supabase DB를 읽기 전용으로 확인한 결과(2026-10-15), `tasks.project_key` 컬럼이 아직 없다(`0017_add_task_project.sql` 미적용). `tasks` 테이블 자체에는 실제 업무 일정이 50건 넘게 있다(7~10월, 목업 아님) — 다만 `KanbanBoard`가 이제 항상 `defaultProjectKey`로 필터링하므로, DB에 컬럼이 없어 모든 행의 `project_key`가 `undefined`가 되고 결과적으로 **어느 프로젝트를 보든 0건으로 보인다.**
+
+- [ ] `0017_add_task_project.sql`을 Supabase에 적용(사용자가 직접 진행하기로 함 — Claude는 DB에 쓰기 작업을 하지 않음). 적용되면 기존 50여 건은 컬럼 기본값대로 전부 `project_key='operations'`가 된다.
+- [ ] 적용 후에도 "이번 주" 일정이 실제로 없으면(기존 일정 대부분이 과거 주차) 실제 수치 0건으로 보이는 게 정상인지 확인 — `getWeekBoard`가 `weeks` 매칭이라 주차가 다른 과거 일정은 여전히 안 보인다.
+
 ## 설문 기반 메인 화면 디자인 개선
 
 - [x] 기존 화면의 생성형 UI 패턴 진단 (단색 면, 반복 아이콘, 임의 그림자, 동일한 큰 모서리)
