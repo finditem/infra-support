@@ -10,8 +10,10 @@ interface ProfilePickerPopoverProps {
   placeholder: string;
   profiles: ProfileWithColor[];
   selectedId: string | null;
-  /** false면 "선택 안 함" 항목을 감춘다. 팀 멤버 추가처럼 해제가 필요 없는 곳에서 쓴다. */
+  /** false면 선택 해제 항목을 감춘다. 팀 멤버 추가처럼 해제가 필요 없는 곳에서 쓴다. */
   allowClear?: boolean;
+  /** 선택 해제 항목에 쓰는 문구. 필터처럼 "해제"가 아니라 "전체"가 더 맞는 맥락에서 바꿔 쓴다. */
+  clearLabel?: string;
   triggerClassName?: string;
   onSelect: (profileId: string | null) => void;
 }
@@ -22,6 +24,7 @@ const ProfilePickerPopover = ({
   profiles,
   selectedId,
   allowClear = true,
+  clearLabel = "선택 안 함",
   triggerClassName,
   onSelect,
 }: ProfilePickerPopoverProps) => {
@@ -64,7 +67,7 @@ const ProfilePickerPopover = ({
                 close();
               }}
             >
-              선택 안 함
+              {clearLabel}
             </button>
           )}
 
