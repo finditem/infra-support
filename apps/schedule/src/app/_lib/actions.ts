@@ -15,7 +15,7 @@ import { notifyTaskCreated, notifyTaskDeleted, notifyTaskUpdated } from "./taskN
  * 리포트는 이 기록이 쌓인 시점 이후의 완료 건만 집계한다(과거 데이터는 소급할 수 없다).
  * 알림과 마찬가지로 저장 응답을 기다리지 않는 부가 효과라 실패해도 본 작업을 막지 않는다.
  */
-const recordStatusChange = (
+const recordStatusChange = async (
   supabase: SupabaseClient,
   input: { taskId: string; statusId: string; changedBy: string | null }
 ) => {
@@ -25,12 +25,8 @@ const recordStatusChange = (
     created_by: input.changedBy,
   };
 
-  return supabase
-    .from("status_history")
-    .insert(insertPayload)
-    .then(({ error }) => {
-      if (error) console.error(error);
-    });
+  const { error } = await supabase.from("status_history").insert(insertPayload);
+  if (error) console.error(error);
 };
 
 interface CreateTaskInput {
