@@ -62,7 +62,8 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
     <main className="flex min-h-screen flex-col bg-surface">
       <TaskDetailHeader title={parentTask.title} />
 
-      <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-8">
+      {/* 댓글 입력창이 뷰포트 하단에 고정되므로(TaskCommentsPanel), 그 높이만큼 아래 여백을 둬 마지막 내용이 가리지 않게 한다. */}
+      <div className="flex flex-1 flex-col gap-6 px-4 pb-[120px] pt-6 sm:px-8">
         <KanbanBoard
           comments={detail.comments.filter((comment) => comment.task_id !== parentTask.id)}
           currentProfileId={currentProfile?.id ?? null}
