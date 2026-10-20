@@ -114,28 +114,24 @@ const KanbanColumn = ({
         </span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div
-          ref={setNodeRef}
-          className={cn(
-            "flex min-h-[120px] flex-col gap-2 rounded-md transition-colors",
-            isDropTarget && "bg-fill-neutural-subtle-default"
-          )}
-        >
-          {tasks
-            .slice(0, placeholderIndex === -1 ? tasks.length : placeholderIndex)
-            .map(renderCard)}
-          {placeholderIndex !== -1 && placeholder}
-          {placeholderIndex !== -1 && tasks.slice(placeholderIndex).map(renderCard)}
-        </div>
+      <button
+        className="mb-2 w-full rounded-md border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        type="button"
+        onClick={() => onAddTask(status.id)}
+      >
+        + 일정 추가
+      </button>
 
-        <button
-          className="mt-1 rounded-md border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          type="button"
-          onClick={() => onAddTask(status.id)}
-        >
-          + 일정 추가
-        </button>
+      <div
+        ref={setNodeRef}
+        className={cn(
+          "flex min-h-[120px] flex-col gap-2 rounded-md transition-colors",
+          isDropTarget && "bg-fill-neutural-subtle-default"
+        )}
+      >
+        {tasks.slice(0, placeholderIndex === -1 ? tasks.length : placeholderIndex).map(renderCard)}
+        {placeholderIndex !== -1 && placeholder}
+        {placeholderIndex !== -1 && tasks.slice(placeholderIndex).map(renderCard)}
       </div>
     </div>
   );
