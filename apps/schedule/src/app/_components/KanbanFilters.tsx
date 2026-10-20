@@ -8,6 +8,10 @@ import ProfilePickerPopover from "./ProfilePickerPopover";
 const TRIGGER_CLASSNAME =
   "w-auto rounded-md border border-border bg-surface-elevated px-3 py-[6px] text-xs font-medium text-text-default hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
+// "전체"와 각 우선순위 세그먼트 버튼이 공통으로 쓰는 기본 스타일(가상선택자 포함)을 한곳에서 관리한다.
+const PRIORITY_SEGMENT_BASE_CLASSNAME =
+  "rounded px-2 py-1 text-xs font-medium text-text-muted transition hover:text-text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
+
 /** 우선순위 세그먼트의 막대 아이콘. PriorityPickerPopover 트리거와 같은 막대 높이 규칙을, 선택 중인
  * 값 하나가 아니라 각 우선순위 고유의 "서명" 아이콘으로 고정해 세그먼트마다 보여준다. */
 const PriorityBars = ({ priority }: { priority: TasksRow["priority"] }) => {
@@ -67,7 +71,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         <button
           aria-pressed={filter.priority === null}
           className={cn(
-            "rounded px-2 py-1 text-xs font-medium text-text-muted transition hover:text-text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+            PRIORITY_SEGMENT_BASE_CLASSNAME,
             filter.priority === null && "bg-primary/10 font-semibold text-primary"
           )}
           type="button"
@@ -80,7 +84,8 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
             key={priority}
             aria-pressed={filter.priority === priority}
             className={cn(
-              "flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-text-muted transition hover:text-text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              "flex items-center gap-1.5",
+              PRIORITY_SEGMENT_BASE_CLASSNAME,
               filter.priority === priority && "bg-primary/10 font-semibold text-primary"
             )}
             type="button"
