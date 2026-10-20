@@ -2,7 +2,7 @@
 
 import { Calendar, LayoutGrid, LogOut, SlidersHorizontal, Workflow } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_PROJECT_KEY, PROJECTS } from "@/app/_lib/projects";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/utils";
@@ -48,6 +48,11 @@ const LABEL_BASE =
 export const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 현재 보고 있는 주차를 유지해, 프로젝트만 바꿔도 같은 주의 보드를 보게 한다.
+  const week = searchParams.get("week");
+  const projectQuery = week ? `?week=${encodeURIComponent(week)}` : "";
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -106,7 +111,7 @@ export const Sidebar = () => {
                           "flex h-8 items-center gap-2.5 pl-11 pr-5 text-text-muted transition-colors hover:text-text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
                           projectActive && "font-medium text-text-default"
                         )}
-                        href={`/project/${project.key}`}
+                        href={`/project/${project.key}${projectQuery}`}
                       >
                         <span
                           aria-hidden
