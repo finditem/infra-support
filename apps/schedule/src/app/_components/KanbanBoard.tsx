@@ -172,11 +172,7 @@ const KanbanBoard = ({
     setTaskStatus(task.id, nextStatusId);
     setTaskPending(task.id, true);
 
-    const saved = await updateTaskStatus({
-      id: task.id,
-      statusId: nextStatusId,
-      changedBy: currentProfileId,
-    });
+    const saved = await updateTaskStatus({ id: task.id, statusId: nextStatusId });
     setTaskPending(task.id, false);
 
     if (!saved) {
@@ -188,10 +184,13 @@ const KanbanBoard = ({
     setTasks((prev) => prev.map((row) => (row.id === saved.id ? saved : row)));
   };
 
-  // 메인 보드는 라우트가 정한 한 프로젝트만, 하위 일정 보드는 상위 일정과 같은 프로젝트만 보여준다.
+  // 메인 보드는 라우트가 정한 한 프로젝트만 보여준다. 다만 하위 일정 보드는 상위 일정의 하위 전부를
+  // 보여준다 — 하위 일정은 상위 일정 상세에서만 접근할 수 있어, 프로젝트가 다르다고 걸러내면
+  // 보드 어디에서도 볼 수 없게 되기 때문이다.
   const projectTasks = useMemo(
-    () => scopedTasks.filter((task) => task.project_key === defaultProjectKey),
-    [defaultProjectKey, scopedTasks]
+    () =>
+      parentId ? scopedTasks : scopedTasks.filter((task) => task.project_key === defaultProjectKey),
+    [defaultProjectKey, parentId, scopedTasks]
   );
 
   const filteredTasks = useMemo(
@@ -213,6 +212,7 @@ const KanbanBoard = ({
       <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8">
         {!parentId && (
           <WorkspaceOverview
+            childrenByParent={childrenByParent}
             progress={progress}
             projectLabel={projectLabel}
             statuses={statuses}
