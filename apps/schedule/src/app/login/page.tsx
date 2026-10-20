@@ -91,8 +91,9 @@ const LoginForm = () => {
 
       {errorMessage && <p className="text-sm text-fg-state-error">{errorMessage}</p>}
 
+      {/* 로그인 화면은 로고(logo.svg)의 그린을 그대로 쓴다 — 전역 primary(블루)를 쓰면 위 로고와 색이 어긋난다. */}
       <button
-        className="rounded-full bg-primary px-4 py-2 font-medium text-text-inverse transition hover:bg-primary-hover disabled:opacity-50"
+        className="rounded-full bg-[#134432] px-4 py-2 font-medium text-text-inverse transition hover:bg-[#0d3024] disabled:opacity-50"
         disabled={isSubmitting}
         type="submit"
       >

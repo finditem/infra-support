@@ -8,6 +8,8 @@ import PropertyPopover from "./TaskCreateModal/PropertyPopover";
 interface ProfilePickerPopoverProps {
   label?: string;
   placeholder: string;
+  /** 트리거에 항상 남겨둘 용도 표시(예: "담당자"). 팀원을 고른 뒤에도 어느 필터인지 구분되도록 한다. */
+  typeLabel?: string;
   profiles: ProfileWithColor[];
   selectedId: string | null;
   /** false면 선택 해제 항목을 감춘다. 팀 멤버 추가처럼 해제가 필요 없는 곳에서 쓴다. */
@@ -21,6 +23,7 @@ interface ProfilePickerPopoverProps {
 const ProfilePickerPopover = ({
   label,
   placeholder,
+  typeLabel,
   profiles,
   selectedId,
   allowClear = true,
@@ -32,12 +35,17 @@ const ProfilePickerPopover = ({
   const selected = profiles.find((profile) => profile.id === selectedId) ?? null;
   const filtered = profiles.filter((profile) => profile.name.includes(query.trim()));
 
+  const triggerAriaLabel = typeLabel
+    ? `${typeLabel} 필터, 현재 ${selected ? selected.name : clearLabel}`
+    : undefined;
+
   return (
     <PropertyPopover
       label={label}
       trigger={
         selected ? (
           <span className="flex items-center gap-1 text-xs text-text-default">
+            {typeLabel && <span className="text-text-muted">{typeLabel}:</span>}
             <ProfileAvatar profile={selected} size="sm" />
             {selected.name}
           </span>
@@ -45,7 +53,10 @@ const ProfilePickerPopover = ({
           <span className="text-xs text-text-muted">{placeholder}</span>
         )
       }
+      triggerAriaLabel={triggerAriaLabel}
       triggerClassName={triggerClassName}
+      // 팝오버가 닫히면 다음에 다시 열 때 이전 검색어가 남아 목록이 걸러진 채로 보이지 않도록 초기화한다.
+      onClose={() => setQuery("")}
     >
       {(close) => (
         <div className="flex flex-col gap-1">

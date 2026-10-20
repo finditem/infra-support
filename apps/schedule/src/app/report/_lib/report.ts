@@ -1,4 +1,4 @@
-import { differenceInCalendarDays, endOfDay, format, isAfter, startOfDay, subDays } from "date-fns";
+import { differenceInCalendarDays, isAfter } from "date-fns";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ProfilesRow } from "@/types/tables";
 
@@ -6,21 +6,32 @@ export type ReportRange = "week" | "month" | "quarter";
 
 const RANGE_DAYS: Record<ReportRange, number> = { week: 7, month: 30, quarter: 90 };
 
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 export const isReportRange = (value: string): value is ReportRange => value in RANGE_DAYS;
+
+/** 특정 순간을 KST 달력 날짜 키(yyyy-MM-dd)로 환산한다. */
+const toKstDateKey = (epochMs: number) =>
+  new Date(epochMs + KST_OFFSET_MS).toISOString().slice(0, 10);
 
 /**
  * 오늘을 끝으로 하는 롤링 기간. 기획서/스프린트 주차와는 독립적으로, 선택한 기간만큼의 최근 날짜를 본다.
- * end는 tasks.due_date(date 타입) 비교용 날짜 문자열이고, endTimestamp는 task_comments/status_history의
- * created_at(timestamptz) 비교용으로 당일 끝 시각까지 포함한다 — 날짜 문자열만 쓰면 당일 자정 이전,
- * 즉 end 당일 기록이 전부 빠진다.
+ * 날짜 경계는 서버 실행 환경의 로컬 타임존(Vercel 기본 UTC)이 아니라 KST로 고정한다. 그러지 않으면
+ * 00:00~09:00 KST 사이에는 전날 UTC 날짜가 잡혀, 당일 마감 건과 당일 이른 시각의 기록이 빠진다.
+ * start/end는 tasks.due_date(date 타입) 비교용 날짜 문자열이고, startTimestamp/endTimestamp는
+ * task_comments/status_history의 created_at(timestamptz) 비교용으로 KST 당일 시작·끝 시각을 담는다.
  */
-export const getReportPeriod = (range: ReportRange, today: Date = new Date()) => {
-  const end = startOfDay(today);
-  const start = subDays(end, RANGE_DAYS[range] - 1);
+export const getReportPeriod = (range: ReportRange, now: Date = new Date()) => {
+  const todayKey = toKstDateKey(now.getTime());
+  const endMidnightKstEpoch = Date.parse(`${todayKey}T00:00:00+09:00`);
+  const startMidnightKstEpoch = endMidnightKstEpoch - (RANGE_DAYS[range] - 1) * DAY_MS;
+
   return {
-    start: format(start, "yyyy-MM-dd"),
-    end: format(end, "yyyy-MM-dd"),
-    endTimestamp: endOfDay(end).toISOString(),
+    start: toKstDateKey(startMidnightKstEpoch),
+    end: todayKey,
+    startTimestamp: new Date(startMidnightKstEpoch).toISOString(),
+    endTimestamp: new Date(endMidnightKstEpoch + DAY_MS - 1).toISOString(),
   };
 };
 
@@ -54,7 +65,7 @@ export const getMemberReportStats = async (
   profiles: ProfilesRow[],
   range: ReportRange
 ): Promise<MemberReportStats[]> => {
-  const { start, end, endTimestamp } = getReportPeriod(range);
+  const { start, end, startTimestamp, endTimestamp } = getReportPeriod(range);
 
   const [{ data: doneStatus }, { data: periodTasks, error: tasksError }, { data: comments }] =
     await Promise.all([
@@ -68,7 +79,7 @@ export const getMemberReportStats = async (
       supabase
         .from("task_comments")
         .select("author_id")
-        .gte("created_at", start)
+        .gte("created_at", startTimestamp)
         .lte("created_at", endTimestamp),
     ]);
 
@@ -92,9 +103,32 @@ export const getMemberReportStats = async (
         .from("status_history")
         .select("task_id, created_at, tasks!inner(assignee_id, due_date, created_at)")
         .eq("status_id", doneStatus.id)
-        .gte("created_at", start)
+        .gte("created_at", startTimestamp)
         .lte("created_at", endTimestamp)
     : { data: [] };
+
+  // 같은 일정이 기간 안에서 완료→재오픈→완료를 반복하면 "완료" 전환이 여러 번 기록된다.
+  // 일정당 가장 최근 완료 한 건만 표본으로 남겨, 한 일정이 준수율 분모와 평균 소요 시간에 중복으로 들어가지 않게 한다.
+  const latestCompletionByTask = new Map<
+    string,
+    {
+      created_at: string;
+      tasks: { assignee_id: string | null; due_date: string | null; created_at: string };
+    }
+  >();
+  (
+    (trackedCompletions ?? []) as unknown as Array<{
+      task_id: string;
+      created_at: string;
+      tasks: { assignee_id: string | null; due_date: string | null; created_at: string };
+    }>
+  ).forEach((row) => {
+    const existing = latestCompletionByTask.get(row.task_id);
+    if (!existing || row.created_at > existing.created_at) {
+      latestCompletionByTask.set(row.task_id, row);
+    }
+  });
+  const uniqueCompletions = Array.from(latestCompletionByTask.values());
 
   return profiles.map((profile) => {
     const assignedTasks = (periodTasks ?? []).filter((task) => task.assignee_id === profile.id);
@@ -107,17 +141,18 @@ export const getMemberReportStats = async (
       (comment) => comment.author_id === profile.id
     ).length;
 
-    const memberTrackedCompletions = (
-      (trackedCompletions ?? []) as unknown as Array<{
-        created_at: string;
-        tasks: { assignee_id: string | null; due_date: string | null; created_at: string };
-      }>
-    ).filter((row) => row.tasks.assignee_id === profile.id);
+    const memberTrackedCompletions = uniqueCompletions.filter(
+      (row) => row.tasks.assignee_id === profile.id
+    );
 
-    const onTimeCount = memberTrackedCompletions.filter((row) => {
-      if (!row.tasks.due_date) return false;
-      // due_date는 날짜만 있고 완료 기록은 타임스탬프라, 마감일 당일 끝까지는 기한 내로 본다.
-      const dueDateEnd = new Date(`${row.tasks.due_date}T23:59:59`);
+    // 마감일 준수율은 마감일이 있는 완료 건만 대상으로 한다. 마감일이 없는 일정은 지킬 기한이 없어
+    // 분자(onTimeCount)에도 분모(dueDateTrackedCount)에도 넣지 않는다.
+    const dueDateTrackedCompletions = memberTrackedCompletions.filter(
+      (row) => !!row.tasks.due_date
+    );
+    const onTimeCount = dueDateTrackedCompletions.filter((row) => {
+      // due_date는 날짜만 있고 완료 기록은 타임스탬프라, KST 기준 마감일 당일 끝까지는 기한 내로 본다.
+      const dueDateEnd = new Date(`${row.tasks.due_date}T23:59:59+09:00`);
       return !isAfter(new Date(row.created_at), dueDateEnd);
     }).length;
 
@@ -145,9 +180,9 @@ export const getMemberReportStats = async (
       trackedCompletionCount: memberTrackedCompletions.length,
       onTimeCount,
       onTimeRate:
-        memberTrackedCompletions.length === 0
+        dueDateTrackedCompletions.length === 0
           ? null
-          : Math.round((onTimeCount / memberTrackedCompletions.length) * 100),
+          : Math.round((onTimeCount / dueDateTrackedCompletions.length) * 100),
       avgCompletionDays,
     };
   });

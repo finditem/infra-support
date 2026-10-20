@@ -87,15 +87,23 @@ export const getDefaultDueDate = (now: Date = new Date()) => {
 export const buildProfileColorMap = (profiles: ProfilesRow[]) =>
   new Map<string, ProfileWithColor>(profiles.map((profile) => [profile.id, profile]));
 
-export const isTaskOverdue = (task: TasksRow, statuses: TaskStatusesRow[]) => {
+/**
+ * 지정한 상태 id를 기준으로 마감 초과 여부를 판정한다.
+ * 하위 일정으로 표시 상태가 결정되는 상위 일정은 자신의 status_id 대신 표시 상태를 넘겨야
+ * 실제 보드와 같은 기준으로 판정된다.
+ */
+export const isStatusOverdue = (task: TasksRow, statusId: string, statuses: TaskStatusesRow[]) => {
   const doneStatus = statuses.find((status) => status.name === "완료");
 
   return (
     !!task.due_date &&
-    task.status_id !== doneStatus?.id &&
+    statusId !== doneStatus?.id &&
     isBefore(new Date(task.due_date), startOfToday())
   );
 };
+
+export const isTaskOverdue = (task: TasksRow, statuses: TaskStatusesRow[]) =>
+  isStatusOverdue(task, task.status_id, statuses);
 
 /** 하위 일정을 상위 일정 id별로 묶는다. 상위 일정이 아닌(parent_id가 없는) 일정은 제외한다. */
 export const groupTasksByParent = (tasks: TasksRow[]) => {
