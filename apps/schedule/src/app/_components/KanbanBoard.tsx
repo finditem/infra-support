@@ -12,6 +12,7 @@ import {
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { useMemo, useState } from "react";
 import type { ProfilesRow, TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
+import { cn } from "@/utils";
 import { updateTaskStatus } from "../_lib/actions";
 import {
   buildProfileColorMap,
@@ -214,7 +215,14 @@ const KanbanBoard = ({
     : getProject(defaultProjectKey).label;
 
   return (
-    <div className="-mx-4 -my-6 min-h-[calc(100vh-137px)] bg-surface sm:-mx-8">
+    <div
+      className={cn(
+        "-mx-4 -my-6 bg-surface sm:-mx-8",
+        // 메인 보드일 때만 뷰포트를 꽉 채운다. 상세 페이지의 하위 일정 보드는 내용 높이에
+        // 맞춰, 아래 댓글 패널과 함께 불필요한 스크롤이 생기지 않게 한다.
+        !parentId && "min-h-[calc(100vh-137px)]"
+      )}
+    >
       <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8">
         {!parentId && (
           <WorkspaceOverview
