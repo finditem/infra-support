@@ -105,7 +105,9 @@ const TaskComments = ({
       )}
 
       {floatingEditor ? (
-        <div className="fixed inset-x-0 bottom-0 left-16 z-30 border-t border-border bg-surface-elevated px-4 py-3 sm:px-8">
+        // 오른쪽 패딩으로 전역 ThemeToggle(fixed bottom-6 right-6, size-12) 자리를 비워 둔다.
+        // 그러지 않으면 토글이 "등록" 버튼 위를 덮어 포인터로 댓글을 등록하기 어렵다.
+        <div className="fixed inset-x-0 bottom-0 left-16 z-30 border-t border-border bg-surface-elevated py-3 pl-4 pr-20 sm:pl-8 sm:pr-24">
           {editor}
         </div>
       ) : (
