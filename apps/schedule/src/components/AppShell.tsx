@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 
@@ -20,7 +21,10 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
   // 레일이 hover로 펼쳐질 때는 본문 위에 오버레이되므로 레이아웃이 다시 흐르지 않는다.
   return (
     <div className="min-h-screen pl-16">
-      <Sidebar />
+      {/* Sidebar가 useSearchParams로 현재 주차를 읽으므로 Suspense 경계로 감싼다. */}
+      <Suspense>
+        <Sidebar />
+      </Suspense>
       {children}
     </div>
   );
