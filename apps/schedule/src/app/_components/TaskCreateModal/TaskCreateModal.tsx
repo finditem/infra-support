@@ -237,7 +237,6 @@ const TaskCreateModal = ({
           priority,
           dueDate,
           projectKey,
-          changedBy: currentProfileId,
         })
       : await createTask({
           title: title.trim(),
