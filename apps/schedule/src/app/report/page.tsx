@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/utils";
 import { getRegisteredProfiles } from "../_lib/profiles";
 import ProfileAvatar from "../_components/ProfileAvatar";
 import { getMemberReportStats, isReportRange, type ReportRange } from "./_lib/report";
@@ -13,6 +14,9 @@ const RANGE_TABS: { key: ReportRange; label: string }[] = [
   { key: "month", label: "최근 30일" },
   { key: "quarter", label: "최근 90일" },
 ];
+
+const TH_CLASSNAME = "py-2 pr-4 font-medium";
+const TD_CLASSNAME = "py-2.5 pr-4 tabular-nums text-text-default";
 
 const formatPercent = (value: number | null) => (value === null ? "—" : `${value}%`);
 const formatDays = (value: number | null) => (value === null ? "—" : `${value}일`);
@@ -40,11 +44,12 @@ const ReportPage = async ({ searchParams }: ReportPageProps) => {
           {RANGE_TABS.map((tab) => (
             <Link
               key={tab.key}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm ${
+              className={cn(
+                "-mb-px border-b-2 px-3 py-2 text-sm",
                 range === tab.key
                   ? "border-primary font-semibold text-text-default"
                   : "border-transparent text-text-muted hover:text-text-default"
-              }`}
+              )}
               href={`/report?range=${tab.key}`}
             >
               {tab.label}
@@ -65,14 +70,14 @@ const ReportPage = async ({ searchParams }: ReportPageProps) => {
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-text-muted">
-              <th className="py-2 pr-4 font-medium">팀원</th>
-              <th className="py-2 pr-4 font-medium">완료율</th>
-              <th className="py-2 pr-4 font-medium">담당 일정</th>
-              <th className="py-2 pr-4 font-medium">마감일 준수율</th>
-              <th className="py-2 pr-4 font-medium">평균 완료 소요</th>
-              <th className="py-2 pr-4 font-medium">설명 작성률</th>
-              <th className="py-2 pr-4 font-medium">하위일정 보유율</th>
-              <th className="py-2 pr-4 font-medium">댓글</th>
+              <th className={TH_CLASSNAME}>팀원</th>
+              <th className={TH_CLASSNAME}>완료율</th>
+              <th className={TH_CLASSNAME}>담당 일정</th>
+              <th className={TH_CLASSNAME}>마감일 준수율</th>
+              <th className={TH_CLASSNAME}>평균 완료 소요</th>
+              <th className={TH_CLASSNAME}>설명 작성률</th>
+              <th className={TH_CLASSNAME}>하위일정 보유율</th>
+              <th className={TH_CLASSNAME}>댓글</th>
             </tr>
           </thead>
           <tbody>
@@ -97,26 +102,22 @@ const ReportPage = async ({ searchParams }: ReportPageProps) => {
                     </span>
                   </div>
                 </td>
-                <td className="py-2.5 pr-4 tabular-nums text-text-default">
+                <td className={TD_CLASSNAME}>
                   {row.completedCount}/{row.totalAssigned}
                 </td>
-                <td className="py-2.5 pr-4 tabular-nums text-text-default">
-                  {formatPercent(row.onTimeRate)}
-                </td>
-                <td className="py-2.5 pr-4 tabular-nums text-text-default">
-                  {formatDays(row.avgCompletionDays)}
-                </td>
-                <td className="py-2.5 pr-4 tabular-nums text-text-default">
+                <td className={TD_CLASSNAME}>{formatPercent(row.onTimeRate)}</td>
+                <td className={TD_CLASSNAME}>{formatDays(row.avgCompletionDays)}</td>
+                <td className={TD_CLASSNAME}>
                   {row.totalAssigned === 0
                     ? "—"
                     : `${Math.round((row.bodyFilledCount / row.totalAssigned) * 100)}%`}
                 </td>
-                <td className="py-2.5 pr-4 tabular-nums text-text-default">
+                <td className={TD_CLASSNAME}>
                   {row.totalAssigned === 0
                     ? "—"
                     : `${Math.round((row.hasSubtaskCount / row.totalAssigned) * 100)}%`}
                 </td>
-                <td className="py-2.5 pr-4 tabular-nums text-text-default">{row.commentCount}</td>
+                <td className={TD_CLASSNAME}>{row.commentCount}</td>
               </tr>
             ))}
           </tbody>
