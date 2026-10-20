@@ -9,6 +9,11 @@ import { getOrCreateWeek } from "./kanban";
 import { getMonday } from "./kanbanUtils";
 import { notifyTaskCreated, notifyTaskDeleted, notifyTaskUpdated } from "./taskNotification";
 
+// 상태 변경 이력(status_history)은 애플리케이션이 아니라 DB 트리거(tasks_record_status_change)가
+// 기록한다. 웹 서버 액션과 Slack 명령/버튼 등 상태를 바꾸는 모든 경로를 한곳에서 빠짐없이 남기기
+// 위함이다. 마감일 준수율·평균 완료 소요 시간 리포트는 트리거가 기록을 시작한 이후의 완료 건만
+// 집계한다(과거 데이터는 소급할 수 없다). 자세한 내용은 0018_restore_status_history.sql 참고.
+
 interface CreateTaskInput {
   title: string;
   body: string | null;
