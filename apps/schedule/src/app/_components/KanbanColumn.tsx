@@ -115,7 +115,11 @@ const KanbanColumn = ({
       </div>
 
       <button
-        className="mb-2 w-full rounded-md border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className={cn(
+          "mb-2 w-full rounded-md border border-dashed border-border py-2 text-xs font-medium text-text-muted",
+          "hover:border-primary hover:text-primary",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        )}
         type="button"
         onClick={() => onAddTask(status.id)}
       >
