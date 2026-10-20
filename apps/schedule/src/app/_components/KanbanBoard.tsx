@@ -183,20 +183,14 @@ const KanbanBoard = ({
     setTasks((prev) => prev.map((row) => (row.id === saved.id ? saved : row)));
   };
 
-  const projectTasks = useMemo(
-    () =>
-      parentId ? scopedTasks.filter((task) => task.project_key === defaultProjectKey) : scopedTasks,
-    [defaultProjectKey, parentId, scopedTasks]
-  );
-
   const filteredTasks = useMemo(
-    () => filterTasks(projectTasks, filter, currentProfileId),
-    [projectTasks, filter, currentProfileId]
+    () => filterTasks(scopedTasks, filter, currentProfileId),
+    [scopedTasks, filter, currentProfileId]
   );
 
   const progress = useMemo(
-    () => calculateMemberProgress(projectTasks, Array.from(profileMap.values()), statuses),
-    [projectTasks, profileMap, statuses]
+    () => calculateMemberProgress(scopedTasks, Array.from(profileMap.values()), statuses),
+    [scopedTasks, profileMap, statuses]
   );
 
   const projectLabel = parentId ? (parentTitle ?? "하위 일정") : "전체 프로젝트";
@@ -206,10 +200,11 @@ const KanbanBoard = ({
       <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8">
         {!parentId && (
           <WorkspaceOverview
+            childrenByParent={childrenByParent}
             progress={progress}
             projectLabel={projectLabel}
             statuses={statuses}
-            tasks={projectTasks}
+            tasks={scopedTasks}
           />
         )}
 
