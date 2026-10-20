@@ -28,9 +28,10 @@ const WorkspaceOverview = ({
   tasks,
   childrenByParent,
 }: WorkspaceOverviewProps) => {
-  const doneStatusId = statuses.find((status) => status.name === "완료")?.id;
-  const delayedStatusId = statuses.find((status) => status.name === "지연됨")?.id;
-  const incompleteStatusId = statuses.find((status) => status.name === "미완료")?.id;
+  const idByName = (name: string) => statuses.find((status) => status.name === name)?.id;
+  const doneStatusId = idByName("완료");
+  const delayedStatusId = idByName("지연됨");
+  const incompleteStatusId = idByName("미완료");
 
   // 보드에 실제로 표시되는 상태(하위 일정으로 결정되면 그 상태) 기준으로 집계한다.
   const effectiveStatusIdOf = (task: TasksRow) =>
