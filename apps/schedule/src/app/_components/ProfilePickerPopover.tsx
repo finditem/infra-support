@@ -35,9 +35,8 @@ const ProfilePickerPopover = ({
   const selected = profiles.find((profile) => profile.id === selectedId) ?? null;
   const filtered = profiles.filter((profile) => profile.name.includes(query.trim()));
 
-  const triggerAriaLabel = typeLabel
-    ? `${typeLabel} 필터, 현재 ${selected ? selected.name : clearLabel}`
-    : undefined;
+  const selectedLabel = selected ? selected.name : clearLabel;
+  const triggerAriaLabel = typeLabel ? `${typeLabel} 필터, 현재 ${selectedLabel}` : undefined;
 
   return (
     <PropertyPopover
