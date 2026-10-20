@@ -40,10 +40,11 @@ const NAV_ITEMS = [
 ] as const;
 
 // 접힌 상태에서는 아이콘만 보이고, 마우스를 올리거나 키보드 포커스가 들어오면 라벨까지 펼쳐진다.
-const ROW_BASE =
-  "relative flex h-9 items-center gap-3 px-[22px] text-text-muted transition-colors hover:bg-fill-neutural-subtle-default hover:text-text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary";
-const LABEL_BASE =
-  "whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100";
+const SIDEBAR_STYLES = {
+  row: "relative flex h-9 items-center gap-3 px-[22px] text-text-muted transition-colors hover:bg-fill-neutural-subtle-default hover:text-text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
+  label:
+    "whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100",
+} as const;
 
 export const Sidebar = () => {
   const pathname = usePathname();
@@ -77,7 +78,7 @@ export const Sidebar = () => {
         >
           찾
         </span>
-        <span className={cn(LABEL_BASE, "text-[13px] font-bold text-text-default")}>
+        <span className={cn(SIDEBAR_STYLES.label, "text-[13px] font-bold text-text-default")}>
           찾길 업무관리
         </span>
       </Link>
@@ -88,7 +89,10 @@ export const Sidebar = () => {
 
           return (
             <div key={item.key}>
-              <Link className={cn(ROW_BASE, active && "text-text-default")} href={item.href}>
+              <Link
+                className={cn(SIDEBAR_STYLES.row, active && "text-text-default")}
+                href={item.href}
+              >
                 {active && (
                   <span
                     aria-hidden
@@ -96,7 +100,7 @@ export const Sidebar = () => {
                   />
                 )}
                 <item.Icon aria-hidden className="size-[18px] shrink-0" />
-                <span className={LABEL_BASE}>{item.label}</span>
+                <span className={SIDEBAR_STYLES.label}>{item.label}</span>
               </Link>
 
               {item.key === "board" && (
@@ -129,9 +133,13 @@ export const Sidebar = () => {
         })}
       </nav>
 
-      <button className={cn(ROW_BASE, "mt-auto w-full")} type="button" onClick={handleSignOut}>
+      <button
+        className={cn(SIDEBAR_STYLES.row, "mt-auto w-full")}
+        type="button"
+        onClick={handleSignOut}
+      >
         <LogOut aria-hidden className="size-[18px] shrink-0" />
-        <span className={LABEL_BASE}>로그아웃</span>
+        <span className={SIDEBAR_STYLES.label}>로그아웃</span>
       </button>
     </aside>
   );
