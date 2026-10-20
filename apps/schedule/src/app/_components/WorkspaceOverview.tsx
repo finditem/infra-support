@@ -1,5 +1,5 @@
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
-import { isTaskOverdue } from "../_lib/kanbanUtils";
+import { getEffectiveStatusId, isStatusOverdue } from "../_lib/kanbanUtils";
 import type { KanbanProgressEntry } from "../_types/kanban";
 import KanbanProgress from "./KanbanProgress";
 
@@ -8,6 +8,8 @@ interface WorkspaceOverviewProps {
   progress: KanbanProgressEntry[];
   statuses: TaskStatusesRow[];
   tasks: TasksRow[];
+  /** 하위 일정 묶음. 상위 일정의 표시 상태를 하위 일정에서 산출하는 데 쓴다. */
+  childrenByParent: Map<string, TasksRow[]>;
 }
 
 // 완료(DB의 "완료" 상태 색과 동일) / 정상 진행 / 지연(기존 overdue 강조색과 동일) — 서로 겹치지 않아 합이 전체와 같다.
@@ -19,11 +21,33 @@ const SEGMENT_COLORS = {
 
 const toPercent = (value: number, total: number) => (total === 0 ? 0 : (value / total) * 100);
 
-const WorkspaceOverview = ({ projectLabel, progress, statuses, tasks }: WorkspaceOverviewProps) => {
+const WorkspaceOverview = ({
+  projectLabel,
+  progress,
+  statuses,
+  tasks,
+  childrenByParent,
+}: WorkspaceOverviewProps) => {
   const doneStatusId = statuses.find((status) => status.name === "완료")?.id;
-  const done = tasks.filter((task) => task.status_id === doneStatusId).length;
-  const overdue = tasks.filter((task) => isTaskOverdue(task, statuses)).length;
-  // isTaskOverdue가 이미 완료 상태를 제외하고 판정하므로, onTrack(정상 진행)은 overdue와 겹치지 않는다.
+  const delayedStatusId = statuses.find((status) => status.name === "지연됨")?.id;
+  const incompleteStatusId = statuses.find((status) => status.name === "미완료")?.id;
+
+  // 보드에 실제로 표시되는 상태(하위 일정으로 결정되면 그 상태) 기준으로 집계한다.
+  const effectiveStatusIdOf = (task: TasksRow) =>
+    getEffectiveStatusId(task, childrenByParent, statuses);
+
+  const done = tasks.filter((task) => effectiveStatusIdOf(task) === doneStatusId).length;
+
+  // 지연으로 묶는 기준: 마감이 지났거나(완료 제외), 상태 자체가 지연됨/미완료인 일정.
+  // 마감이 아직 남았어도 지연됨/미완료로 표시된 일정은 정상 진행으로 세지 않는다.
+  const isDelayed = (task: TasksRow) => {
+    const statusId = effectiveStatusIdOf(task);
+    if (statusId === doneStatusId) return false;
+    if (statusId === delayedStatusId || statusId === incompleteStatusId) return true;
+    return isStatusOverdue(task, statusId, statuses);
+  };
+  const overdue = tasks.filter(isDelayed).length;
+  // done·overdue와 겹치지 않으므로 세 구간의 합이 전체와 같다.
   const onTrack = tasks.length - done - overdue;
   const completion = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
 

@@ -60,7 +60,7 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
-      <TaskDetailHeader title={parentTask.title} />
+      <TaskDetailHeader projectKey={parentTask.project_key} title={parentTask.title} />
 
       <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-8">
         <KanbanBoard
