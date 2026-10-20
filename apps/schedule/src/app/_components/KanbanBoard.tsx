@@ -27,8 +27,9 @@ import type { KanbanFilterState } from "../_types/kanban";
 import KanbanCard from "./KanbanCard";
 import KanbanColumn from "./KanbanColumn";
 import KanbanFilters from "./KanbanFilters";
-import KanbanProgress from "./KanbanProgress";
 import TaskCreateModal from "./TaskCreateModal/TaskCreateModal";
+import WorkspaceOverview from "./WorkspaceOverview";
+import { DEFAULT_PROJECT_KEY, type ProjectKey } from "../_lib/projects";
 
 const INITIAL_FILTER: KanbanFilterState = {
   assigneeId: null,
@@ -49,6 +50,7 @@ interface KanbanBoardProps {
   currentProfileId: string | null;
   parentId?: string | null;
   parentTitle?: string | null;
+  defaultProjectKey?: ProjectKey;
 }
 
 const KanbanBoard = ({
@@ -61,6 +63,7 @@ const KanbanBoard = ({
   currentProfileId,
   parentId = null,
   parentTitle = null,
+  defaultProjectKey = DEFAULT_PROJECT_KEY,
 }: KanbanBoardProps) => {
   const [tasks, setTasks] = useState(initialTasks);
   const [comments, setComments] = useState(initialComments);
@@ -107,6 +110,20 @@ const KanbanBoard = ({
   );
 
   const childrenByParent = useMemo(() => groupTasksByParent(tasks), [tasks]);
+
+  const subtaskProgressByParent = useMemo(() => {
+    const doneStatusId = statuses.find((status) => status.name === "완료")?.id;
+    const progressMap = new Map<string, { done: number; total: number }>();
+
+    childrenByParent.forEach((children, taskId) => {
+      progressMap.set(taskId, {
+        done: children.filter((child) => child.status_id === doneStatusId).length,
+        total: children.length,
+      });
+    });
+
+    return progressMap;
+  }, [childrenByParent, statuses]);
 
   const effectiveStatusId = (task: TasksRow) =>
     getEffectiveStatusId(task, childrenByParent, statuses);
@@ -176,66 +193,90 @@ const KanbanBoard = ({
     [scopedTasks, profileMap, statuses]
   );
 
+  const projectLabel = parentId ? (parentTitle ?? "하위 일정") : "전체 프로젝트";
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-5 rounded-xl border border-border bg-surface-elevated px-4 py-6 sm:px-8">
-        <KanbanFilters filter={filter} profiles={profiles} onFilterChange={setFilter} />
-        <KanbanProgress progress={progress} />
-      </div>
+    <div className="-mx-4 -my-6 min-h-[calc(100vh-137px)] bg-surface sm:-mx-8">
+      <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8">
+        {!parentId && (
+          <WorkspaceOverview
+            childrenByParent={childrenByParent}
+            progress={progress}
+            projectLabel={projectLabel}
+            statuses={statuses}
+            tasks={scopedTasks}
+          />
+        )}
 
-      <DndContext
-        id="kanban-board"
-        collisionDetection={closestCorners}
-        sensors={sensors}
-        onDragCancel={() => setActiveTask(null)}
-        onDragEnd={handleDragEnd}
-        onDragStart={handleDragStart}
-      >
-        <div className="overflow-x-auto">
-          <div className="flex min-w-max gap-4">
-            {statuses.map((status) => (
-              <KanbanColumn
-                key={status.id}
-                activeTask={activeTask}
-                commentCountByTask={commentCountByTask}
-                derivedStatusTaskIds={derivedStatusTaskIds}
-                pendingTaskIds={pendingTaskIds}
-                profileMap={profileMap}
-                status={status}
-                statuses={statuses}
-                subtaskCountByParent={subtaskCountByParent}
-                tasks={sortByPriorityDesc(
-                  filteredTasks.filter((task) => effectiveStatusId(task) === status.id)
-                )}
-                onAddTask={setCreatingStatusId}
-                onSelectTask={setEditingTask}
-              />
-            ))}
+        <div className="flex flex-col gap-4 pt-5">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="text-base font-semibold text-text-default">칸반보드</h2>
+              <p className="mt-0.5 text-xs text-text-muted">
+                {projectLabel}의 일정 {filteredTasks.length}개
+              </p>
+            </div>
+            <KanbanFilters filter={filter} profiles={profiles} onFilterChange={setFilter} />
           </div>
-        </div>
 
-        <DragOverlay>
-          {activeTask && (
-            <KanbanCard
-              assignee={
-                activeTask.assignee_id ? (profileMap.get(activeTask.assignee_id) ?? null) : null
-              }
-              commentCount={commentCountByTask.get(activeTask.id) ?? 0}
-              reporter={
-                activeTask.reporter_id ? (profileMap.get(activeTask.reporter_id) ?? null) : null
-              }
-              statuses={statuses}
-              subtaskCount={subtaskCountByParent.get(activeTask.id) ?? 0}
-              task={activeTask}
-            />
-          )}
-        </DragOverlay>
-      </DndContext>
+          <DndContext
+            id="kanban-board"
+            collisionDetection={closestCorners}
+            sensors={sensors}
+            onDragCancel={() => setActiveTask(null)}
+            onDragEnd={handleDragEnd}
+            onDragStart={handleDragStart}
+          >
+            <div className="overflow-x-auto pb-2">
+              <div className="grid min-w-[980px] grid-cols-6 gap-3">
+                {statuses.map((status) => (
+                  <KanbanColumn
+                    key={status.id}
+                    activeTask={activeTask}
+                    commentCountByTask={commentCountByTask}
+                    derivedStatusTaskIds={derivedStatusTaskIds}
+                    pendingTaskIds={pendingTaskIds}
+                    profileMap={profileMap}
+                    status={status}
+                    statuses={statuses}
+                    subtaskCountByParent={subtaskCountByParent}
+                    subtaskProgressByParent={subtaskProgressByParent}
+                    tasks={sortByPriorityDesc(
+                      filteredTasks.filter((task) => effectiveStatusId(task) === status.id)
+                    )}
+                    onAddTask={setCreatingStatusId}
+                    onSelectTask={setEditingTask}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <DragOverlay>
+              {activeTask && (
+                <KanbanCard
+                  assignee={
+                    activeTask.assignee_id ? (profileMap.get(activeTask.assignee_id) ?? null) : null
+                  }
+                  commentCount={commentCountByTask.get(activeTask.id) ?? 0}
+                  reporter={
+                    activeTask.reporter_id ? (profileMap.get(activeTask.reporter_id) ?? null) : null
+                  }
+                  statuses={statuses}
+                  subtaskCount={subtaskCountByParent.get(activeTask.id) ?? 0}
+                  subtaskProgress={subtaskProgressByParent.get(activeTask.id)}
+                  task={activeTask}
+                />
+              )}
+            </DragOverlay>
+          </DndContext>
+        </div>
+      </div>
 
       {(creatingStatusId || editingTask) && (
         <TaskCreateModal
           comments={editingTaskComments}
           currentProfileId={currentProfileId}
+          initialProjectKey={defaultProjectKey}
           initialStatusId={creatingStatusId ?? ""}
           mentionTargets={mentionTargets}
           parentId={parentId}

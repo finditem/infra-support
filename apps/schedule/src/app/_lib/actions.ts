@@ -19,6 +19,7 @@ interface CreateTaskInput {
   dueDate: string;
   createdBy: string | null;
   parentId: string | null;
+  projectKey: TasksRow["project_key"];
 }
 
 export const createTask = async ({
@@ -31,6 +32,7 @@ export const createTask = async ({
   dueDate,
   createdBy,
   parentId,
+  projectKey,
 }: CreateTaskInput): Promise<TasksRow | null> => {
   const supabase = await createClient();
   const week = await getOrCreateWeek(supabase, getMonday(parseISO(dueDate)));
@@ -50,6 +52,7 @@ export const createTask = async ({
     due_date: dueDate,
     created_by: createdBy,
     parent_id: parentId,
+    project_key: projectKey,
   };
 
   const { data, error } = await supabase.from("tasks").insert(insertPayload).select("*").single();
@@ -72,6 +75,7 @@ interface CreateSubtasksInput {
   statusId: string;
   dueDate: string;
   createdBy: string | null;
+  projectKey: TasksRow["project_key"];
   drafts: { title: string; body: string | null }[];
 }
 
@@ -90,6 +94,7 @@ export const createSubtasks = async ({
   statusId,
   dueDate,
   createdBy,
+  projectKey,
   drafts,
 }: CreateSubtasksInput): Promise<TasksRow[] | null> => {
   if (drafts.length === 0) return [];
@@ -107,6 +112,7 @@ export const createSubtasks = async ({
     due_date: dueDate,
     created_by: createdBy,
     parent_id: parentId,
+    project_key: projectKey,
   }));
 
   const { data, error } = await supabase.from("tasks").insert(insertPayload).select("*");
@@ -133,6 +139,7 @@ interface UpdateTaskInput {
   reporterId: string | null;
   priority: TasksRow["priority"];
   dueDate: string;
+  projectKey: TasksRow["project_key"];
 }
 
 export const updateTask = async ({
@@ -144,6 +151,7 @@ export const updateTask = async ({
   reporterId,
   priority,
   dueDate,
+  projectKey,
 }: UpdateTaskInput): Promise<TasksRow | null> => {
   const supabase = await createClient();
 
@@ -169,6 +177,7 @@ export const updateTask = async ({
     priority,
     due_date: dueDate,
     ...(week ? { week_id: week.id } : {}),
+    project_key: projectKey,
   };
 
   const { data, error } = await supabase

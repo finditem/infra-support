@@ -4,7 +4,7 @@ import { PRIORITY_META, PRIORITY_ORDER } from "../_lib/kanbanUtils";
 import type { KanbanFilterState } from "../_types/kanban";
 
 const SELECT_CLASSNAME =
-  "rounded-md border border-border bg-surface-elevated px-3 py-[6px] text-xs font-medium text-text-default";
+  "rounded-md border border-border bg-surface-elevated px-3 py-[6px] text-xs font-medium text-text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
 interface KanbanFiltersProps {
   filter: KanbanFilterState;
@@ -65,7 +65,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
       <button
         aria-pressed={filter.onlyMine}
         className={cn(
-          "rounded-full border px-3 py-[6px] text-xs font-semibold transition",
+          "rounded-md border px-3 py-[6px] text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
           filter.onlyMine
             ? "bg-primary/10 border-primary text-primary"
             : "border-border text-text-muted"

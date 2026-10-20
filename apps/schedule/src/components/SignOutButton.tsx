@@ -16,7 +16,7 @@ export const SignOutButton = () => {
 
   return (
     <button
-      className="rounded-full border border-border px-4 py-2 font-medium text-text-default transition hover:bg-fill-neutural-subtle-hover"
+      className="rounded-md border border-border px-3 py-2 text-sm font-medium text-text-default transition hover:bg-fill-neutural-subtle-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       type="button"
       onClick={handleClick}
     >

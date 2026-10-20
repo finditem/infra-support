@@ -27,6 +27,7 @@ import DatePickerPopover from "./DatePickerPopover";
 import { ImageLightbox } from "./ImageLightbox";
 import PriorityPickerPopover from "./PriorityPickerPopover";
 import StatusPickerPopover from "./StatusPickerPopover";
+import { DEFAULT_PROJECT_KEY, getProject, PROJECTS, type ProjectKey } from "../../_lib/projects";
 
 interface SubtaskDraft {
   id: string;
@@ -55,6 +56,7 @@ interface TaskCreateModalProps {
   initialStatusId: string;
   parentId?: string | null;
   parentTitle?: string | null;
+  initialProjectKey?: ProjectKey;
   task?: TasksRow | null;
   /** 편집 모드에서만 쓰는 이 일정의 댓글 목록. 생성 모드에서는 아직 일정이 없어 댓글도 없다. */
   comments?: TaskCommentsRow[];
@@ -74,6 +76,7 @@ const TaskCreateModal = ({
   initialStatusId,
   parentId = null,
   parentTitle = null,
+  initialProjectKey = DEFAULT_PROJECT_KEY,
   task = null,
   comments = [],
   mentionTargets = [],
@@ -106,6 +109,12 @@ const TaskCreateModal = ({
     format(task?.due_date ? new Date(task.due_date) : getDefaultDueDate(), "yyyy-MM-dd")
   );
   const [statusId, setStatusId] = useState(task?.status_id ?? initialStatusId);
+  // 하위 일정(parentId 있음)은 상위 일정의 세부 작업이라 항상 상위와 같은 프로젝트여야 한다.
+  // task?.project_key를 쓰면 과거에 어긋나게 저장된 값을 그대로 보여주게 되므로, 하위 일정은
+  // initialProjectKey(상위 일정의 프로젝트)로 고정해 열 때마다 바로잡는다.
+  const [projectKey, setProjectKey] = useState<ProjectKey>(
+    parentId ? initialProjectKey : (task?.project_key ?? initialProjectKey)
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [subtaskDrafts, setSubtaskDrafts] = useState<SubtaskDraft[]>([]);
@@ -232,6 +241,7 @@ const TaskCreateModal = ({
           reporterId,
           priority,
           dueDate,
+          projectKey,
         })
       : await createTask({
           title: title.trim(),
@@ -243,6 +253,7 @@ const TaskCreateModal = ({
           dueDate,
           createdBy: currentProfileId,
           parentId,
+          projectKey,
         });
 
     if (!saved) {
@@ -282,6 +293,7 @@ const TaskCreateModal = ({
             statusId,
             dueDate,
             createdBy: currentProfileId,
+            projectKey,
             drafts,
           })
         : [];
@@ -386,6 +398,31 @@ const TaskCreateModal = ({
                 statuses={statuses}
                 onSelect={setStatusId}
               />
+              <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
+                <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">
+                  프로젝트
+                </span>
+                {parentId ? (
+                  // 하위 일정은 상위 일정의 세부 작업이라 프로젝트를 독립적으로 바꿀 수 없다.
+                  // 상위 일정과 어긋나면 상위 일정 상세에서조차 찾기 어려워지기 때문이다.
+                  <span className="text-xs text-text-muted">
+                    {getProject(initialProjectKey).label} (상위 일정과 동일)
+                  </span>
+                ) : (
+                  <select
+                    aria-label="프로젝트"
+                    className="min-w-0 flex-1 bg-transparent text-xs text-text-default outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    value={projectKey}
+                    onChange={(event) => setProjectKey(event.target.value as ProjectKey)}
+                  >
+                    {PROJECTS.map((project) => (
+                      <option key={project.key} value={project.key}>
+                        {project.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
               <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
                 <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">주차</span>
                 <span className="text-xs text-text-default">{weekLabel}</span>
