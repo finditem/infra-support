@@ -45,6 +45,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         profiles={profiles}
         selectedId={filter.assigneeId}
         triggerClassName={TRIGGER_CLASSNAME}
+        typeLabel="담당자"
         onSelect={(assigneeId) => onFilterChange({ ...filter, assigneeId })}
       />
 
@@ -54,6 +55,7 @@ const KanbanFilters = ({ filter, profiles, onFilterChange }: KanbanFiltersProps)
         profiles={profiles}
         selectedId={filter.reporterId}
         triggerClassName={TRIGGER_CLASSNAME}
+        typeLabel="보고자"
         onSelect={(reporterId) => onFilterChange({ ...filter, reporterId })}
       />
 

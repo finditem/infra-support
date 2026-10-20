@@ -9,9 +9,13 @@ interface PropertyPopoverProps {
   label?: string;
   labelClassName?: string;
   trigger: React.ReactNode;
+  /** 트리거 버튼의 접근성 이름. 트리거에 보이는 텍스트만으로 용도를 구분하기 어려울 때 넘긴다. */
+  triggerAriaLabel?: string;
   triggerClassName?: string;
   panelClassName?: string;
   align?: "left" | "center";
+  /** 팝오버가 닫힐 때(선택·해제·바깥 클릭·ESC 모두 포함) 한 번 호출된다. 검색어 초기화 등에 쓴다. */
+  onClose?: () => void;
   children: (close: () => void) => React.ReactNode;
 }
 
@@ -19,14 +23,23 @@ const PropertyPopover = ({
   label,
   labelClassName,
   trigger,
+  triggerAriaLabel,
   triggerClassName,
   panelClassName,
   align = "left",
+  onClose,
   children,
 }: PropertyPopoverProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const wasOpen = useRef(false);
+
+  // 열렸다가 닫히는 전환에서만 onClose를 호출한다(마운트 직후 닫힘 상태에서는 부르지 않는다).
+  useEffect(() => {
+    if (wasOpen.current && !isOpen) onClose?.();
+    wasOpen.current = isOpen;
+  }, [isOpen, onClose]);
 
   // 모달 컨테이너의 overflow-hidden에 잘리지 않도록 패널을 body에 Portal로 띄우고,
   // 트리거 기준 좌표를 직접 계산한다.
@@ -54,6 +67,7 @@ const PropertyPopover = ({
     <>
       <button
         ref={triggerRef}
+        aria-label={triggerAriaLabel}
         className={cn(
           "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left transition hover:bg-fill-neutural-subtle-hover",
           triggerClassName
