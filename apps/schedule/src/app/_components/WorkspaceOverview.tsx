@@ -1,5 +1,5 @@
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
-import { isTaskOverdue } from "../_lib/kanbanUtils";
+import { getEffectiveStatusId, isStatusOverdue } from "../_lib/kanbanUtils";
 import type { KanbanProgressEntry } from "../_types/kanban";
 import KanbanProgress from "./KanbanProgress";
 
@@ -8,12 +8,25 @@ interface WorkspaceOverviewProps {
   progress: KanbanProgressEntry[];
   statuses: TaskStatusesRow[];
   tasks: TasksRow[];
+  /** 하위 일정 묶음. 상위 일정의 표시 상태를 하위 일정에서 산출하는 데 쓴다. */
+  childrenByParent: Map<string, TasksRow[]>;
 }
 
-const WorkspaceOverview = ({ projectLabel, progress, statuses, tasks }: WorkspaceOverviewProps) => {
+const WorkspaceOverview = ({
+  projectLabel,
+  progress,
+  statuses,
+  tasks,
+  childrenByParent,
+}: WorkspaceOverviewProps) => {
   const doneStatusId = statuses.find((status) => status.name === "완료")?.id;
-  const done = tasks.filter((task) => task.status_id === doneStatusId).length;
-  const overdue = tasks.filter((task) => isTaskOverdue(task, statuses)).length;
+  // 보드에 실제로 표시되는 상태(하위 일정으로 결정되면 그 상태) 기준으로 집계한다.
+  const effectiveStatusIdOf = (task: TasksRow) =>
+    getEffectiveStatusId(task, childrenByParent, statuses);
+  const done = tasks.filter((task) => effectiveStatusIdOf(task) === doneStatusId).length;
+  const overdue = tasks.filter((task) =>
+    isStatusOverdue(task, effectiveStatusIdOf(task), statuses)
+  ).length;
   const active = tasks.length - done;
   const completion = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
 
