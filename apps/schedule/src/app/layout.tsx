@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "next-themes";
+import { AppShell } from "@/components/AppShell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 import "./globals.css";
@@ -19,7 +20,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
     <html lang="ko" suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <AppShell>{children}</AppShell>
           <ThemeToggle />
         </ThemeProvider>
       </body>

@@ -29,7 +29,7 @@ import KanbanColumn from "./KanbanColumn";
 import KanbanFilters from "./KanbanFilters";
 import TaskCreateModal from "./TaskCreateModal/TaskCreateModal";
 import WorkspaceOverview from "./WorkspaceOverview";
-import { DEFAULT_PROJECT_KEY, type ProjectKey } from "../_lib/projects";
+import { getProject, type ProjectKey } from "../_lib/projects";
 
 const INITIAL_FILTER: KanbanFilterState = {
   assigneeId: null,
@@ -50,7 +50,8 @@ interface KanbanBoardProps {
   currentProfileId: string | null;
   parentId?: string | null;
   parentTitle?: string | null;
-  defaultProjectKey?: ProjectKey;
+  /** 이 보드가 보여줄 프로젝트. 메인은 라우트의 projectKey, 하위 일정 보드는 상위 일정의 프로젝트를 넘긴다. */
+  defaultProjectKey: ProjectKey;
 }
 
 const KanbanBoard = ({
@@ -63,7 +64,7 @@ const KanbanBoard = ({
   currentProfileId,
   parentId = null,
   parentTitle = null,
-  defaultProjectKey = DEFAULT_PROJECT_KEY,
+  defaultProjectKey,
 }: KanbanBoardProps) => {
   const [tasks, setTasks] = useState(initialTasks);
   const [comments, setComments] = useState(initialComments);
@@ -183,17 +184,28 @@ const KanbanBoard = ({
     setTasks((prev) => prev.map((row) => (row.id === saved.id ? saved : row)));
   };
 
+  // 메인 보드는 라우트가 정한 한 프로젝트만 보여준다. 다만 하위 일정 보드는 상위 일정의 하위 전부를
+  // 보여준다 — 하위 일정은 상위 일정 상세에서만 접근할 수 있어, 프로젝트가 다르다고 걸러내면
+  // 보드 어디에서도 볼 수 없게 되기 때문이다.
+  const projectTasks = useMemo(
+    () =>
+      parentId ? scopedTasks : scopedTasks.filter((task) => task.project_key === defaultProjectKey),
+    [defaultProjectKey, parentId, scopedTasks]
+  );
+
   const filteredTasks = useMemo(
-    () => filterTasks(scopedTasks, filter, currentProfileId),
-    [scopedTasks, filter, currentProfileId]
+    () => filterTasks(projectTasks, filter, currentProfileId),
+    [projectTasks, filter, currentProfileId]
   );
 
   const progress = useMemo(
-    () => calculateMemberProgress(scopedTasks, Array.from(profileMap.values()), statuses),
-    [scopedTasks, profileMap, statuses]
+    () => calculateMemberProgress(projectTasks, Array.from(profileMap.values()), statuses),
+    [projectTasks, profileMap, statuses]
   );
 
-  const projectLabel = parentId ? (parentTitle ?? "하위 일정") : "전체 프로젝트";
+  const projectLabel = parentId
+    ? (parentTitle ?? "하위 일정")
+    : getProject(defaultProjectKey).label;
 
   return (
     <div className="-mx-4 -my-6 min-h-[calc(100vh-137px)] bg-surface sm:-mx-8">
@@ -204,7 +216,7 @@ const KanbanBoard = ({
             progress={progress}
             projectLabel={projectLabel}
             statuses={statuses}
-            tasks={scopedTasks}
+            tasks={projectTasks}
           />
         )}
 
