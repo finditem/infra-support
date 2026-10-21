@@ -35,24 +35,15 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
     ]
   );
 
-  // 조회 자체가 실패한 경우(null)는 없는 일정과 구분한다. 실패를 404로 읽으면
-  // 일시적인 오류에 멀쩡한 일정이 사라진 것처럼 보인다.
-  if (!detail) {
-    return (
-      <main className="flex min-h-screen flex-col bg-surface">
-        <div className="flex-1 px-4 py-6 sm:px-8">
-          <p className="text-sm text-text-muted">일정을 불러오지 못했습니다.</p>
-        </div>
-      </main>
-    );
-  }
-
   // 임베드 결과의 첫 번째 원소가 상위 일정이고 나머지가 하위 일정이다.
   // 댓글은 양쪽 것이 함께 들어 있어, 상위 일정 것은 아래 댓글 카드가, 하위 일정 것은
   // 칸반 카드의 개수 배지가 각각 걸러서 쓴다.
-  const [parentTask, ...childTasks] = detail.tasks;
+  const [parentTask, ...childTasks] = detail?.tasks ?? [];
 
-  if (!parentTask || parentTask.parent_id) {
+  // 조회에는 성공했는데(detail 존재) 상위 일정이 없거나 그 자체가 하위 일정이면 없는 일정으로 처리한다.
+  // 조회 자체가 실패한 경우(null)는 아래에서 안내 문구를 보여준다 — 404로 읽으면 일시적인 오류에
+  // 멀쩡한 일정이 사라진 것처럼 보이기 때문이다.
+  if (detail && (!parentTask || parentTask.parent_id)) {
     notFound();
   }
 
@@ -60,31 +51,41 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
-      <TaskDetailHeader projectKey={parentTask.project_key} title={parentTask.title} />
+      {!detail || !parentTask ? (
+        <div className="flex-1 px-4 py-6 sm:px-8">
+          <p className="text-sm text-text-muted">일정을 불러오지 못했습니다.</p>
+        </div>
+      ) : (
+        <>
+          <TaskDetailHeader projectKey={parentTask.project_key} title={parentTask.title} />
 
-      {/* 댓글 입력창이 뷰포트 하단에 고정되므로(TaskCommentsPanel), 그 높이만큼 아래 여백을 둬 마지막 내용이 가리지 않게 한다. */}
-      <div className="flex flex-1 flex-col gap-6 px-4 pb-[120px] pt-6 sm:px-8">
-        <KanbanBoard
-          comments={detail.comments.filter((comment) => comment.task_id !== parentTask.id)}
-          currentProfileId={currentProfile?.id ?? null}
-          defaultProjectKey={parentTask.project_key}
-          mentionTargets={mentionTargets}
-          parentId={parentTask.id}
-          parentTitle={parentTask.title}
-          profiles={profiles}
-          statuses={statuses ?? []}
-          tasks={childTasks}
-          weekId={parentTask.week_id}
-        />
+          {/* 댓글 입력창이 뷰포트 하단에 고정되므로(TaskCommentsPanel), 그 높이만큼 아래 여백을 둬 마지막 내용이 가리지 않게 한다. */}
+          <div className="flex flex-1 flex-col gap-6 px-4 pb-[120px] pt-6 sm:px-8">
+            <KanbanBoard
+              comments={detail.comments.filter((comment) => comment.task_id !== parentTask.id)}
+              currentProfileId={currentProfile?.id ?? null}
+              defaultProjectKey={parentTask.project_key}
+              mentionTargets={mentionTargets}
+              parentId={parentTask.id}
+              parentTitle={parentTask.title}
+              profiles={profiles}
+              statuses={statuses ?? []}
+              tasks={childTasks}
+              weekId={parentTask.week_id}
+            />
 
-        <TaskCommentsPanel
-          currentProfileId={currentProfile?.id ?? null}
-          initialComments={detail.comments.filter((comment) => comment.task_id === parentTask.id)}
-          mentionTargets={mentionTargets}
-          profiles={profiles}
-          taskId={parentTask.id}
-        />
-      </div>
+            <TaskCommentsPanel
+              currentProfileId={currentProfile?.id ?? null}
+              initialComments={detail.comments.filter(
+                (comment) => comment.task_id === parentTask.id
+              )}
+              mentionTargets={mentionTargets}
+              profiles={profiles}
+              taskId={parentTask.id}
+            />
+          </div>
+        </>
+      )}
     </main>
   );
 };
