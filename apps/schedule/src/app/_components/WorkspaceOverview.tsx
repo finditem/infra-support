@@ -52,6 +52,13 @@ const WorkspaceOverview = ({
   const onTrack = tasks.length - done - overdue;
   const completion = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
 
+  // 막대와 범례가 같은 구간 정의를 공유하도록 한곳에서 선언한다.
+  const segments = [
+    { key: "done", label: "완료", value: done, color: SEGMENT_COLORS.done },
+    { key: "onTrack", label: "정상 진행", value: onTrack, color: SEGMENT_COLORS.onTrack },
+    { key: "overdue", label: "지연", value: overdue, color: SEGMENT_COLORS.overdue },
+  ];
+
   return (
     <section aria-labelledby="workspace-overview-title" className="border-b border-border pb-5">
       <div className="mb-4 flex items-end justify-between gap-4">
@@ -74,60 +81,34 @@ const WorkspaceOverview = ({
           </div>
 
           <div aria-hidden className="mt-2 flex h-2 gap-[2px] rounded-sm border border-border p-px">
-            <div
-              className="h-full first:rounded-l-sm last:rounded-r-sm"
-              style={{
-                width: `${toPercent(done, tasks.length)}%`,
-                backgroundColor: SEGMENT_COLORS.done,
-              }}
-              title={`완료 ${done}건`}
-            />
-            <div
-              className="h-full first:rounded-l-sm last:rounded-r-sm"
-              style={{
-                width: `${toPercent(onTrack, tasks.length)}%`,
-                backgroundColor: SEGMENT_COLORS.onTrack,
-              }}
-              title={`정상 진행 ${onTrack}건`}
-            />
-            <div
-              className="h-full first:rounded-l-sm last:rounded-r-sm"
-              style={{
-                width: `${toPercent(overdue, tasks.length)}%`,
-                backgroundColor: SEGMENT_COLORS.overdue,
-              }}
-              title={`지연 ${overdue}건`}
-            />
+            {segments.map((segment) => (
+              <div
+                key={segment.key}
+                className="h-full first:rounded-l-sm last:rounded-r-sm"
+                style={{
+                  width: `${toPercent(segment.value, tasks.length)}%`,
+                  backgroundColor: segment.color,
+                }}
+                title={`${segment.label} ${segment.value}건`}
+              />
+            ))}
             {tasks.length === 0 && (
               <div className="h-full w-full rounded-sm bg-fill-neutural-subtle-default" />
             )}
           </div>
 
           <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1">
-            <li className="flex items-center gap-1.5 text-xs text-text-muted">
-              <span
-                aria-hidden
-                className="size-2 rounded-full"
-                style={{ backgroundColor: SEGMENT_COLORS.done }}
-              />
-              완료 <span className="tabular-nums text-text-default">{done}</span>
-            </li>
-            <li className="flex items-center gap-1.5 text-xs text-text-muted">
-              <span
-                aria-hidden
-                className="size-2 rounded-full"
-                style={{ backgroundColor: SEGMENT_COLORS.onTrack }}
-              />
-              정상 진행 <span className="tabular-nums text-text-default">{onTrack}</span>
-            </li>
-            <li className="flex items-center gap-1.5 text-xs text-text-muted">
-              <span
-                aria-hidden
-                className="size-2 rounded-full"
-                style={{ backgroundColor: SEGMENT_COLORS.overdue }}
-              />
-              지연 <span className="tabular-nums text-text-default">{overdue}</span>
-            </li>
+            {segments.map((segment) => (
+              <li key={segment.key} className="flex items-center gap-1.5 text-xs text-text-muted">
+                <span
+                  aria-hidden
+                  className="size-2 rounded-full"
+                  style={{ backgroundColor: segment.color }}
+                />
+                {segment.label}{" "}
+                <span className="tabular-nums text-text-default">{segment.value}</span>
+              </li>
+            ))}
           </ul>
         </div>
 
