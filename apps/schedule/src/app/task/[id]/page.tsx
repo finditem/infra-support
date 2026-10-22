@@ -39,11 +39,9 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
   // 일시적인 오류에 멀쩡한 일정이 사라진 것처럼 보인다.
   if (!detail) {
     return (
-      <main className="flex min-h-screen flex-col bg-surface">
-        <div className="flex-1 px-4 py-6 sm:px-8">
-          <p className="text-sm text-text-muted">일정을 불러오지 못했습니다.</p>
-        </div>
-      </main>
+      <div className="flex-1 px-4 py-6 sm:px-8">
+        <p className="text-sm text-text-muted">일정을 불러오지 못했습니다.</p>
+      </div>
     );
   }
 
@@ -59,7 +57,7 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
   const mentionTargets = buildMentionTargets(teams, profiles);
 
   return (
-    <main className="flex min-h-screen flex-col bg-surface">
+    <>
       <TaskDetailHeader projectKey={parentTask.project_key} title={parentTask.title} />
 
       {/* 댓글 입력창이 뷰포트 하단에 고정되므로(TaskCommentsPanel), 그 높이만큼 아래 여백을 둬 마지막 내용이 가리지 않게 한다. */}
@@ -85,7 +83,7 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
           taskId={parentTask.id}
         />
       </div>
-    </main>
+    </>
   );
 };
 

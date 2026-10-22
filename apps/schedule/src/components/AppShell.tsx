@@ -25,7 +25,8 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
       <Suspense>
         <Sidebar />
       </Suspense>
-      {children}
+      {/* 쉘 라우트의 공통 main 랜드마크. 페이지마다 따로 두지 않고 여기서 한 번만 렌더해 중복을 없앤다. */}
+      <main className="flex min-h-screen flex-col bg-surface">{children}</main>
     </div>
   );
 };
