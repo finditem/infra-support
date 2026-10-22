@@ -35,6 +35,16 @@ export const getReportPeriod = (range: ReportRange, now: Date = new Date()) => {
   };
 };
 
+/**
+ * status_history의 "완료" 전환 한 건. task를 inner join해 담당자·마감일·생성 시각을 함께 가져온다.
+ * PostgREST 응답이 생성하는 조인 형태를 정확히 추론하기 어려워, 쿼리 결과를 이 타입으로 단언해 쓴다.
+ */
+interface TrackedCompletionRow {
+  task_id: string;
+  created_at: string;
+  tasks: { assignee_id: string | null; due_date: string | null; created_at: string };
+}
+
 export interface MemberReportStats {
   profile: ProfilesRow;
   /** 기간 내 마감일이 있는 담당 일정 수. */
@@ -109,20 +119,8 @@ export const getMemberReportStats = async (
 
   // 같은 일정이 기간 안에서 완료→재오픈→완료를 반복하면 "완료" 전환이 여러 번 기록된다.
   // 일정당 가장 최근 완료 한 건만 표본으로 남겨, 한 일정이 준수율 분모와 평균 소요 시간에 중복으로 들어가지 않게 한다.
-  const latestCompletionByTask = new Map<
-    string,
-    {
-      created_at: string;
-      tasks: { assignee_id: string | null; due_date: string | null; created_at: string };
-    }
-  >();
-  (
-    (trackedCompletions ?? []) as unknown as Array<{
-      task_id: string;
-      created_at: string;
-      tasks: { assignee_id: string | null; due_date: string | null; created_at: string };
-    }>
-  ).forEach((row) => {
+  const latestCompletionByTask = new Map<string, TrackedCompletionRow>();
+  ((trackedCompletions ?? []) as unknown as TrackedCompletionRow[]).forEach((row) => {
     const existing = latestCompletionByTask.get(row.task_id);
     if (!existing || row.created_at > existing.created_at) {
       latestCompletionByTask.set(row.task_id, row);
