@@ -7,7 +7,7 @@ import Link from "next/link";
 import type { KeyboardEvent, ReactNode, Ref } from "react";
 import type { TaskStatusesRow, TasksRow } from "@/types/tables";
 import { cn } from "@/utils";
-import { countBodyImages, stripBodyImages } from "../_lib/bodyImages";
+import { countBodyImages } from "../_lib/bodyImages";
 import { isTaskOverdue, PRIORITY_META } from "../_lib/kanbanUtils";
 import type { ProfileWithColor } from "../_types/kanban";
 import ProfileAvatar from "./ProfileAvatar";
@@ -19,6 +19,7 @@ interface KanbanCardContentProps {
   subtaskCount: number;
   commentCount: number;
   statuses: TaskStatusesRow[];
+  subtaskProgress?: { done: number; total: number };
 }
 
 interface KanbanCardProps extends KanbanCardContentProps {
@@ -44,6 +45,7 @@ const KanbanCardView = ({
   subtaskCount,
   commentCount,
   statuses,
+  subtaskProgress,
   rootRef,
   className,
   handle,
@@ -52,9 +54,6 @@ const KanbanCardView = ({
   const priority = PRIORITY_META[task.priority];
   const overdue = isTaskOverdue(task, statuses);
   const attachmentCount = task.body ? countBodyImages(task.body) : 0;
-  const bodyText = task.body ? stripBodyImages(task.body) : "";
-  // 본문이 이미지로만 채워져 있으면(텍스트가 하나도 안 남으면) "이미지"라는 문구만 보여준다.
-  const bodyPreviewText = bodyText || (attachmentCount > 0 ? "이미지" : "");
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!onSelect) return;
@@ -70,8 +69,8 @@ const KanbanCardView = ({
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
       className={cn(
-        "flex flex-col gap-2 rounded-[10px] border bg-surface-elevated p-3 text-left transition-shadow",
-        onSelect && "cursor-pointer hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
+        "flex flex-col gap-2 rounded-lg border bg-surface-elevated p-3 text-left transition-colors",
+        onSelect && "hover:border-primary/50 cursor-pointer",
         priority.cardBorderClassName,
         className
       )}
@@ -107,7 +106,27 @@ const KanbanCardView = ({
 
       <h3 className="text-sm font-semibold text-text-default">{task.title}</h3>
 
-      {bodyPreviewText && <p className="truncate text-xs text-text-muted">{bodyPreviewText}</p>}
+      {subtaskProgress && subtaskProgress.total > 0 && (
+        <div aria-label={`하위 일정 ${subtaskProgress.total}개 중 ${subtaskProgress.done}개 완료`}>
+          <div className="mb-1.5 flex items-center justify-between text-[11px] text-text-muted">
+            <span>진행률</span>
+            <span className="tabular-nums text-text-default">
+              {subtaskProgress.done}/{subtaskProgress.total}
+            </span>
+          </div>
+          <div aria-hidden className="flex gap-1">
+            {Array.from({ length: subtaskProgress.total }, (_, index) => (
+              <span
+                key={index}
+                className={cn(
+                  "h-1 flex-1 rounded-sm",
+                  index < subtaskProgress.done ? "bg-primary" : "bg-fill-neutural-subtle-default"
+                )}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between text-xs text-text-muted">
         <div className="flex items-center gap-3">
@@ -217,7 +236,7 @@ const KanbanCard = (props: KanbanCardProps) => {
     return (
       <KanbanCardView
         {...props}
-        className="shadow-[0_8px_24px_rgba(0,0,0,0.16)]"
+        className="shadow-lg"
         handle={
           <span aria-hidden className={HANDLE_CLASS_NAME}>
             <GripVertical className="size-4" />

@@ -1,4 +1,5 @@
 type TaskPriority = "high" | "medium" | "low";
+export type TaskProjectKey = "operations" | "mobile" | "admin" | "monitoring";
 
 type TasksWritable = {
   title: string;
@@ -7,6 +8,7 @@ type TasksWritable = {
   assignee_id: string | null;
   reporter_id: string | null;
   priority: TaskPriority;
+  project_key: TaskProjectKey;
   due_date: string | null;
   parent_id: string | null;
   week_id: string | null;
@@ -25,6 +27,7 @@ export type TasksInsert = Omit<
   | "assignee_id"
   | "reporter_id"
   | "priority"
+  | "project_key"
   | "due_date"
   | "parent_id"
   | "week_id"
@@ -37,6 +40,7 @@ export type TasksInsert = Omit<
   assignee_id?: string | null;
   reporter_id?: string | null;
   priority?: TaskPriority;
+  project_key?: TaskProjectKey;
   due_date?: string | null;
   parent_id?: string | null;
   week_id?: string | null;

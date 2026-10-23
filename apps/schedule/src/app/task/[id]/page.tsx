@@ -1,7 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { NavBar } from "@/components/NavBar";
 import KanbanBoard from "../../_components/KanbanBoard";
 import { getTaskWithSubtasks } from "../../_lib/kanban";
 import { buildMentionTargets } from "../../_lib/mentions";
@@ -41,7 +40,6 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
   if (!detail) {
     return (
       <main className="flex min-h-screen flex-col bg-surface">
-        <NavBar />
         <div className="flex-1 px-4 py-6 sm:px-8">
           <p className="text-sm text-text-muted">일정을 불러오지 못했습니다.</p>
         </div>
@@ -62,13 +60,14 @@ const TaskDetailPage = async ({ params }: TaskDetailPageProps) => {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
-      <NavBar />
-      <TaskDetailHeader title={parentTask.title} />
+      <TaskDetailHeader projectKey={parentTask.project_key} title={parentTask.title} />
 
-      <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-8">
+      {/* 댓글 입력창이 뷰포트 하단에 고정되므로(TaskCommentsPanel), 그 높이만큼 아래 여백을 둬 마지막 내용이 가리지 않게 한다. */}
+      <div className="flex flex-1 flex-col gap-6 px-4 pb-[120px] pt-6 sm:px-8">
         <KanbanBoard
           comments={detail.comments.filter((comment) => comment.task_id !== parentTask.id)}
           currentProfileId={currentProfile?.id ?? null}
+          defaultProjectKey={parentTask.project_key}
           mentionTargets={mentionTargets}
           parentId={parentTask.id}
           parentTitle={parentTask.title}

@@ -17,6 +17,7 @@ interface KanbanColumnProps {
   tasks: TasksRow[];
   profileMap: Map<string, ProfileWithColor>;
   subtaskCountByParent: Map<string, number>;
+  subtaskProgressByParent: Map<string, { done: number; total: number }>;
   commentCountByTask: Map<string, number>;
   /** 하위 일정의 상태로 표시 컬럼이 결정되어 드래그할 수 없는 상위 일정의 id 집합. */
   derivedStatusTaskIds: Set<string>;
@@ -34,6 +35,7 @@ const KanbanColumn = ({
   tasks,
   profileMap,
   subtaskCountByParent,
+  subtaskProgressByParent,
   commentCountByTask,
   derivedStatusTaskIds,
   pendingTaskIds,
@@ -61,6 +63,7 @@ const KanbanColumn = ({
       reporter={task.reporter_id ? (profileMap.get(task.reporter_id) ?? null) : null}
       statuses={statuses}
       subtaskCount={subtaskCountByParent.get(task.id) ?? 0}
+      subtaskProgress={subtaskProgressByParent.get(task.id)}
       task={task}
       onSelect={() => onSelectTask(task)}
     />
@@ -84,6 +87,7 @@ const KanbanColumn = ({
           }
           statuses={statuses}
           subtaskCount={subtaskCountByParent.get(activeTask.id) ?? 0}
+          subtaskProgress={subtaskProgressByParent.get(activeTask.id)}
           task={activeTask}
         />
       </div>
@@ -95,7 +99,7 @@ const KanbanColumn = ({
   }, []);
 
   return (
-    <div className="w-[260px] shrink-0">
+    <div className="min-w-0">
       <div className="mb-3 flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <span
@@ -110,28 +114,28 @@ const KanbanColumn = ({
         </span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div
-          ref={setNodeRef}
-          className={cn(
-            "flex min-h-[120px] flex-col gap-2 rounded-[10px] transition-colors",
-            isDropTarget && "bg-fill-neutural-subtle-default"
-          )}
-        >
-          {tasks
-            .slice(0, placeholderIndex === -1 ? tasks.length : placeholderIndex)
-            .map(renderCard)}
-          {placeholderIndex !== -1 && placeholder}
-          {placeholderIndex !== -1 && tasks.slice(placeholderIndex).map(renderCard)}
-        </div>
+      <button
+        className={cn(
+          "mb-2 w-full rounded-md border border-dashed border-border py-2 text-xs font-medium text-text-muted",
+          "hover:border-primary hover:text-primary",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        )}
+        type="button"
+        onClick={() => onAddTask(status.id)}
+      >
+        + 일정 추가
+      </button>
 
-        <button
-          className="mt-1 rounded-[10px] border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary"
-          type="button"
-          onClick={() => onAddTask(status.id)}
-        >
-          + 일정 추가
-        </button>
+      <div
+        ref={setNodeRef}
+        className={cn(
+          "flex min-h-[120px] flex-col gap-2 rounded-md transition-colors",
+          isDropTarget && "bg-fill-neutural-subtle-default"
+        )}
+      >
+        {tasks.slice(0, placeholderIndex === -1 ? tasks.length : placeholderIndex).map(renderCard)}
+        {placeholderIndex !== -1 && placeholder}
+        {placeholderIndex !== -1 && tasks.slice(placeholderIndex).map(renderCard)}
       </div>
     </div>
   );

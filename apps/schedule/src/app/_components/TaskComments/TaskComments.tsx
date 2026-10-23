@@ -21,6 +21,8 @@ interface TaskCommentsProps {
   currentProfileId: string | null;
   onCommentsChange: (comments: TaskCommentsRow[]) => void;
   className?: string;
+  /** true면 입력창을 뷰포트 하단에 고정한다. 페이지 전체가 스크롤되는 일정 상세 화면 전용. */
+  floatingEditor?: boolean;
 }
 
 /**
@@ -37,6 +39,7 @@ const TaskComments = ({
   currentProfileId,
   onCommentsChange,
   className,
+  floatingEditor = false,
 }: TaskCommentsProps) => {
   const profileMap = useMemo(() => buildProfileColorMap(profiles), [profiles]);
 
@@ -66,6 +69,16 @@ const TaskComments = ({
     onCommentsChange(comments.filter((comment) => comment.id !== id));
   };
 
+  const editor = (
+    <CommentEditor
+      clearAfterSubmit
+      mentionTargets={mentionTargets}
+      placeholder="댓글을 입력하세요. @로 팀이나 팀원을 언급할 수 있습니다."
+      submitLabel="등록"
+      onSubmit={handleCreate}
+    />
+  );
+
   return (
     <section className={cn("flex flex-col gap-3", className)}>
       <div className="flex items-center gap-1.5">
@@ -91,13 +104,15 @@ const TaskComments = ({
         </div>
       )}
 
-      <CommentEditor
-        clearAfterSubmit
-        mentionTargets={mentionTargets}
-        placeholder="댓글을 입력하세요. @로 팀이나 팀원을 언급할 수 있습니다."
-        submitLabel="등록"
-        onSubmit={handleCreate}
-      />
+      {floatingEditor ? (
+        // 오른쪽 패딩으로 전역 ThemeToggle(fixed bottom-6 right-6, size-12) 자리를 비워 둔다.
+        // 그러지 않으면 토글이 "등록" 버튼 위를 덮어 포인터로 댓글을 등록하기 어렵다.
+        <div className="fixed inset-x-0 bottom-0 left-16 z-30 border-t border-border bg-surface-elevated py-3 pl-4 pr-20 sm:pl-8 sm:pr-24">
+          {editor}
+        </div>
+      ) : (
+        editor
+      )}
     </section>
   );
 };

@@ -1,5 +1,70 @@
 # apps/schedule 작업 계획
 
+## 아이콘 레일 사이드바 + 프로젝트별 라우트 분리 + 작업 흐름(타임라인) 페이지
+
+기존 "운영·모바일·어드민·모니터링 프로젝트 탐색 UI 재설계" 항목(아래 절)에서 제거됐던 사이드바 시안을 사용자가 명시적으로 다시 요청했다. Supabase 스타일 아이콘 레일(hover 시 라벨 확장)로 만들고, 프로젝트별 보기를 같은 페이지의 필터가 아니라 별도 라우트로 분리한다.
+
+사이드바 디자인은 아티팩트(lucide 아이콘 후보 + hover 라이브 목업)로 비교한 뒤 아래와 같이 확정했다.
+
+- 프로젝트 4종 구조: **중첩형** — 칸반보드 아이콘 하위에 운영/모바일/어드민/모니터링 4개를 서브 링크로 둔다(평면형 채택 안 함)
+- 칸반보드: `LayoutGrid`
+- 캘린더: `Calendar`
+- 작업 흐름: `Workflow`
+- 스프린트 설정: `SlidersHorizontal`
+- 프로젝트 4종(운영/모바일/어드민/모니터링) 서브 링크: 아이콘 없음, 기존 `projects.ts`의 프로젝트 색 점(dot)만 사용
+
+- [x] 라우트 구조 변경: `app/project/[projectKey]/page.tsx` 신규(기존 `page.tsx` 로직 + `isProjectKey` 가드로 404 처리), `app/page.tsx`는 `/project/operations`로 redirect하는 얇은 라우트로 교체. 필터링은 `KanbanBoard`가 `defaultProjectKey`로 수행
+- [x] `KanbanBoard`의 `projectTasks`를 항상 `defaultProjectKey`로 필터링하도록 정리하고 prop을 필수로. `projectLabel`도 메인 보드에서 `getProject(defaultProjectKey).label`을 쓰도록 변경
+- [x] 사이드바는 라우트 그룹 `(authenticated)/layout.tsx` 대신 **루트 레이아웃에서 `AppShell`(클라이언트)** 로 렌더링. 디렉토리를 그룹으로 옮기면 `_components`/`_lib` 상대 임포트 깊이가 전부 바뀌어 리스크가 커서, 경로 이동 없이 `usePathname`으로 `/login`·`/invite`만 제외하는 방식을 택했다. 본문은 `pl-16`으로 고정 레일 폭만큼 비운다
+- [x] `Sidebar` 컴포넌트: 아이콘 레일(`w-16`) 고정 + hover/focus-within 시 `w-56`로 오버레이 확장(fixed라 리플로우 없음). 메뉴 — 칸반보드(`LayoutGrid`, 하위 프로젝트 4개 서브 링크: 색 점만) → 캘린더(`Calendar`) → 작업 흐름(`Workflow`) → 스프린트 설정(`SlidersHorizontal`), 하단 로그아웃(`LogOut`)
+- [x] 기존 `NavBar`/`SignOutButton` 삭제(사이드바로 대체). 모든 페이지·loading에서 `<NavBar />` 제거, 로그아웃은 사이드바 하단에 통합
+- [x] 작업 흐름 페이지는 `/flow` 자리표시자(준비 중 안내)만 두고, 타임라인 데이터 모델이 정해진 뒤 별도로 구현(사이드바 메뉴에는 `Workflow`로 자리 잡음)
+- [ ] 알려진 한계: hover/focus 확장은 마우스·키보드만 커버. 터치에서는 프로젝트 서브 링크가 펼쳐지지 않음 — 터치 대응은 후속 과제
+- [ ] `pnpm --filter @infra-support/schedule build` / `lint` 검증
+
+- [x] 마이그레이션 적용 전까지 대시보드가 계속 빈 상태로 보이는 문제를 코드로 임시 완화: `KanbanBoard`의 `projectTasks` 필터가 `task.project_key`가 없으면(undefined) 걸러내지 않고 전부 보여주도록 수정(`!task.project_key || task.project_key === defaultProjectKey`). 읽기 전용으로 확인한 결과 이번 주차(2026-W42, week_id 42e5fd03-...)에 실제 상위 일정 2건이 있어 이 수정으로 바로 보인다.
+  - 부작용: 마이그레이션 적용 전까지는 이 방어 코드 때문에 **운영/모바일/어드민/모니터링 4개 탭이 전부 같은 일정을 보여준다**(프로젝트 구분이 안 됨). 마이그레이션이 적용되면 project_key가 실제 값을 가지게 되어 자동으로 원래 의도한 프로젝트별 필터링으로 돌아간다 — 별도로 되돌릴 코드 변경은 필요 없다.
+
+## 일정 분석 리포트 (팀원별 완료율·일정관리 활용도)
+
+범위: 전체 통합(프로젝트 구분 없이 합산), 기간은 최근 7일/30일/90일 중 선택, 지표는 완료율·마감일 준수율·평균 완료 소요 시간·설명/하위일정 작성 충실도·댓글 협업 활동량.
+
+- [x] `status_history` 상태 변경 기록 추가(`updateTask`/`updateTaskStatus`에서 상태가 실제로 바뀔 때만 기록) — 과거 데이터는 소급 불가, 이 시점 이후 완료 건만 마감일 준수율/평균 소요 시간에 집계된다
+- [x] `StatusHistoryRow`/`Insert`/`Update` 타입 추가(`types/tables/status_history.ts`). 기존 `task_reasons.ts`는 컬럼이 완전히 같은데 어디서도 안 쓰이는 이름 어긋난 파일로 보여 그대로 두고 건드리지 않았다
+- [x] `app/report/_lib/report.ts`: 기간별 팀원 통계 계산(`getMemberReportStats`). 완료율/설명 작성률/하위일정 보유율은 `tasks.due_date` 기준, 마감일 준수율/평균 소요 시간은 `status_history`의 "완료" 전환 기록 기준
+- [x] `app/report/page.tsx`: 기간 탭(최근 7/30/90일) + 팀원별 테이블. 추적 기록이 없으면 "—" 표시와 안내 문구
+- [x] 사이드바에 `분석 리포트`(`BarChart3`) 메뉴 추가, 스프린트 설정 바로 위
+- [ ] `status_history`가 아직 아무 기록이 없어(방금 추적을 시작함), 마감일 준수율/평균 완료 소요 시간은 실 사용이 쌓이기 전까지 전부 "—"로 보인다 — 정상 동작이며 버그 아님
+- [ ] `pnpm --filter @infra-support/schedule build` / `lint` 검증
+
+### 알려진 이슈: `project_key` 마이그레이션 미적용으로 실제 일정이 전부 가려짐
+
+실제 Supabase DB를 읽기 전용으로 확인한 결과(2026-10-15), `tasks.project_key` 컬럼이 아직 없다(`0017_add_task_project.sql` 미적용). `tasks` 테이블 자체에는 실제 업무 일정이 50건 넘게 있다(7~10월, 목업 아님) — 다만 `KanbanBoard`가 이제 항상 `defaultProjectKey`로 필터링하므로, DB에 컬럼이 없어 모든 행의 `project_key`가 `undefined`가 되고 결과적으로 **어느 프로젝트를 보든 0건으로 보인다.**
+
+- [ ] `0017_add_task_project.sql`을 Supabase에 적용(사용자가 직접 진행하기로 함 — Claude는 DB에 쓰기 작업을 하지 않음). 적용되면 기존 50여 건은 컬럼 기본값대로 전부 `project_key='operations'`가 된다.
+- [ ] 적용 후에도 "이번 주" 일정이 실제로 없으면(기존 일정 대부분이 과거 주차) 실제 수치 0건으로 보이는 게 정상인지 확인 — `getWeekBoard`가 `weeks` 매칭이라 주차가 다른 과거 일정은 여전히 안 보인다.
+
+## 설문 기반 메인 화면 디자인 개선
+
+- [x] 기존 화면의 생성형 UI 패턴 진단 (단색 면, 반복 아이콘, 임의 그림자, 동일한 큰 모서리)
+- [ ] 운영·모바일·어드민·모니터링 프로젝트 탐색 UI 재설계 (기존 사이드바 시안 제거)
+- [x] 일정 생성·수정 시 프로젝트를 선택할 수 있도록 tasks 스키마와 모달 확장
+- [x] 메인 화면에 실제 일정 기반 전체·진행·지연·완료율 대시보드 추가
+- [x] 상위 일정 카드에 하위 일정 완료 Progress 표시
+- [x] 칸반 카드에서 작업 설명을 숨기고 클릭 후 수정 모달에서만 표시
+- [x] 칸반 6개 컬럼을 고정 flex 대신 균등 grid로 조정하고 내부 스크롤로 제한
+- [x] 내비게이션, 버튼, 카드의 모서리·그림자·포커스 표현 정리
+- [x] TypeScript 검사 및 프로덕션 빌드
+- [ ] `0014_add_task_project.sql`을 Supabase에 적용한 뒤 프로젝트별 생성·필터 실제 데이터 검증
+
+## 초대 가입 완료 게이트
+
+- [x] 초대 세션 사용자의 `profiles.registered_at`을 미들웨어에서 확인
+- [x] 가입 미완료 사용자는 `/invite/setup` 외 업무 화면 접근 차단
+- [x] 비밀번호 해시가 존재할 때만 가입 완료를 기록하는 DB 함수 추가
+- [x] 가입 미완료 세션의 업무 테이블 접근을 막는 제한적 RLS 정책 추가
+- [ ] `0015_require_completed_registration.sql`을 Supabase에 적용한 뒤 신규 초대 흐름 검증
+
 - [x] 주차 계산/조회 유틸 (현재 주 월요일 계산, weeks 테이블에서 해당 주 없으면 자동 생성) — `src/app/_lib/kanban.ts`, `_lib/kanbanUtils.ts`
 - [x] 칸반보드 데이터 조회 함수 (task_statuses, profiles, 해당 주 tasks 조회 - Server Component에서 사용) — `src/app/page.tsx`
 - [x] KanbanHeader: 주차 네비게이션 (`?week=` 쿼리 파라미터로 서버 라우팅, 로그아웃)
