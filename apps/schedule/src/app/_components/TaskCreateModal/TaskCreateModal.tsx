@@ -8,6 +8,7 @@ import { createSubtasks, createTask, deleteTask, updateTask } from "../../_lib/a
 import { buildBodyWithImages, extractBodyImages, stripBodyImages } from "../../_lib/bodyImages";
 import {
   deleteStorageImages,
+  deriveOriginalImagePath,
   extractStoragePathFromUrl,
   getStoragePathsFromBody,
   resizeImageFile,
@@ -23,8 +24,10 @@ import ProfilePickerPopover from "../ProfilePickerPopover";
 import type { MentionTarget } from "../../_lib/mentions";
 import TaskComments from "../TaskComments/TaskComments";
 import DatePickerPopover from "./DatePickerPopover";
+import { ImageLightbox } from "./ImageLightbox";
 import PriorityPickerPopover from "./PriorityPickerPopover";
 import StatusPickerPopover from "./StatusPickerPopover";
+import { DEFAULT_PROJECT_KEY, getProject, PROJECTS, type ProjectKey } from "../../_lib/projects";
 
 interface SubtaskDraft {
   id: string;
@@ -36,7 +39,15 @@ interface SubtaskDraft {
  * 선택했지만 아직 업로드하지 않은 이미지(저장 시점에만 업로드된다). */
 type ImageMarker =
   | { id: string; kind: "existing"; alt: string; url: string }
-  | { id: string; kind: "pending"; alt: string; file: File; previewUrl: string };
+  | {
+      id: string;
+      kind: "pending";
+      alt: string;
+      file: File;
+      previewUrl: string;
+      /** 리사이즈로 실제로 축소된 경우에만 채워진다. null이면 file 자체가 원본과 같다(추가 업로드 불필요). */
+      originalFile: File | null;
+    };
 
 interface TaskCreateModalProps {
   statuses: TaskStatusesRow[];
@@ -45,6 +56,7 @@ interface TaskCreateModalProps {
   initialStatusId: string;
   parentId?: string | null;
   parentTitle?: string | null;
+  initialProjectKey?: ProjectKey;
   task?: TasksRow | null;
   /** 편집 모드에서만 쓰는 이 일정의 댓글 목록. 생성 모드에서는 아직 일정이 없어 댓글도 없다. */
   comments?: TaskCommentsRow[];
@@ -64,6 +76,7 @@ const TaskCreateModal = ({
   initialStatusId,
   parentId = null,
   parentTitle = null,
+  initialProjectKey = DEFAULT_PROJECT_KEY,
   task = null,
   comments = [],
   mentionTargets = [],
@@ -96,10 +109,17 @@ const TaskCreateModal = ({
     format(task?.due_date ? new Date(task.due_date) : getDefaultDueDate(), "yyyy-MM-dd")
   );
   const [statusId, setStatusId] = useState(task?.status_id ?? initialStatusId);
+  // 하위 일정(parentId 있음)은 상위 일정의 세부 작업이라 항상 상위와 같은 프로젝트여야 한다.
+  // task?.project_key를 쓰면 과거에 어긋나게 저장된 값을 그대로 보여주게 되므로, 하위 일정은
+  // initialProjectKey(상위 일정의 프로젝트)로 고정해 열 때마다 바로잡는다.
+  const [projectKey, setProjectKey] = useState<ProjectKey>(
+    parentId ? initialProjectKey : (task?.project_key ?? initialProjectKey)
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [subtaskDrafts, setSubtaskDrafts] = useState<SubtaskDraft[]>([]);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{ alt: string; url: string } | null>(null);
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -152,6 +172,7 @@ const TaskCreateModal = ({
         alt: file.name,
         file: resizedFile,
         previewUrl: URL.createObjectURL(resizedFile),
+        originalFile: resizedFile === file ? null : file,
       },
     ]);
   };
@@ -182,12 +203,14 @@ const TaskCreateModal = ({
     );
 
     const uploadResults = await Promise.all(
-      pendingImages.map((image) => uploadImageFile(image.file))
+      pendingImages.map((image) => uploadImageFile(image.file, image.originalFile))
     );
 
-    const uploadedPaths = uploadResults
-      .map((result) => (result ? extractStoragePathFromUrl(result.url) : null))
-      .filter((path): path is string => path !== null);
+    const uploadedPaths = uploadResults.flatMap((result) => {
+      if (!result) return [];
+      const path = extractStoragePathFromUrl(result.url);
+      return path ? [path, deriveOriginalImagePath(path)] : [];
+    });
 
     if (uploadResults.some((result) => result === null)) {
       await deleteStorageImages(createClient(), uploadedPaths);
@@ -218,6 +241,7 @@ const TaskCreateModal = ({
           reporterId,
           priority,
           dueDate,
+          projectKey,
         })
       : await createTask({
           title: title.trim(),
@@ -229,6 +253,7 @@ const TaskCreateModal = ({
           dueDate,
           createdBy: currentProfileId,
           parentId,
+          projectKey,
         });
 
     if (!saved) {
@@ -239,9 +264,10 @@ const TaskCreateModal = ({
 
     if (isEditing && task) {
       const finalPaths = new Set(
-        finalImages
-          .map((image) => extractStoragePathFromUrl(image.url))
-          .filter((path): path is string => path !== null)
+        finalImages.flatMap((image) => {
+          const path = extractStoragePathFromUrl(image.url);
+          return path ? [path, deriveOriginalImagePath(path)] : [];
+        })
       );
       const removedPaths = getStoragePathsFromBody(task.body).filter(
         (path) => !finalPaths.has(path)
@@ -267,6 +293,7 @@ const TaskCreateModal = ({
             statusId,
             dueDate,
             createdBy: currentProfileId,
+            projectKey,
             drafts,
           })
         : [];
@@ -312,227 +339,269 @@ const TaskCreateModal = ({
   };
 
   return (
-    <ModalOverlay className="z-[200] p-5" onClose={onClose}>
-      <div
-        className="flex max-h-[85vh] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
-        onKeyDown={handleKeyDown}
-      >
-        <div className="flex shrink-0 items-center justify-between border-b border-border px-[18px] py-3">
-          <span className="text-xs text-text-muted">
-            {parentTitle ?? "팀 일정"} <span className="mx-[3px] text-border">/</span>
-            <strong className="font-medium text-text-default">
-              {isEditing ? " 일정 수정" : parentTitle ? " 새 하위 일정" : " 새 작업"}
-            </strong>
-          </span>
-          <button
-            aria-label="닫기"
-            className="flex size-6 items-center justify-center rounded-md bg-fill-neutural-subtle-default text-text-muted hover:bg-fill-neutural-subtle-hover"
-            type="button"
-            onClick={onClose}
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="overflow-y-auto">
-          <div className="px-5 pt-[18px]">
-            <input
-              className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[17px] font-semibold text-text-default outline-none"
-              autoFocus
-              placeholder="작업 제목을 입력하세요"
-              type="text"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              onKeyDown={handleTitleKeyDown}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-[2px] px-5 py-3 sm:grid-cols-2">
-            <ProfilePickerPopover
-              label="담당자"
-              placeholder="담당자 선택"
-              profiles={profiles}
-              selectedId={assigneeId}
-              onSelect={setAssigneeId}
-            />
-            <ProfilePickerPopover
-              label="보고자"
-              placeholder="보고자 선택"
-              profiles={profiles}
-              selectedId={reporterId}
-              onSelect={setReporterId}
-            />
-            <DatePickerPopover label="마감일" value={dueDate} onChange={setDueDate} />
-            <PriorityPickerPopover label="우선순위" value={priority} onChange={setPriority} />
-            <StatusPickerPopover
-              label="상태"
-              selectedId={statusId}
-              statuses={statuses}
-              onSelect={setStatusId}
-            />
-            <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
-              <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">주차</span>
-              <span className="text-xs text-text-default">{weekLabel}</span>
-            </div>
-          </div>
-
-          <div className="mx-5 h-px bg-border" />
-
-          <div className="px-[46px] py-3">
-            <textarea
-              ref={bodyRef}
-              className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none bg-transparent text-[13px] leading-[1.75] text-text-muted outline-none"
-              placeholder="설명을 추가하세요..."
-              value={bodyText}
-              onChange={(event) => setBodyText(event.target.value)}
-            />
-
-            <input
-              ref={imageInputRef}
-              className="hidden"
-              accept="image/*"
-              type="file"
-              onChange={(event) => {
-                void handleImageFileSelected(event.target.files);
-                event.target.value = "";
-              }}
-            />
+    <>
+      <ModalOverlay className="z-[200] p-5" disableEscape={!!previewImage} onClose={onClose}>
+        <div
+          className="flex max-h-[85vh] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
+          onKeyDown={handleKeyDown}
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-[18px] py-3">
+            <span className="text-xs text-text-muted">
+              {parentTitle ?? "팀 일정"} <span className="mx-[3px] text-border">/</span>
+              <strong className="font-medium text-text-default">
+                {isEditing ? " 일정 수정" : parentTitle ? " 새 하위 일정" : " 새 작업"}
+              </strong>
+            </span>
             <button
-              className="rounded-md px-1.5 py-1 text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
-              disabled={isProcessingImage}
-              type="button"
-              onClick={() => imageInputRef.current?.click()}
-            >
-              {isProcessingImage ? "처리 중..." : "+ 이미지"}
-            </button>
-
-            {imageMarkers.length > 0 && (
-              <div className="mt-2 grid grid-cols-4 gap-2">
-                {imageMarkers.map((image) => (
-                  <div
-                    key={image.id}
-                    className="group relative aspect-square overflow-hidden rounded-[10px] border border-border"
-                  >
-                    <img
-                      alt={image.alt}
-                      className="size-full object-cover"
-                      src={image.kind === "existing" ? image.url : image.previewUrl}
-                    />
-                    <button
-                      aria-label="이미지 삭제"
-                      className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-md border border-border bg-surface-elevated text-[11px] text-text-muted opacity-0 hover:bg-fill-neutural-subtle-hover group-hover:opacity-100"
-                      type="button"
-                      onClick={() => removeImageMarker(image.id)}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {canAddSubtasks && (
-            <div className="flex flex-col gap-2 border-t border-border px-5 py-3">
-              <span className="text-[11px] font-medium text-text-muted">하위 일정</span>
-
-              {subtaskDrafts.map((draft) => (
-                <div
-                  key={draft.id}
-                  className="flex flex-col gap-1 rounded-[10px] border border-border p-2.5"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[13px] font-medium text-text-default outline-none"
-                      placeholder="하위 일정 제목"
-                      type="text"
-                      value={draft.title}
-                      onChange={(event) =>
-                        updateSubtaskDraft(draft.id, { title: event.target.value })
-                      }
-                    />
-                    <button
-                      aria-label="하위 일정 삭제"
-                      className="flex size-5 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
-                      type="button"
-                      onClick={() => removeSubtaskDraft(draft.id)}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <textarea
-                    className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none bg-transparent text-xs leading-[1.6] text-text-muted outline-none"
-                    placeholder="설명을 추가하세요..."
-                    value={draft.body}
-                    onChange={(event) => updateSubtaskDraft(draft.id, { body: event.target.value })}
-                  />
-                </div>
-              ))}
-
-              <button
-                className="rounded-[10px] border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary"
-                type="button"
-                onClick={addSubtaskDraft}
-              >
-                + 하위 일정 추가
-              </button>
-            </div>
-          )}
-
-          {isEditing && task && onCommentsChange && (
-            <TaskComments
-              className="border-t border-border px-5 py-4"
-              comments={comments}
-              currentProfileId={currentProfileId}
-              mentionTargets={mentionTargets}
-              profiles={profiles}
-              taskId={task.id}
-              onCommentsChange={onCommentsChange}
-            />
-          )}
-        </div>
-
-        <div className="flex shrink-0 items-center justify-between border-t border-border px-[18px] py-3.5">
-          <span className="text-text-muted/60 flex items-center gap-1 text-[11px]">
-            <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
-              ⌘
-            </kbd>
-            <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
-              <CornerDownLeft aria-hidden className="size-2.5" />
-            </kbd>
-            {isEditing ? "으로 수정" : "으로 등록"}
-          </span>
-
-          <div className="flex gap-1.5">
-            {isEditing && (
-              <button
-                className="rounded-[7px] border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
-                disabled={isDeleting || isSubmitting}
-                type="button"
-                onClick={() => void handleDelete()}
-              >
-                삭제
-              </button>
-            )}
-            <button
-              className="rounded-[7px] border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+              aria-label="닫기"
+              className="flex size-6 items-center justify-center rounded-md bg-fill-neutural-subtle-default text-text-muted hover:bg-fill-neutural-subtle-hover"
               type="button"
               onClick={onClose}
             >
-              취소
-            </button>
-            <button
-              className="flex items-center gap-1 rounded-[7px] bg-primary px-4 py-1.5 text-xs font-semibold text-text-inverse hover:bg-primary-hover disabled:opacity-50"
-              disabled={!title.trim() || isSubmitting || isDeleting || isProcessingImage}
-              type="button"
-              onClick={() => void handleSubmit()}
-            >
-              {isEditing ? "수정하기" : "등록하기"}
+              ✕
             </button>
           </div>
+
+          <div className="overflow-y-auto">
+            <div className="px-5 pt-[18px]">
+              <input
+                className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[17px] font-semibold text-text-default outline-none"
+                autoFocus
+                placeholder="작업 제목을 입력하세요"
+                type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                onKeyDown={handleTitleKeyDown}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-[2px] px-5 py-3 sm:grid-cols-2">
+              <ProfilePickerPopover
+                label="담당자"
+                placeholder="담당자 선택"
+                profiles={profiles}
+                selectedId={assigneeId}
+                onSelect={setAssigneeId}
+              />
+              <ProfilePickerPopover
+                label="보고자"
+                placeholder="보고자 선택"
+                profiles={profiles}
+                selectedId={reporterId}
+                onSelect={setReporterId}
+              />
+              <DatePickerPopover label="마감일" value={dueDate} onChange={setDueDate} />
+              <PriorityPickerPopover label="우선순위" value={priority} onChange={setPriority} />
+              <StatusPickerPopover
+                label="상태"
+                selectedId={statusId}
+                statuses={statuses}
+                onSelect={setStatusId}
+              />
+              <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
+                <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">
+                  프로젝트
+                </span>
+                {parentId ? (
+                  // 하위 일정은 상위 일정의 세부 작업이라 프로젝트를 독립적으로 바꿀 수 없다.
+                  // 상위 일정과 어긋나면 상위 일정 상세에서조차 찾기 어려워지기 때문이다.
+                  <span className="text-xs text-text-muted">
+                    {getProject(initialProjectKey).label} (상위 일정과 동일)
+                  </span>
+                ) : (
+                  <select
+                    aria-label="프로젝트"
+                    className="min-w-0 flex-1 bg-transparent text-xs text-text-default outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    value={projectKey}
+                    onChange={(event) => setProjectKey(event.target.value as ProjectKey)}
+                  >
+                    {PROJECTS.map((project) => (
+                      <option key={project.key} value={project.key}>
+                        {project.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
+                <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">주차</span>
+                <span className="text-xs text-text-default">{weekLabel}</span>
+              </div>
+            </div>
+
+            <div className="mx-5 h-px bg-border" />
+
+            <div className="px-[46px] py-3">
+              <textarea
+                ref={bodyRef}
+                className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none bg-transparent text-[13px] leading-[1.75] text-text-muted outline-none"
+                placeholder="설명을 추가하세요..."
+                value={bodyText}
+                onChange={(event) => setBodyText(event.target.value)}
+              />
+
+              <input
+                ref={imageInputRef}
+                className="hidden"
+                accept="image/*"
+                type="file"
+                onChange={(event) => {
+                  void handleImageFileSelected(event.target.files);
+                  event.target.value = "";
+                }}
+              />
+              <button
+                className="rounded-md px-1.5 py-1 text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+                disabled={isProcessingImage}
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+              >
+                {isProcessingImage ? "처리 중..." : "+ 이미지"}
+              </button>
+
+              {imageMarkers.length > 0 && (
+                <div className="mt-2 grid grid-cols-4 gap-2">
+                  {imageMarkers.map((image) => {
+                    const url = image.kind === "existing" ? image.url : image.previewUrl;
+                    return (
+                      <div
+                        key={image.id}
+                        className="group relative aspect-square overflow-hidden rounded-[10px] border border-border"
+                      >
+                        <button
+                          aria-label="이미지 확대보기"
+                          className="block size-full cursor-zoom-in"
+                          type="button"
+                          onClick={() => setPreviewImage({ alt: image.alt, url })}
+                        >
+                          <img alt={image.alt} className="size-full object-cover" src={url} />
+                        </button>
+                        <button
+                          aria-label="이미지 삭제"
+                          className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-md border border-border bg-surface-elevated text-[11px] text-text-muted opacity-0 hover:bg-fill-neutural-subtle-hover group-hover:opacity-100"
+                          type="button"
+                          onClick={() => removeImageMarker(image.id)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {canAddSubtasks && (
+              <div className="flex flex-col gap-2 border-t border-border px-5 py-3">
+                <span className="text-[11px] font-medium text-text-muted">하위 일정</span>
+
+                {subtaskDrafts.map((draft) => (
+                  <div
+                    key={draft.id}
+                    className="flex flex-col gap-1 rounded-[10px] border border-border p-2.5"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[13px] font-medium text-text-default outline-none"
+                        placeholder="하위 일정 제목"
+                        type="text"
+                        value={draft.title}
+                        onChange={(event) =>
+                          updateSubtaskDraft(draft.id, { title: event.target.value })
+                        }
+                      />
+                      <button
+                        aria-label="하위 일정 삭제"
+                        className="flex size-5 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
+                        type="button"
+                        onClick={() => removeSubtaskDraft(draft.id)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <textarea
+                      className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none bg-transparent text-xs leading-[1.6] text-text-muted outline-none"
+                      placeholder="설명을 추가하세요..."
+                      value={draft.body}
+                      onChange={(event) =>
+                        updateSubtaskDraft(draft.id, { body: event.target.value })
+                      }
+                    />
+                  </div>
+                ))}
+
+                <button
+                  className="rounded-[10px] border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary"
+                  type="button"
+                  onClick={addSubtaskDraft}
+                >
+                  + 하위 일정 추가
+                </button>
+              </div>
+            )}
+
+            {isEditing && task && onCommentsChange && (
+              <TaskComments
+                className="border-t border-border px-5 py-4"
+                comments={comments}
+                currentProfileId={currentProfileId}
+                mentionTargets={mentionTargets}
+                profiles={profiles}
+                taskId={task.id}
+                onCommentsChange={onCommentsChange}
+              />
+            )}
+          </div>
+
+          <div className="flex shrink-0 items-center justify-between border-t border-border px-[18px] py-3.5">
+            <span className="text-text-muted/60 flex items-center gap-1 text-[11px]">
+              <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
+                ⌘
+              </kbd>
+              <kbd className="rounded border border-border bg-fill-neutural-subtle-default px-[5px] py-px font-mono text-[10px]">
+                <CornerDownLeft aria-hidden className="size-2.5" />
+              </kbd>
+              {isEditing ? "으로 수정" : "으로 등록"}
+            </span>
+
+            <div className="flex gap-1.5">
+              {isEditing && (
+                <button
+                  className="rounded-[7px] border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-fg-state-error hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+                  disabled={isDeleting || isSubmitting}
+                  type="button"
+                  onClick={() => void handleDelete()}
+                >
+                  삭제
+                </button>
+              )}
+              <button
+                className="rounded-[7px] border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-text-muted hover:bg-fill-neutural-subtle-hover"
+                type="button"
+                onClick={onClose}
+              >
+                취소
+              </button>
+              <button
+                className="flex items-center gap-1 rounded-[7px] bg-primary px-4 py-1.5 text-xs font-semibold text-text-inverse hover:bg-primary-hover disabled:opacity-50"
+                disabled={!title.trim() || isSubmitting || isDeleting || isProcessingImage}
+                type="button"
+                onClick={() => void handleSubmit()}
+              >
+                {isEditing ? "수정하기" : "등록하기"}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </ModalOverlay>
+      </ModalOverlay>
+      {previewImage && (
+        <ImageLightbox
+          alt={previewImage.alt}
+          url={previewImage.url}
+          onClose={() => setPreviewImage(null)}
+        />
+      )}
+    </>
   );
 };
 

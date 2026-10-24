@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { NavBar } from "@/components/NavBar";
 import SettingsTabs from "./_components/SettingsTabs";
 import SprintList from "./_components/SprintList";
 
@@ -13,8 +12,6 @@ const SettingsPage = async () => {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
-      <NavBar />
-
       <div className="flex-1 px-8 py-6">
         <SettingsTabs />
 

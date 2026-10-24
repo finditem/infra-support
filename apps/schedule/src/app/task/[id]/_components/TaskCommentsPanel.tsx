@@ -34,6 +34,7 @@ const TaskCommentsPanel = ({
       <TaskComments
         comments={comments}
         currentProfileId={currentProfileId}
+        floatingEditor
         mentionTargets={mentionTargets}
         profiles={profiles}
         taskId={taskId}

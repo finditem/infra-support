@@ -1,7 +1,6 @@
 import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from "date-fns";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { NavBar } from "@/components/NavBar";
 import { buildProfileColorMap } from "../_lib/kanbanUtils";
 import { buildMentionTargets } from "../_lib/mentions";
 import { getRegisteredProfiles } from "../_lib/profiles";
@@ -49,7 +48,6 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
-      <NavBar />
       <CalendarHeader monthLabel={format(monthStart, "yyyy'년' M'월'")} monthStart={monthStart} />
       <CalendarView
         availability={availability ?? []}

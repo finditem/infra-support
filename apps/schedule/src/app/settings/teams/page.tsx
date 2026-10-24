@@ -1,5 +1,4 @@
 import { headers } from "next/headers";
-import { NavBar } from "@/components/NavBar";
 import { createClient } from "@/lib/supabase/server";
 import { getRegisteredProfiles } from "../../_lib/profiles";
 import { getTeamsWithMembers } from "../../_lib/teams";
@@ -23,8 +22,6 @@ const TeamsSettingsPage = async () => {
 
   return (
     <main className="flex min-h-screen flex-col bg-surface">
-      <NavBar />
-
       <div className="flex-1 px-8 py-6">
         <SettingsTabs />
 
