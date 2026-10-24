@@ -47,7 +47,7 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
   const currentProfileId = profiles.find((profile) => profile.id === userId)?.id ?? null;
 
   return (
-    <main className="flex min-h-screen flex-col bg-surface">
+    <>
       <CalendarHeader monthLabel={format(monthStart, "yyyy'년' M'월'")} monthStart={monthStart} />
       <CalendarView
         availability={availability ?? []}
@@ -58,7 +58,7 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
         profiles={profilesWithColor}
         targets={buildMentionTargets(teams, profiles)}
       />
-    </main>
+    </>
   );
 };
 

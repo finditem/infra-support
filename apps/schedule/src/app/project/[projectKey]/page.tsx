@@ -46,7 +46,7 @@ const ProjectPage = async ({ params, searchParams }: ProjectPageProps) => {
     ]);
 
   return (
-    <main className="flex min-h-screen flex-col bg-surface">
+    <>
       <KanbanHeader
         sprintName={sprint?.name ?? null}
         weekLabel={getWeekLabel(weekStart)}
@@ -70,7 +70,7 @@ const ProjectPage = async ({ params, searchParams }: ProjectPageProps) => {
           <p className="text-sm text-text-muted">이번 주 데이터를 불러오지 못했습니다.</p>
         )}
       </div>
-    </main>
+    </>
   );
 };
 
