@@ -32,7 +32,7 @@ const ReportPage = async ({ searchParams }: ReportPageProps) => {
   const hasTrackedData = stats.some((row) => row.trackedCompletionCount > 0);
 
   return (
-    <main className="flex min-h-screen flex-col bg-surface">
+    <>
       <header className="border-b border-border bg-surface-elevated px-4 py-5 sm:px-8">
         <h1 className="text-lg font-semibold text-text-default">일정 분석 리포트</h1>
         <p className="mt-1 text-xs text-text-muted">
@@ -127,7 +127,7 @@ const ReportPage = async ({ searchParams }: ReportPageProps) => {
           <p className="mt-4 text-sm text-text-muted">아직 가입을 완료한 팀원이 없습니다.</p>
         )}
       </div>
-    </main>
+    </>
   );
 };
 

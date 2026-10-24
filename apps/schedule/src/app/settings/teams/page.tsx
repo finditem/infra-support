@@ -21,14 +21,12 @@ const TeamsSettingsPage = async () => {
   const currentProfileId = profiles.find((profile) => profile.id === userId)?.id ?? null;
 
   return (
-    <main className="flex min-h-screen flex-col bg-surface">
-      <div className="flex-1 px-8 py-6">
-        <SettingsTabs />
+    <div className="flex-1 px-8 py-6">
+      <SettingsTabs />
 
-        <h1 className="mb-4 mt-6 text-lg font-semibold text-text-default">팀 관리</h1>
-        <TeamsManager currentProfileId={currentProfileId} profiles={profiles} teams={teams} />
-      </div>
-    </main>
+      <h1 className="mb-4 mt-6 text-lg font-semibold text-text-default">팀 관리</h1>
+      <TeamsManager currentProfileId={currentProfileId} profiles={profiles} teams={teams} />
+    </div>
   );
 };
 
