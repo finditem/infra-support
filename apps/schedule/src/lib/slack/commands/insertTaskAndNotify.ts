@@ -19,7 +19,7 @@ interface InsertTaskParams {
 }
 
 /**
- * 구조화 명령(5-1)과 자연어 등록(5-2)이 공유하는 일정 등록 + 알림 로직.
+ * 구조화 일정추가 명령의 일정 등록 + 알림 로직.
  * 실패 시 에러 메시지를 직접 Slack으로 보내고 null을 반환한다.
  */
 export const insertTaskAndNotify = async ({
