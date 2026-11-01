@@ -874,8 +874,8 @@
 
 ### 작업 2 — AI 조회 기능 (읽기 전용, 수치는 코드가 계산)
 
-- [ ] `ai/classifyQuery.ts` 신규: 문장 → `{ intent, taskQuery?, scope?, period? }` strict JSON (지원 외 의도는 `unknown`)
-- [ ] `commands/answerQuery.ts` 신규: intent별 정해진 Supabase 쿼리 실행 후 결정적 문장으로 응답 (며칠 남음 / 완료율 / 남은 일정 / unknown→도움말)
-- [ ] `SLACK_AI_QUERY_ENABLED` 킬 스위치 신설 (기본 off, off면 LLM 호출 없이 도움말 폴백)
-- [ ] `router.ts`: 미매칭 입력을 AI 조회 분류로 라우팅
+- [x] `ai/classifyQuery.ts` 신규: 문장 → `{ intent, taskQuery, scope }` strict JSON (gpt-5-nano, 지원 외 의도는 `unknown`, scope 기본 "me"). 수치 계산은 하지 않고 분류/슬롯 추출만
+- [x] `commands/answerQuery.ts` 신규: intent별 정해진 Supabase 쿼리 실행 후 결정적 문장으로 응답. days_remaining(제목 ilike 검색 → D-N 계산, 0건/다건 안내), completion_rate(이번 주 월~일 due_date 범위에서 본인/팀 완료율 계산), remaining_tasks(`sendMyTasks` 재사용), unknown/분류 실패→도움말
+- [x] `SLACK_AI_QUERY_ENABLED` 킬 스위치 신설 (기본 off, off면 LLM 호출 없이 도움말 폴백) — `.env.example`/`CLAUDE.md` 문서화 포함
+- [x] `router.ts`: 미매칭 입력을 `answerQuery`(AI 조회)로 라우팅, `help.ts`에 AI 조회 사용법 섹션 추가
 - [ ] 사용자 요청 시 pnpm build / pnpm lint 검증
