@@ -878,4 +878,9 @@
 - [x] `commands/answerQuery.ts` 신규: intent별 정해진 Supabase 쿼리 실행 후 결정적 문장으로 응답. days_remaining(제목 ilike 검색 → D-N 계산, 0건/다건 안내), completion_rate(이번 주 월~일 due_date 범위에서 본인/팀 완료율 계산), remaining_tasks(`sendMyTasks` 재사용), unknown/분류 실패→도움말
 - [x] `SLACK_AI_QUERY_ENABLED` 킬 스위치 신설 (기본 off, off면 LLM 호출 없이 도움말 폴백) — `.env.example`/`CLAUDE.md` 문서화 포함
 - [x] `router.ts`: 미매칭 입력을 `answerQuery`(AI 조회)로 라우팅, `help.ts`에 AI 조회 사용법 섹션 추가
-- [ ] 사용자 요청 시 pnpm build / pnpm lint 검증
+- [x] pnpm build / pnpm lint 검증
+
+### 코드리뷰 반영 (PR #209, Codex)
+
+- [x] `answerQuery.ts`: 날짜 경계를 KST로 고정. `date-fns`의 `startOfToday`/`startOfWeek`는 서버 로컬 타임존(Vercel 기본 UTC)에 의존해, KST 00:00~09:00 사이 요청에서 당일 마감이 "하루 더 남음"으로 나오거나 이번 주 완료율 범위가 지난주로 밀리는 버그가 있었다. `report.ts`와 동일하게 epoch에 KST 오프셋(+9h)을 더해 날짜 키를 뽑는 헬퍼(`kstTodayKey`/`diffKstCalendarDays`/`kstThisWeekRange`)로 교체
+- [x] pnpm build / pnpm lint 검증

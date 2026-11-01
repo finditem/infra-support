@@ -1,4 +1,3 @@
-import { differenceInCalendarDays, endOfWeek, format, startOfToday, startOfWeek } from "date-fns";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { ProfilesRow } from "@/types/tables";
 import { classifyQuery } from "../ai/classifyQuery";
@@ -6,6 +5,37 @@ import { escapeSlackText } from "../escapeSlackText";
 import { postSlackMessage } from "../postSlackMessage";
 import { sendHelpMessage } from "./help";
 import { sendMyTasks } from "./myTasks";
+
+// 날짜 경계는 서버 실행 환경의 로컬 타임존(Vercel 기본 UTC)이 아니라 KST로 고정한다. 그러지 않으면
+// 00:00~09:00 KST 사이 요청에서 전날 UTC 날짜가 잡혀, 당일 마감 건이 "하루 더 남음"으로 계산되거나
+// 이번 주 완료율 범위가 지난주로 밀린다. src/app/report/_lib/report.ts의 날짜 경계 처리와 같은 방식이다.
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** 특정 순간을 KST 달력 날짜 키(yyyy-MM-dd)로 환산한다. */
+const toKstDateKey = (epochMs: number) =>
+  new Date(epochMs + KST_OFFSET_MS).toISOString().slice(0, 10);
+
+/** 오늘(KST) 날짜 키. */
+const kstTodayKey = () => toKstDateKey(Date.now());
+
+/** 날짜 키(yyyy-MM-dd) 두 개 사이의 달력 일수 차이(target - base). */
+const diffKstCalendarDays = (targetKey: string, baseKey: string) =>
+  Math.round(
+    (Date.parse(`${targetKey}T00:00:00+09:00`) - Date.parse(`${baseKey}T00:00:00+09:00`)) / DAY_MS
+  );
+
+/** 이번 주(KST 기준 월~일)의 월요일/일요일 날짜 키. */
+const kstThisWeekRange = () => {
+  const todayMidnightEpoch = Date.parse(`${kstTodayKey()}T00:00:00+09:00`);
+  const kstWeekday = new Date(todayMidnightEpoch + KST_OFFSET_MS).getUTCDay(); // 0=일 ~ 6=토
+  const mondayEpoch = todayMidnightEpoch - ((kstWeekday + 6) % 7) * DAY_MS;
+
+  return {
+    monday: toKstDateKey(mondayEpoch),
+    sunday: toKstDateKey(mondayEpoch + 6 * DAY_MS),
+  };
+};
 
 /**
  * AI 조회의 LLM 호출 킬 스위치. 기본값은 비활성(false)이고, 명시적으로 "true"로 설정해야만 켜진다.
@@ -87,7 +117,7 @@ const answerDaysRemaining = async (taskQuery: string | null, slackUserId: string
     return;
   }
 
-  const diff = differenceInCalendarDays(new Date(task.due_date), startOfToday());
+  const diff = diffKstCalendarDays(task.due_date, kstTodayKey());
 
   await postSlackMessage({
     channel: slackUserId,
@@ -109,9 +139,7 @@ const answerCompletionRate = async (
 ) => {
   const supabase = createServiceClient();
 
-  const today = startOfToday();
-  const monday = startOfWeek(today, { weekStartsOn: 1 });
-  const sunday = endOfWeek(today, { weekStartsOn: 1 });
+  const { monday, sunday } = kstThisWeekRange();
 
   const { data: statuses } = await supabase.from("task_statuses").select("id, name");
   const doneStatusId = (statuses ?? []).find((status) => status.name === "완료")?.id ?? null;
@@ -119,8 +147,8 @@ const answerCompletionRate = async (
   let query = supabase
     .from("tasks")
     .select("status_id")
-    .gte("due_date", format(monday, "yyyy-MM-dd"))
-    .lte("due_date", format(sunday, "yyyy-MM-dd"));
+    .gte("due_date", monday)
+    .lte("due_date", sunday);
 
   if (scope === "me") {
     query = query.eq("assignee_id", profile.id);
