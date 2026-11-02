@@ -100,9 +100,9 @@ Slack 웹훅(`src/app/api/slack/`)과 cron 라우트(`src/app/api/cron/`)는 예
 
 Slack 알림용 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL`은 서버 전용 값이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다. 서버 액션(`src/app/_lib/actions.ts`)에서만 읽으므로 클라이언트 번들에 포함되지 않는다. 세 값이 없으면 알림만 건너뛰고 일정 저장은 정상 동작한다.
 
-봇 인바운드 연동(Slack 웹훅 수신, cron)에는 추가로 `SUPABASE_SERVICE_ROLE_KEY`(service role 클라이언트), `SLACK_SIGNING_SECRET`(Slack 요청 서명 검증), `OPENAI_API_KEY`(자연어 일정 등록 LLM 파싱, GPT-5 nano), `CRON_SECRET`(cron 엔드포인트 인증)이 필요하다. 모두 서버 전용이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다.
+봇 인바운드 연동(Slack 웹훅 수신, cron)에는 추가로 `SUPABASE_SERVICE_ROLE_KEY`(service role 클라이언트), `SLACK_SIGNING_SECRET`(Slack 요청 서명 검증), `OPENAI_API_KEY`(AI 조회의 의도 분류/슬롯 추출 LLM 호출), `CRON_SECRET`(cron 엔드포인트 인증)이 필요하다. 모두 서버 전용이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다.
 
-자연어 일정 등록의 OpenAI 호출에는 별도 킬 스위치 `SLACK_AI_TASK_CREATION_ENABLED`가 있다. `OPENAI_API_KEY`가 설정돼 있어도 이 값이 정확히 `"true"`가 아니면 API를 호출하지 않고 "준비 중" 안내만 보낸다(기본값 비활성). 크레딧이 없거나 의도치 않은 토큰 소모를 막고 싶을 때 이 플래그만 끄면 된다.
+일정 등록(쓰기)은 구조화 명령(`일정추가 [제목] [담당자(선택)] [날짜(선택)]`)으로만 받고 AI로 파싱하지 않는다. 자유 텍스트 파싱이 틀리면 엉뚱한 담당자/마감일로 조용히 저장돼 데이터가 오염되는 비대칭 리스크가 있어, 과거의 자연어 일정 등록 폴백과 `SLACK_AI_TASK_CREATION_ENABLED` 킬 스위치는 제거했다. 어느 명령에도 매칭되지 않는 입력은 등록으로 추측하지 않고 도움말로 안내한다. AI(`OPENAI_API_KEY`)는 데이터를 건드리지 않는 조회(읽기)에만 쓰며, 수치는 LLM이 아니라 코드가 DB에서 계산한다.
 
 ## 기획 문서 및 작업 계획
 
