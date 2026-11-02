@@ -876,7 +876,7 @@
 
 - [x] `ai/classifyQuery.ts` 신규: 문장 → `{ intent, taskQuery, scope }` strict JSON (gpt-5-nano, 지원 외 의도는 `unknown`, scope 기본 "me"). 수치 계산은 하지 않고 분류/슬롯 추출만
 - [x] `commands/answerQuery.ts` 신규: intent별 정해진 Supabase 쿼리 실행 후 결정적 문장으로 응답. days_remaining(제목 ilike 검색 → D-N 계산, 0건/다건 안내), completion_rate(이번 주 월~일 due_date 범위에서 본인/팀 완료율 계산), remaining_tasks(`sendMyTasks` 재사용), unknown/분류 실패→도움말
-- [x] `SLACK_AI_TASK_QUERY_ENABLED` 킬 스위치 신설 (기존 등록 스위치 `SLACK_AI_TASK_CREATION_ENABLED`와 대칭되는 이름, 기본 off, off면 LLM 호출 없이 도움말 폴백) — `.env.example`/`CLAUDE.md` 문서화 포함
+- [x] 조회 킬 스위치로 기존 등록 스위치 `SLACK_AI_TASK_CREATION_ENABLED`를 재사용 (새 환경변수를 만들지 않고 이미 배포에 설정된 값을 조회 on/off에 그대로 사용, 기본 off) — `.env.example`/`CLAUDE.md` 갱신
 - [x] `router.ts`: 미매칭 입력을 `answerQuery`(AI 조회)로 라우팅, `help.ts`에 AI 조회 사용법 섹션 추가
 - [x] pnpm build / pnpm lint 검증
 
