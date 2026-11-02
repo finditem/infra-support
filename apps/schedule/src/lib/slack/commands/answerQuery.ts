@@ -41,7 +41,7 @@ const kstThisWeekRange = () => {
  * AI 조회의 LLM 호출 킬 스위치. 기본값은 비활성(false)이고, 명시적으로 "true"로 설정해야만 켜진다.
  * 꺼져 있으면 LLM을 호출하지 않고 바로 도움말로 안내해 의도치 않은 토큰 소모를 막는다.
  */
-const isAiQueryEnabled = () => process.env.SLACK_AI_QUERY_ENABLED === "true";
+const isAiQueryEnabled = () => process.env.SLACK_AI_TASK_QUERY_ENABLED === "true";
 
 /**
  * 어느 명령에도 매칭되지 않은 DM을 자연어 조회로 처리한다.
