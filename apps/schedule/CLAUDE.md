@@ -102,7 +102,9 @@ Slack 알림용 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL`은 서버 전�
 
 봇 인바운드 연동(Slack 웹훅 수신, cron)에는 추가로 `SUPABASE_SERVICE_ROLE_KEY`(service role 클라이언트), `SLACK_SIGNING_SECRET`(Slack 요청 서명 검증), `OPENAI_API_KEY`(AI 조회의 의도 분류/슬롯 추출 LLM 호출), `CRON_SECRET`(cron 엔드포인트 인증)이 필요하다. 모두 서버 전용이라 `NEXT_PUBLIC_` 접두사를 붙이지 않는다.
 
-일정 등록(쓰기)은 구조화 명령(`일정추가 [제목] [담당자(선택)] [날짜(선택)]`)으로만 받고 AI로 파싱하지 않는다. 자유 텍스트 파싱이 틀리면 엉뚱한 담당자/마감일로 조용히 저장돼 데이터가 오염되는 비대칭 리스크가 있어, 과거의 자연어 일정 등록 폴백과 `SLACK_AI_TASK_CREATION_ENABLED` 킬 스위치는 제거했다. 어느 명령에도 매칭되지 않는 입력은 등록으로 추측하지 않고 도움말로 안내한다. AI(`OPENAI_API_KEY`)는 데이터를 건드리지 않는 조회(읽기)에만 쓰며, 수치는 LLM이 아니라 코드가 DB에서 계산한다.
+일정 등록(쓰기)은 구조화 명령(`일정추가 [제목] [담당자(선택)] [날짜(선택)]`)으로만 받고 AI로 파싱하지 않는다. 자유 텍스트 파싱이 틀리면 엉뚱한 담당자/마감일로 조용히 저장돼 데이터가 오염되는 비대칭 리스크가 있어, 과거의 자연어 일정 등록 폴백은 제거했다. 등록용으로 쓰던 킬 스위치 `SLACK_AI_TASK_CREATION_ENABLED`는 삭제하지 않고 아래 AI 조회 기능의 킬 스위치로 재사용한다. AI(`OPENAI_API_KEY`)는 데이터를 건드리지 않는 조회(읽기)에만 쓰며, 수치는 LLM이 아니라 코드가 DB에서 계산한다.
+
+어느 명령에도 매칭되지 않는 DM은 AI 조회로 넘어간다(`src/lib/slack/commands/answerQuery.ts`). `src/lib/slack/ai/classifyQuery.ts`가 LLM으로 의도 분류/슬롯 추출만 하고(며칠 남음/완료율/남은 일정/unknown), 날짜·완료율 같은 수치는 `answerQuery.ts`가 Supabase 조회 결과로 직접 계산해 문장을 만든다. 조회의 OpenAI 호출 킬 스위치로는 과거 자연어 등록에 쓰던 `SLACK_AI_TASK_CREATION_ENABLED`를 새 환경변수 없이 그대로 재사용한다. 정확히 `"true"`가 아니면 LLM을 호출하지 않고 도움말로 안내한다(기본값 비활성). 지원하지 않는 의도(unknown)나 분류 실패도 도움말로 폴백하며, 일정 등록은 조회로도 추측하지 않는다.
 
 ## 기획 문서 및 작업 계획
 
