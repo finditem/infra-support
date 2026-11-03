@@ -4,6 +4,8 @@ type TeamsWritable = {
   slug: string;
   /** profiles.color와 같은 'hsl(h 70% 85%)' 형식. DB 트리거가 insert 시점에 채운다. */
   color: string;
+  /** 팀장으로 지정된 팀원(profiles.id). 미지정이면 null. 슬랙 폼의 보고자 자동지정에 쓴다. */
+  leader_id: string | null;
   created_by: string | null;
   created_at: string | null;
   updated_at: string | null;
@@ -13,10 +15,14 @@ export interface TeamsRow extends TeamsWritable {
   id: string;
 }
 
-export type TeamsInsert = Omit<TeamsWritable, "slug" | "color" | "created_at" | "updated_at"> & {
+export type TeamsInsert = Omit<
+  TeamsWritable,
+  "slug" | "color" | "leader_id" | "created_at" | "updated_at"
+> & {
   id?: string;
   slug?: string;
   color?: string;
+  leader_id?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
 };
