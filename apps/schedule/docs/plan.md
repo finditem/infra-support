@@ -856,3 +856,31 @@
 - [x] `_components/TaskCreateModal/ImageLightbox.tsx` 신규 작성 (`ModalOverlay` 재사용, `deriveOriginalImagePath`로 고해상도 먼저 시도 후 `onError` 시 리사이즈본으로 폴백, `object-contain`, 닫기 버튼, `z-[300]`)
 - [x] `TaskCreateModal.tsx`: 썸네일 `<img>`를 클릭 가능한 `<button aria-label="이미지 확대보기">`로 감싸고, 클릭 시 `previewImage` state로 `ImageLightbox` 오픈. 최상위 리턴을 Fragment로 감싸 `ModalOverlay` 형제로 `ImageLightbox` 조건부 렌더링 추가
 - [x] pnpm build / pnpm lint 검증
+
+## Slack 봇 일정 등록을 구조화 명령으로 고정, AI는 조회 전용으로 재구성
+
+자유 텍스트를 OpenAI로 파싱해 일정을 등록하던 폴백은 실패 시 엉뚱한 담당자/마감일로 조용히 저장돼 데이터를 오염시키는 비대칭 리스크가 있어 제거한다. 등록(쓰기)은 예측 가능한 구조화 명령(`일정추가 ...`)으로 일원화하고, AI는 데이터를 건드리지 않는 조회(읽기)에만 쓴다. AI 조회도 수치는 코드가 DB에서 계산하고 LLM은 의도 분류/슬롯 추출에만 쓴다.
+
+### 작업 1 — 일정 등록을 구조화 명령 방식으로 일원화 (AI 쓰기 제거)
+
+- [x] `router.ts`: 마지막 폴백 `createTaskFromMessage`를 제거하고, 매칭 안 되는 입력은 도움말/사용법 안내(`sendHelpMessage`)로 보낸다 (작업 2에서 이 자리를 AI 조회 분류 → 미분류 시 도움말로 교체 예정)
+- [x] `commands/createTaskFromMessage.ts` 삭제 (자연어 AI 등록 경로)
+- [x] `ai/parseTaskFromMessage.ts` 삭제 (OpenAI 등록 파싱), 빈 `ai/` 디렉토리도 제거
+- [x] `SLACK_AI_TASK_CREATION_ENABLED` 킬 스위치 및 관련 참조 제거
+- [x] `help.ts`: "자연어로 보내주세요" 안내 삭제, 구조화 등록 사용법 중심으로 갱신
+- [x] `events/route.ts`: 자연어 등록 부수효과를 언급하는 주석 정리 (재전송 ack 중복 방지 로직 자체는 유지). `matchTaskCreateCommand.ts`/`createTaskFromStructuredCommand.ts`/`insertTaskAndNotify.ts`의 "5-1/5-2"·"자연어 폴백" 주석도 함께 갱신
+- [x] `CLAUDE.md` / `.env.example`: `SLACK_AI_TASK_CREATION_ENABLED` 설명 제거, `OPENAI_API_KEY` 설명을 조회용으로 갱신 (`openai` 의존성은 조회에서 재사용하므로 유지)
+- [ ] 사용자 요청 시 pnpm build / pnpm lint 검증
+
+### 작업 2 — AI 조회 기능 (읽기 전용, 수치는 코드가 계산)
+
+- [x] `ai/classifyQuery.ts` 신규: 문장 → `{ intent, taskQuery, scope }` strict JSON (gpt-5-nano, 지원 외 의도는 `unknown`, scope 기본 "me"). 수치 계산은 하지 않고 분류/슬롯 추출만
+- [x] `commands/answerQuery.ts` 신규: intent별 정해진 Supabase 쿼리 실행 후 결정적 문장으로 응답. days_remaining(제목 ilike 검색 → D-N 계산, 0건/다건 안내), completion_rate(이번 주 월~일 due_date 범위에서 본인/팀 완료율 계산), remaining_tasks(`sendMyTasks` 재사용), unknown/분류 실패→도움말
+- [x] 조회 킬 스위치로 기존 등록 스위치 `SLACK_AI_TASK_CREATION_ENABLED`를 재사용 (새 환경변수를 만들지 않고 이미 배포에 설정된 값을 조회 on/off에 그대로 사용, 기본 off) — `.env.example`/`CLAUDE.md` 갱신
+- [x] `router.ts`: 미매칭 입력을 `answerQuery`(AI 조회)로 라우팅, `help.ts`에 AI 조회 사용법 섹션 추가
+- [x] pnpm build / pnpm lint 검증
+
+### 코드리뷰 반영 (PR #209, Codex)
+
+- [x] `answerQuery.ts`: 날짜 경계를 KST로 고정. `date-fns`의 `startOfToday`/`startOfWeek`는 서버 로컬 타임존(Vercel 기본 UTC)에 의존해, KST 00:00~09:00 사이 요청에서 당일 마감이 "하루 더 남음"으로 나오거나 이번 주 완료율 범위가 지난주로 밀리는 버그가 있었다. `report.ts`와 동일하게 epoch에 KST 오프셋(+9h)을 더해 날짜 키를 뽑는 헬퍼(`kstTodayKey`/`diffKstCalendarDays`/`kstThisWeekRange`)로 교체
+- [x] pnpm build / pnpm lint 검증

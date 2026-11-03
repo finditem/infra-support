@@ -1,4 +1,4 @@
-import { createTaskFromMessage } from "./createTaskFromMessage";
+import { answerQuery } from "./answerQuery";
 import { createTaskFromStructuredCommand } from "./createTaskFromStructuredCommand";
 import { postSlackMessage } from "../postSlackMessage";
 import { resolveProfileFromSlackUser } from "../resolveProfileFromSlackUser";
@@ -16,7 +16,9 @@ interface RouteSlackMessageParams {
 
 /**
  * 봇 DM으로 들어온 메시지를 명령별로 분기한다.
- * 도움말/내일정/상태변경/구조화 일정추가(5-1) 어디에도 매칭되지 않으면 자연어 일정 등록(5-2)으로 처리한다.
+ * 일정 등록은 구조화 명령(`일정추가 ...`)으로만 받는다. 도움말/내일정/상태변경/구조화 일정추가
+ * 어디에도 매칭되지 않으면 자유 텍스트를 AI 조회(읽기 전용)로 넘긴다. 조회 의도로도 분류되지
+ * 않으면(또는 조회 기능이 꺼져 있으면) 등록으로 추측하지 않고 사용법(도움말)을 안내한다.
  */
 export const routeSlackMessage = async ({ text, slackUserId }: RouteSlackMessageParams) => {
   const trimmed = text.trim();
@@ -56,5 +58,5 @@ export const routeSlackMessage = async ({ text, slackUserId }: RouteSlackMessage
     return;
   }
 
-  await createTaskFromMessage(profile, trimmed, slackUserId);
+  await answerQuery(profile, trimmed, slackUserId);
 };
