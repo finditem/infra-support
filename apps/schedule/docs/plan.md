@@ -884,3 +884,27 @@
 
 - [x] `answerQuery.ts`: 날짜 경계를 KST로 고정. `date-fns`의 `startOfToday`/`startOfWeek`는 서버 로컬 타임존(Vercel 기본 UTC)에 의존해, KST 00:00~09:00 사이 요청에서 당일 마감이 "하루 더 남음"으로 나오거나 이번 주 완료율 범위가 지난주로 밀리는 버그가 있었다. `report.ts`와 동일하게 epoch에 KST 오프셋(+9h)을 더해 날짜 키를 뽑는 헬퍼(`kstTodayKey`/`diffKstCalendarDays`/`kstThisWeekRange`)로 교체
 - [x] pnpm build / pnpm lint 검증
+
+## 슬랙 `/일정추가` 슬래시 커맨드 폼(모달) + 팀장 기반 보고자 자동지정
+
+DM 텍스트 명령 대신 Slack 폼(모달)으로 일정을 등록한다. 트리거는 슬래시 커맨드 `/일정추가`, 기존 DM 텍스트 `일정추가 ...` 명령은 그대로 유지(공존)한다. 폼 필드는 제목(필수)/담당자(선택, 기본 본인)/마감일(선택, 기본 이번주 일요일)/본문(선택). 보고자는 폼에서 받지 않고 담당자가 속한 팀의 팀장으로 자동 지정한다(담당자가 여러 팀이면 가장 먼저 가입한 팀 기준, 팀장이 담당자 본인이거나 팀/팀장이 없으면 보고자 비움).
+
+### 1. 팀장(리더) 지정 기능
+
+- [x] `supabase/migrations/0019_add_team_leader.sql`: `teams.leader_id uuid references profiles(id) on delete set null` 추가 (사용자가 Supabase에 직접 적용)
+- [x] `src/types/tables/teams.ts`: `leader_id` 필드 추가(Row 필수, Insert/Update 옵셔널)
+- [x] `src/app/settings/teams/_lib/actions.ts`: `updateTeamLeader` 추가, `removeTeamMember`가 리더로 지정된 팀원을 제거하면 `leader_id`도 함께 비우도록 보강
+- [x] `src/app/settings/teams/_components/TeamCard.tsx`: 팀원 칩 영역에 "팀장" 지정 드롭다운(팀원 중 선택, 해제 가능) 추가. 조회(`getTeamsWithMembers`)는 `select("*")`라 `leader_id`가 이미 들어와 추가 변경 불필요
+
+### 2. 슬래시 커맨드 + 모달 폼
+
+- [x] `src/lib/slack/openSlackView.ts`: `views.open` 호출 헬퍼(`postSlackMessage` 패턴 재사용)
+- [x] `src/lib/slack/views/taskCreateModalView.ts`: 모달 뷰 블록 구성(제목/담당자 static_select/마감일 datepicker/본문), 담당자 옵션은 profiles에서 조회, 마감일 기본값은 `getDefaultDueDate`. 팀원이 없으면 static_select 블록을 빼서 Slack 거부를 피함
+- [x] `src/app/api/slack/commands/route.ts`: 슬래시 커맨드 수신 엔드포인트. 서명 검증 후 `trigger_id`로 모달 오픈
+- [x] `src/lib/slack/commands/createTaskFromModalSubmission.ts`: `view_submission` 처리. 담당자/마감일/본문 파싱 → 보고자(담당자 팀장) 자동 해석 → `insertTaskAndNotify` → DM 피드백
+- [x] `src/lib/slack/resolveReporterForAssignee.ts`: 담당자 id로 소속 팀(가장 먼저 가입한 팀부터) 중 팀장을 찾아 보고자 id 반환(본인/없음이면 null)
+- [x] `src/app/api/slack/interactions/route.ts`: `view_submission`(callback_id `task_create_modal`) 분기 추가, 기존 `block_actions` 처리는 유지
+- [x] `help.ts`: 일정 추가 안내에 `/일정추가` 슬래시 커맨드 추가
+- [x] `CLAUDE.md`: 슬래시 커맨드 엔드포인트/대시보드 설정/보고자 자동지정/`teams.leader_id` 문서화
+- [ ] 사용자 Slack 대시보드 설정: `commands` 스코프 + 슬래시 커맨드 `/일정추가` 생성(Request URL `/api/slack/commands`), Interactivity는 기존 `/api/slack/interactions` 재사용
+- [x] pnpm build / pnpm lint 검증
