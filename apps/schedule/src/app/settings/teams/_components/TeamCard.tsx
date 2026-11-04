@@ -14,7 +14,13 @@ import {
   settingsRowClassName,
   settingsTextButtonClassName,
 } from "../../_lib/styles";
-import { addTeamMember, deleteTeam, removeTeamMember, updateTeam } from "../_lib/actions";
+import {
+  addTeamMember,
+  deleteTeam,
+  removeTeamMember,
+  updateTeam,
+  updateTeamLeader,
+} from "../_lib/actions";
 
 interface TeamCardProps {
   team: TeamWithMembers;
@@ -107,6 +113,20 @@ const TeamCard = ({ team, profiles }: TeamCardProps) => {
 
     if (!isRemoved) {
       setError("팀원을 제거하지 못했습니다.");
+      return;
+    }
+
+    setError(null);
+    router.refresh();
+  };
+
+  const handleSetLeader = async (profileId: string | null) => {
+    setIsSubmitting(true);
+    const isUpdated = await updateTeamLeader({ teamId: team.id, leaderId: profileId });
+    setIsSubmitting(false);
+
+    if (!isUpdated) {
+      setError("팀장을 지정하지 못했습니다.");
       return;
     }
 
@@ -219,41 +239,57 @@ const TeamCard = ({ team, profiles }: TeamCardProps) => {
       {error && <p className="mt-2 text-xs text-fg-state-error">{error}</p>}
 
       {!isConfirmingDelete && (
-        <div className="mt-2.5 flex flex-wrap items-center gap-2">
-          {team.members.map((member) => (
-            <span
-              key={member.id}
-              className="flex items-center gap-1 rounded-full border border-border bg-surface py-1 pl-1 pr-1.5 text-xs text-text-default"
-            >
-              <ProfileAvatar profile={member} size="sm" />
-              {member.name}
-              <button
-                aria-label={`${member.name} 제거`}
-                className={cn(
-                  "rounded-full p-0.5 text-text-muted transition hover:bg-fill-neutural-subtle-hover hover:text-fg-state-error",
-                  isSubmitting && "pointer-events-none opacity-50"
-                )}
-                type="button"
-                onClick={() => handleRemoveMember(member.id)}
+        <>
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            {team.members.map((member) => (
+              <span
+                key={member.id}
+                className="flex items-center gap-1 rounded-full border border-border bg-surface py-1 pl-1 pr-1.5 text-xs text-text-default"
               >
-                <X size={11} />
-              </button>
-            </span>
-          ))}
+                <ProfileAvatar profile={member} size="sm" />
+                {member.name}
+                <button
+                  aria-label={`${member.name} 제거`}
+                  className={cn(
+                    "rounded-full p-0.5 text-text-muted transition hover:bg-fill-neutural-subtle-hover hover:text-fg-state-error",
+                    isSubmitting && "pointer-events-none opacity-50"
+                  )}
+                  type="button"
+                  onClick={() => handleRemoveMember(member.id)}
+                >
+                  <X size={11} />
+                </button>
+              </span>
+            ))}
 
-          {addableProfiles.length > 0 ? (
-            <ProfilePickerPopover
-              allowClear={false}
-              placeholder="+ 멤버 추가"
-              profiles={addableProfiles}
-              selectedId={null}
-              triggerClassName="w-auto rounded-full border border-dashed border-border px-2 py-1"
-              onSelect={handleAddMember}
-            />
-          ) : (
-            <span className="text-xs text-text-muted">추가할 수 있는 팀원이 없습니다.</span>
+            {addableProfiles.length > 0 ? (
+              <ProfilePickerPopover
+                allowClear={false}
+                placeholder="+ 멤버 추가"
+                profiles={addableProfiles}
+                selectedId={null}
+                triggerClassName="w-auto rounded-full border border-dashed border-border px-2 py-1"
+                onSelect={handleAddMember}
+              />
+            ) : (
+              <span className="text-xs text-text-muted">추가할 수 있는 팀원이 없습니다.</span>
+            )}
+          </div>
+
+          {team.members.length > 0 && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xs text-text-muted">팀장</span>
+              <ProfilePickerPopover
+                allowClear
+                placeholder="팀장 지정"
+                profiles={team.members}
+                selectedId={team.leader_id}
+                triggerClassName="w-auto rounded-full border border-dashed border-border px-2 py-1"
+                onSelect={handleSetLeader}
+              />
+            </div>
           )}
-        </div>
+        </>
       )}
     </li>
   );

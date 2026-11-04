@@ -106,6 +106,8 @@ Slack 알림용 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `SITE_URL`은 서버 전�
 
 어느 명령에도 매칭되지 않는 DM은 AI 조회로 넘어간다(`src/lib/slack/commands/answerQuery.ts`). `src/lib/slack/ai/classifyQuery.ts`가 LLM으로 의도 분류/슬롯 추출만 하고(며칠 남음/완료율/남은 일정/unknown), 날짜·완료율 같은 수치는 `answerQuery.ts`가 Supabase 조회 결과로 직접 계산해 문장을 만든다. 조회의 OpenAI 호출 킬 스위치로는 과거 자연어 등록에 쓰던 `SLACK_AI_TASK_CREATION_ENABLED`를 새 환경변수 없이 그대로 재사용한다. 정확히 `"true"`가 아니면 LLM을 호출하지 않고 도움말로 안내한다(기본값 비활성). 지원하지 않는 의도(unknown)나 분류 실패도 도움말로 폴백하며, 일정 등록은 조회로도 추측하지 않는다.
 
+일정 등록은 DM 텍스트 명령 외에 슬래시 커맨드 `/일정추가`로 Slack 폼(모달)을 띄워서도 할 수 있다. 수신 엔드포인트는 `src/app/api/slack/commands/route.ts`이고, Slack App 대시보드 > Slash Commands에서 `/일정추가`를 만들어 Request URL을 이 경로로 등록하고 봇에 `commands` 스코프를 추가해야 한다(Interactivity는 모달 제출 `view_submission`을 기존 `src/app/api/slack/interactions/route.ts`로 받으므로 추가 설정이 없다). 폼 필드는 제목(필수)/담당자(선택, 기본 보낸 사람)/마감일(선택, 기본 이번주 일요일)/본문(선택)이다. 보고자는 폼에서 받지 않고 담당자가 속한 팀의 팀장(`teams.leader_id`)으로 자동 지정한다(`src/lib/slack/resolveReporterForAssignee.ts`: 담당자가 여러 팀이면 가장 먼저 가입한 팀부터 보고, 팀장이 담당자 본인이거나 팀/팀장이 없으면 보고자를 비운다). 팀장은 `/settings/teams`에서 팀별로 지정한다.
+
 ## 기획 문서 및 작업 계획
 
 `docs/기획안.md`, `docs/기능설계서.md`에 원본 스펙 문서가 저장되어 있다 (기능설계서.md가 더 나중에 작성된 확장 버전이라 내용이 겹치면 그쪽을 우선한다). apps/schedule 관련 작업을 시작하기 전에는 `schedule-plan` 스킬(`.claude/skills/schedule-plan/SKILL.md`)을 먼저 실행해 이 문서들을 확인하고 `docs/plan.md`에 작업 체크리스트를 기록한다.
