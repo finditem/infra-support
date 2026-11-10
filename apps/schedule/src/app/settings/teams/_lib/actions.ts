@@ -67,6 +67,31 @@ export const updateTeam = async ({ id, name }: UpdateTeamInput): Promise<TeamMut
   return { data, isDuplicateName: false };
 };
 
+interface UpdateTeamLeaderInput {
+  teamId: string;
+  /** 팀장으로 지정할 팀원(profiles.id). null이면 팀장을 비운다. */
+  leaderId: string | null;
+}
+
+/** 팀장을 지정하거나 해제한다. 슬랙 /일정추가 폼의 보고자 자동지정이 이 값을 참조한다. */
+export const updateTeamLeader = async ({
+  teamId,
+  leaderId,
+}: UpdateTeamLeaderInput): Promise<boolean> => {
+  const supabase = await createClient();
+
+  const updatePayload: TeamsUpdate = { leader_id: leaderId };
+  const { error } = await supabase.from("teams").update(updatePayload).eq("id", teamId);
+
+  if (error) {
+    console.error(error);
+    return false;
+  }
+
+  revalidatePath(TEAMS_PATH);
+  return true;
+};
+
 /** 팀을 지우면 team_members의 소속 정보도 on delete cascade로 함께 지워진다(팀원 계정은 그대로다). */
 export const deleteTeam = async (id: string): Promise<boolean> => {
   const supabase = await createClient();
@@ -117,6 +142,13 @@ export const removeTeamMember = async ({
     console.error(error);
     return false;
   }
+
+  // 팀장으로 지정돼 있던 팀원을 제거하면 그 팀의 팀장도 함께 비운다(팀장은 팀원 중에서만 지정한다).
+  await supabase
+    .from("teams")
+    .update({ leader_id: null } satisfies TeamsUpdate)
+    .eq("id", teamId)
+    .eq("leader_id", profileId);
 
   revalidatePath(TEAMS_PATH);
   return true;
