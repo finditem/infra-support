@@ -915,4 +915,4 @@ DM 텍스트 명령 대신 Slack 폼(모달)으로 일정을 등록한다. 트�
 
 - [x] `TaskCreateModal.tsx`: `isExpanded` 상태와 헤더 아이콘 버튼(Maximize2/Minimize2), 본문 하단 "+ 이미지" 줄의 펼치기/접기 버튼 추가
 - [x] `TaskCreateModal.tsx`: 펼친 상태 2단 레이아웃(설명란이 남은 높이를 채우고, 속성은 오른쪽 사이드바에 1열로 배치). 토글해도 댓글 입력 등 하위 컴포넌트 상태가 초기화되지 않도록 트리 순서를 유지
-- [ ] pnpm build / pnpm lint 검증
+- [x] pnpm build / pnpm lint 검증
