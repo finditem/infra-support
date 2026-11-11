@@ -908,3 +908,14 @@ DM 텍스트 명령 대신 Slack 폼(모달)으로 일정을 등록한다. 트�
 - [x] `CLAUDE.md`: 슬래시 커맨드 엔드포인트/대시보드 설정/보고자 자동지정/`teams.leader_id` 문서화
 - [ ] 사용자 Slack 대시보드 설정: `commands` 스코프 + 슬래시 커맨드 `/일정추가` 생성(Request URL `/api/slack/commands`), Interactivity는 기존 `/api/slack/interactions` 재사용
 - [x] pnpm build / pnpm lint 검증
+
+## 작업 흐름(/flow) 브랜치 그래프 구현
+
+준비 중 자리표시자였던 `/flow`를 상위 일정을 줄기, 하위 일정을 가지로 그리는 깃 브랜치형 타임라인으로 구현한다. 가지는 하위 일정의 `created_at`에서 갈라져 나왔다가 완료로 전이하면 줄기로 합류하고, 완료되지 못한(지연/미완료/진행 중) 가지는 합류하지 못한 끊긴 끝점으로 남는다. 모든 데이터는 `tasks`(상하위 관계)와 `status_history`(전이 시각, 0018 트리거 기록)로 충당하며 새 마이그레이션은 없다.
+
+- [x] `src/app/flow/_lib/flowGraph.ts`: 기간(`ReportRange` 재사용) 내 상위/하위 일정과 `status_history`를 조회해 그래프용 구조(`FlowGraphData`: 상위별 줄기, 하위별 가지·전이 점·끝점 종류)로 가공하는 서버 함수. 기간 창은 `report/_lib`의 `getReportPeriod`(KST) 재사용
+- [x] `src/app/flow/_components/FlowGraph.tsx`: `FlowGraphData`를 받아 SVG 깃 그래프를 그리는 클라이언트 컴포넌트. 상태 색은 `color`/`color_dark` + `next-themes`로 라이트/다크 선택, 각 노드 hover 시 제목·날짜·상태 툴팁, 상태/합류·끊김 범례 포함
+- [x] `src/app/flow/page.tsx`: 자리표시자를 교체. 서버에서 기간 파싱→조회→`FlowGraph` 렌더, 기간 탭(최근 7/30/90일, 기본 30일), 빈 기간 안내, 기록 소급 불가 안내 배너
+- [x] 과거(트리거 이전) 완료 건은 전이 점 없이 시작·완료만 표시됨을 안내로 명시
+- [x] `src/types/tables/index.ts`: `TaskProjectKey`를 배럴에 re-export 추가(그래프에서 프로젝트 라벨에 사용)
+- [x] pnpm build / pnpm lint 검증
