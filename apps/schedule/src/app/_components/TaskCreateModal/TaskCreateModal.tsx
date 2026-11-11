@@ -409,7 +409,7 @@ const TaskCreateModal = ({
       </button>
       <button
         className={cn(
-          "items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-text-default hover:bg-fill-neutural-subtle-hover",
+          "items-center gap-1 rounded-md border border-border px-2.5 py-1 text-[11px] font-medium text-text-default hover:bg-fill-neutural-subtle-hover",
           isExpanded ? "flex" : "hidden md:flex"
         )}
         type="button"
