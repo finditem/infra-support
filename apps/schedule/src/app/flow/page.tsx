@@ -1,12 +1,14 @@
+import { headers } from "next/headers";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/utils";
+import { getRegisteredProfiles } from "../_lib/profiles";
 import { isReportRange, type ReportRange } from "../report/_lib/report";
 import { getFlowGraph } from "./_lib/flowGraph";
 import FlowGraph from "./_components/FlowGraph";
 
 interface FlowPageProps {
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ range?: string; member?: string }>;
 }
 
 const RANGE_TABS: { key: ReportRange; label: string }[] = [
@@ -15,12 +17,42 @@ const RANGE_TABS: { key: ReportRange; label: string }[] = [
   { key: "quarter", label: "최근 90일" },
 ];
 
+/** 전체(모든 담당자) 보기를 뜻하는 member 값. */
+const ALL_MEMBERS = "all";
+
 const FlowPage = async ({ searchParams }: FlowPageProps) => {
-  const { range: rawRange } = await searchParams;
+  const { range: rawRange, member: rawMember } = await searchParams;
   const range: ReportRange = rawRange && isReportRange(rawRange) ? rawRange : "month";
 
   const supabase = await createClient();
-  const data = await getFlowGraph(supabase, range);
+  const profiles = await getRegisteredProfiles(supabase);
+
+  // 미들웨어가 검증해 넘긴 x-user-id로 "본인"을 기본 담당자로 잡는다.
+  const currentUserId = (await headers()).get("x-user-id");
+  const profileIds = new Set(profiles.map((profile) => profile.id));
+
+  const resolveSelectedMember = () => {
+    if (rawMember === ALL_MEMBERS) return ALL_MEMBERS;
+    if (rawMember && profileIds.has(rawMember)) return rawMember;
+    if (currentUserId && profileIds.has(currentUserId)) return currentUserId;
+    return ALL_MEMBERS;
+  };
+  const selectedMember = resolveSelectedMember();
+  const selectedName =
+    selectedMember === ALL_MEMBERS
+      ? "전체"
+      : (profiles.find((profile) => profile.id === selectedMember)?.name ?? "담당자");
+
+  const data = await getFlowGraph(
+    supabase,
+    range,
+    selectedMember === ALL_MEMBERS ? null : selectedMember
+  );
+
+  const hrefWith = (next: { range?: ReportRange; member?: string }) =>
+    `/flow?range=${next.range ?? range}&member=${next.member ?? selectedMember}`;
+
+  const memberChips = [{ id: ALL_MEMBERS, name: "전체" }, ...profiles];
 
   return (
     <>
@@ -41,7 +73,7 @@ const FlowPage = async ({ searchParams }: FlowPageProps) => {
                   ? "border-primary font-semibold text-text-default"
                   : "border-transparent text-text-muted hover:text-text-default"
               )}
-              href={`/flow?range=${tab.key}`}
+              href={hrefWith({ range: tab.key })}
             >
               {tab.label}
             </Link>
@@ -50,6 +82,24 @@ const FlowPage = async ({ searchParams }: FlowPageProps) => {
       </header>
 
       <div className="flex-1 px-4 py-6 sm:px-8">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs text-text-muted">담당자</span>
+          {memberChips.map((chip) => (
+            <Link
+              key={chip.id}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs transition",
+                selectedMember === chip.id
+                  ? "bg-primary/10 border-primary font-semibold text-text-default"
+                  : "border-border text-text-muted hover:text-text-default"
+              )}
+              href={hrefWith({ member: chip.id })}
+            >
+              {chip.name}
+            </Link>
+          ))}
+        </div>
+
         <p className="mb-4 rounded-md border border-border bg-surface-elevated px-3 py-2 text-xs text-text-muted">
           가지 위의 상태 전이 점은 상태 변경 기록이 쌓이기 시작한 시점 이후의 전이만 보여줍니다. 그
           전에 완료된 과거 일정은 중간 점 없이 시작과 완료만 표시됩니다.
@@ -57,7 +107,8 @@ const FlowPage = async ({ searchParams }: FlowPageProps) => {
 
         {data.parents.length === 0 ? (
           <p className="mt-10 text-center text-sm text-text-muted">
-            이 기간에 표시할 작업 흐름이 없습니다. 기간을 넓히거나 상위·하위 일정을 만들어 보세요.
+            {selectedName} 기준으로 이 기간에 표시할 작업 흐름이 없습니다. 기간을 넓히거나 다른
+            담당자를 선택해 보세요.
           </p>
         ) : (
           <FlowGraph data={data} />

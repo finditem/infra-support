@@ -7,7 +7,7 @@ import type { FlowGraphData } from "../_lib/flowGraph";
 
 const W = 960;
 const PLOT_LEFT = 176;
-const PLOT_RIGHT = W - 28;
+const PLOT_RIGHT = W - 96;
 const GRAPH_TOP = 58;
 const AXIS_Y = 22;
 const LANE = 34;
@@ -67,14 +67,15 @@ const FlowGraph = ({ data }: { data: FlowGraphData }) => {
     };
     const nameOf = (statusId: string) => data.statuses[statusId]?.name ?? "";
 
+    const todayX = xOf(new Date(Math.min(Date.now(), endMs)).toISOString());
+
+    // 주 단위 눈금. "오늘" 선과 겹쳐 라벨이 깨지지 않도록 가까운 눈금은 건너뛴다.
     const grid: { x: number; label: string }[] = [];
     for (let t = startMs; t <= endMs; t += 7 * DAY_MS) {
-      grid.push({
-        x: xOf(new Date(t).toISOString()),
-        label: formatKstMonthDay(new Date(t).toISOString()),
-      });
+      const x = xOf(new Date(t).toISOString());
+      if (Math.abs(x - todayX) < 30) continue;
+      grid.push({ x, label: formatKstMonthDay(new Date(t).toISOString()) });
     }
-    const todayX = xOf(new Date(Math.min(Date.now(), endMs)).toISOString());
 
     const trunks: { x1: number; x2: number; y: number }[] = [];
     const paths: string[] = [];

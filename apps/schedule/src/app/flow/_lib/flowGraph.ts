@@ -67,10 +67,12 @@ interface TaskRowLite {
  * - 완료되지 않은(진행 중/지연/미완료) 가지는 합류하지 않고 현재 시점까지 열린 끝점으로 둔다.
  *
  * 전체 프로젝트를 합산하며, 기간에 활동이 있었거나 아직 열려 있는 상위 일정만 보여준다.
+ * `assigneeId`를 주면 그 팀원이 담당한 하위 일정(과 본인이 만든 상위 일정)만 남겨 담당자별 흐름을 본다.
  */
 export const getFlowGraph = async (
   supabase: SupabaseClient,
-  range: ReportRange
+  range: ReportRange,
+  assigneeId: string | null = null
 ): Promise<FlowGraphData> => {
   const { startTimestamp, endTimestamp } = getReportPeriod(range);
   const startMs = Date.parse(startTimestamp);
@@ -167,16 +169,21 @@ export const getFlowGraph = async (
     .filter((task) => task.parent_id === null)
     .forEach((parent) => {
       const subs = subtasksByParent.get(parent.id) ?? [];
+      // 담당자 필터가 있으면 그 팀원이 맡은 하위 일정만 가지로 삼는다.
+      const memberSubs =
+        assigneeId === null ? subs : subs.filter((sub) => sub.assignee_id === assigneeId);
       // 기간에 활동이 있었거나(생성·전이) 아직 열려 있는 하위 일정만 가지로 보여준다.
-      const visibleSubs = subs.filter((sub) => {
+      const visibleSubs = memberSubs.filter((sub) => {
         const hasCommit = (commitsByTask.get(sub.id)?.length ?? 0) > 0;
         const createdInWindow = within(sub.created_at);
         const isOpen = doneStatusId == null || sub.status_id !== doneStatusId;
         return hasCommit || createdInWindow || isOpen;
       });
 
+      // 가지가 하나도 없으면, 그 상위 일정이 (필터 대상) 본인 것이고 기간에 생성됐을 때만 줄기만 보여준다.
+      const parentIsMembers = assigneeId === null || parent.assignee_id === assigneeId;
       const parentCreatedInWindow = within(parent.created_at);
-      if (visibleSubs.length === 0 && !parentCreatedInWindow) return;
+      if (visibleSubs.length === 0 && !(parentIsMembers && parentCreatedInWindow)) return;
 
       parents.push({
         id: parent.id,

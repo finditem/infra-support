@@ -919,3 +919,9 @@ DM 텍스트 명령 대신 Slack 폼(모달)으로 일정을 등록한다. 트�
 - [x] 과거(트리거 이전) 완료 건은 전이 점 없이 시작·완료만 표시됨을 안내로 명시
 - [x] `src/types/tables/index.ts`: `TaskProjectKey`를 배럴에 re-export 추가(그래프에서 프로젝트 라벨에 사용)
 - [x] pnpm build / pnpm lint 검증
+
+### 피드백 반영
+
+- [x] 담당자별 보기: `getFlowGraph`에 `assigneeId` 필터 추가(그 팀원이 맡은 하위 일정 + 본인 상위 일정만). `page.tsx`에 담당자 칩(전체 + 팀원) 필터 추가, 기본값은 `x-user-id`로 잡은 본인
+- [x] 축 라벨 레이아웃 수정: 상단 날짜 눈금이 "오늘" 선과 겹쳐 깨지던 문제를 가까운 눈금 라벨을 건너뛰어 해결, 개방 가지 끝점 라벨이 잘리지 않게 플롯 우측 여백 확대
+- [x] 재검증(pnpm build / pnpm lint)
