@@ -908,3 +908,22 @@ DM 텍스트 명령 대신 Slack 폼(모달)으로 일정을 등록한다. 트�
 - [x] `CLAUDE.md`: 슬래시 커맨드 엔드포인트/대시보드 설정/보고자 자동지정/`teams.leader_id` 문서화
 - [ ] 사용자 Slack 대시보드 설정: `commands` 스코프 + 슬래시 커맨드 `/일정추가` 생성(Request URL `/api/slack/commands`), Interactivity는 기존 `/api/slack/interactions` 재사용
 - [x] pnpm build / pnpm lint 검증
+
+## 작업 흐름(/flow) 브랜치 그래프 구현
+
+준비 중 자리표시자였던 `/flow`를 상위 일정을 줄기, 하위 일정을 가지로 그리는 깃 브랜치형 타임라인으로 구현한다. 가지는 하위 일정의 `created_at`에서 갈라져 나왔다가 완료로 전이하면 줄기로 합류하고, 완료되지 못한(지연/미완료/진행 중) 가지는 합류하지 못한 끊긴 끝점으로 남는다. 모든 데이터는 `tasks`(상하위 관계)와 `status_history`(전이 시각, 0018 트리거 기록)로 충당하며 새 마이그레이션은 없다.
+
+- [x] `src/app/flow/_lib/flowGraph.ts`: 기간(`ReportRange` 재사용) 내 상위/하위 일정과 `status_history`를 조회해 그래프용 구조(`FlowGraphData`: 상위별 줄기, 하위별 가지·전이 점·끝점 종류)로 가공하는 서버 함수. 기간 창은 `report/_lib`의 `getReportPeriod`(KST) 재사용
+- [x] `src/app/flow/_components/FlowGraph.tsx`: `FlowGraphData`를 받아 SVG 깃 그래프를 그리는 클라이언트 컴포넌트. 상태 색은 `color`/`color_dark` + `next-themes`로 라이트/다크 선택, 각 노드 hover 시 제목·날짜·상태 툴팁, 상태/합류·끊김 범례 포함
+- [x] `src/app/flow/page.tsx`: 자리표시자를 교체. 서버에서 기간 파싱→조회→`FlowGraph` 렌더, 기간 탭(최근 7/30/90일, 기본 30일), 빈 기간 안내, 기록 소급 불가 안내 배너
+- [x] 과거(트리거 이전) 완료 건은 전이 점 없이 시작·완료만 표시됨을 안내로 명시
+- [x] `src/types/tables/index.ts`: `TaskProjectKey`를 배럴에 re-export 추가(그래프에서 프로젝트 라벨에 사용)
+- [x] pnpm build / pnpm lint 검증
+
+### 피드백 반영
+
+- [x] 담당자별 보기: `getFlowGraph`에 `assigneeId` 필터 추가(그 팀원이 맡은 하위 일정 + 본인 상위 일정만). `page.tsx`에 담당자 칩(전체 + 팀원) 필터 추가, 기본값은 `x-user-id`로 잡은 본인
+- [x] 축 라벨 레이아웃 수정: 상단 날짜 눈금이 "오늘" 선과 겹쳐 깨지던 문제를, 눈금을 숨기는 대신 "오늘" 라벨을 날짜줄보다 윗줄의 알약(파란 배경 + 반전 텍스트)으로 분리해 해결(숨겼던 주간 눈금도 전부 복원). 개방 가지 끝점 라벨이 잘리지 않게 플롯 우측 여백 확대
+- [x] 줄기(상위 일정)도 자기 수명대로 렌더링: 생성 → 완료면 상태 색으로 닫고, 미완료면 오늘까지 열어 둔 뒤 상태 색 고리 + 라벨 표시. 가지 없는 상위 일정이 24px 토막으로 뜨던 문제 해소. 줄기·가지가 `lifecycleOf` 한 규칙(완료=닫힘/미완료=오늘까지)으로 통일, 범례 문구도 "채워진 끝=완료 / 열린 끝=진행 중, 오늘까지"로 정정
+- [x] 상위 일정 상태를 칸반과 동일하게 하위에서 유도: `resolveEffectiveStatusId`와 같은 우선순위(지연 > 미완료 > 전부 완료 > 전부 검토 중 > 하나라도 시작 > 상위 자신)로 유효 상태를 계산해, 하위가 전부 완료되면 마지막 완료 시각에 줄기를 닫도록 반영(기존에는 상위 원본 `status_id`만 봐서 하위 완료가 반영되지 않던 문제)
+- [x] 재검증(pnpm build / pnpm lint)
