@@ -37,6 +37,13 @@ export interface FlowParent {
   title: string;
   projectKey: TaskProjectKey;
   startDate: string;
+  /** 상위 일정 자체의 상태 전이들(오름차순). */
+  commits: FlowCommit[];
+  /** 상위 일정이 완료되어 줄기가 닫혔는지("merge"), 아직 진행 중인지("open"). */
+  endKind: "merge" | "open";
+  /** 완료 시점(merge) 또는 오늘(open). 줄기 끝 노드가 찍히는 지점. */
+  endDate: string;
+  endStatusId: string;
   branches: FlowBranch[];
 }
 
@@ -105,9 +112,11 @@ export const getFlowGraph = async (
   if (tasksError) console.error(tasksError);
 
   const statuses: Record<string, FlowStatusMeta> = {};
+  const statusIdByName = new Map<string, string>();
   let doneStatusId: string | null = null;
   (statusRows ?? []).forEach((status) => {
     statuses[status.id] = { name: status.name, color: status.color, colorDark: status.color_dark };
+    statusIdByName.set(status.name, status.id);
     if (status.name === DONE_STATUS_NAME) doneStatusId = status.id;
   });
 
@@ -130,37 +139,81 @@ export const getFlowGraph = async (
     subtasksByParent.set(task.parent_id, list);
   });
 
-  const buildBranch = (sub: TaskRowLite): FlowBranch => {
-    const commits = commitsByTask.get(sub.id) ?? [];
-    const isDone = doneStatusId != null && sub.status_id === doneStatusId;
-    const startDate = sub.created_at ?? startTimestamp;
-
+  // 완료면 완료 시점에 닫고(merge), 미완료면 현재 시점(기간 끝)까지 열어 둔다(open).
+  // 상위 일정의 줄기와 하위 일정의 가지가 같은 규칙으로 수명을 그리도록 공통으로 쓴다.
+  const lifecycleOf = (task: TaskRowLite) => {
+    const commits = commitsByTask.get(task.id) ?? [];
+    const isDone = doneStatusId != null && task.status_id === doneStatusId;
+    const startDate = task.created_at ?? startTimestamp;
     if (isDone) {
-      // 완료 전이 시각에 합류한다. 트리거 기록 이전에 완료된 건은 기록이 없어 updated_at으로 근사한다.
+      // 완료 전이 시각에 닫는다. 트리거 기록 이전 완료 건은 기록이 없어 updated_at으로 근사한다.
       const lastDone = [...commits].reverse().find((commit) => commit.statusId === doneStatusId);
-      const endDate = lastDone?.date ?? sub.updated_at ?? startDate;
+      const endDate = lastDone?.date ?? task.updated_at ?? startDate;
       return {
-        id: sub.id,
-        title: sub.title,
-        assigneeName: profileNameById.get(sub.assignee_id ?? "") ?? null,
-        startDate,
         commits,
-        endKind: "merge",
+        startDate,
+        endKind: "merge" as const,
         endDate,
-        endStatusId: sub.status_id,
+        endStatusId: task.status_id,
       };
     }
-
-    // 아직 완료되지 않은 가지는 현재 시점(기간 끝)까지 열어 둔다.
     return {
-      id: sub.id,
-      title: sub.title,
-      assigneeName: profileNameById.get(sub.assignee_id ?? "") ?? null,
-      startDate,
       commits,
-      endKind: "open",
+      startDate,
+      endKind: "open" as const,
       endDate: endTimestamp,
-      endStatusId: sub.status_id,
+      endStatusId: task.status_id,
+    };
+  };
+
+  const buildBranch = (sub: TaskRowLite): FlowBranch => ({
+    id: sub.id,
+    title: sub.title,
+    assigneeName: profileNameById.get(sub.assignee_id ?? "") ?? null,
+    ...lifecycleOf(sub),
+  });
+
+  // 칸반보드와 동일하게 상위 일정의 "유효 상태"를 하위 일정들로부터 유도한다.
+  // (kanbanUtils.resolveEffectiveStatusId와 같은 우선순위: 지연 > 미완료 > 전부 완료 > 전부 검토 중 > 하나라도 시작)
+  const effectiveSubStatusId = (subs: TaskRowLite[]): string | null => {
+    if (subs.length === 0) return null;
+    const id = (name: string) => statusIdByName.get(name);
+    const some = (sid?: string) => !!sid && subs.some((sub) => sub.status_id === sid);
+    const every = (sid?: string) => !!sid && subs.every((sub) => sub.status_id === sid);
+    if (some(id("지연됨"))) return id("지연됨")!;
+    if (some(id("미완료"))) return id("미완료")!;
+    if (every(id("완료"))) return id("완료")!;
+    if (every(id("검토 중"))) return id("검토 중")!;
+    if (subs.some((sub) => sub.status_id !== id("할 일"))) return id("진행 중") ?? null;
+    return null;
+  };
+
+  // 상위 일정의 줄기 수명. 하위로 상태가 유도되면 그걸 따르고(전부 완료면 마지막 하위 완료 시각에 닫는다),
+  // 유도되지 않으면(하위 없음/전부 할 일) 상위 자신의 status_id를 쓴다.
+  const parentLifecycleOf = (parent: TaskRowLite, allSubs: TaskRowLite[]) => {
+    const effId = effectiveSubStatusId(allSubs);
+    if (effId === null) return lifecycleOf(parent);
+
+    const commits = commitsByTask.get(parent.id) ?? [];
+    const startDate = parent.created_at ?? startTimestamp;
+    if (doneStatusId != null && effId === doneStatusId) {
+      const lastSubEndMs = allSubs
+        .map((sub) => Date.parse(lifecycleOf(sub).endDate))
+        .reduce((max, ms) => Math.max(max, ms), Date.parse(startDate));
+      return {
+        commits,
+        startDate,
+        endKind: "merge" as const,
+        endDate: new Date(lastSubEndMs).toISOString(),
+        endStatusId: effId,
+      };
+    }
+    return {
+      commits,
+      startDate,
+      endKind: "open" as const,
+      endDate: endTimestamp,
+      endStatusId: effId,
     };
   };
 
@@ -189,7 +242,7 @@ export const getFlowGraph = async (
         id: parent.id,
         title: parent.title,
         projectKey: parent.project_key,
-        startDate: parent.created_at ?? startTimestamp,
+        ...parentLifecycleOf(parent, subs),
         branches: visibleSubs.map(buildBranch),
       });
     });

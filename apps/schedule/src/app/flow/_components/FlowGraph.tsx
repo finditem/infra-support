@@ -9,7 +9,7 @@ const W = 960;
 const PLOT_LEFT = 176;
 const PLOT_RIGHT = W - 96;
 const GRAPH_TOP = 58;
-const AXIS_Y = 22;
+const AXIS_Y = 28;
 const LANE = 34;
 const BAND_GAP = 44;
 const CURVE = 15;
@@ -69,11 +69,10 @@ const FlowGraph = ({ data }: { data: FlowGraphData }) => {
 
     const todayX = xOf(new Date(Math.min(Date.now(), endMs)).toISOString());
 
-    // 주 단위 눈금. "오늘" 선과 겹쳐 라벨이 깨지지 않도록 가까운 눈금은 건너뛴다.
+    // 주 단위 눈금. "오늘" 라벨은 날짜줄보다 윗줄(알약)에 따로 두므로 눈금을 숨기지 않는다.
     const grid: { x: number; label: string }[] = [];
     for (let t = startMs; t <= endMs; t += 7 * DAY_MS) {
       const x = xOf(new Date(t).toISOString());
-      if (Math.abs(x - todayX) < 30) continue;
       grid.push({ x, label: formatKstMonthDay(new Date(t).toISOString()) });
     }
 
@@ -105,13 +104,17 @@ const FlowGraph = ({ data }: { data: FlowGraphData }) => {
         return { branch, offX, branchY, isMerge, endX, lineEnd };
       });
 
-      const trunkEnd = geoms.reduce((max, g) => Math.max(max, g.endX), xOf(parent.startDate) + 24);
-      trunks.push({ x1: xOf(parent.startDate), x2: trunkEnd, y: trunkY });
+      // 줄기는 상위 일정의 수명대로 그린다: 생성 → (완료 시점 또는 오늘). 가지가 더 멀리 뻗으면 거기까지 늘린다.
+      const parentStartX = xOf(parent.startDate);
+      const parentEndX = xOf(parent.endDate);
+      const parentIsMerge = parent.endKind === "merge";
+      const trunkEnd = geoms.reduce((max, g) => Math.max(max, g.endX), parentEndX);
+      trunks.push({ x1: parentStartX, x2: trunkEnd, y: trunkY });
 
       // 상위 일정 시작 노드 + 라벨(제목 + 프로젝트)
-      hollow.push({ cx: xOf(parent.startDate), cy: trunkY, stroke: "trunk" });
+      hollow.push({ cx: parentStartX, cy: trunkY, stroke: "trunk" });
       hits.push({
-        cx: xOf(parent.startDate),
+        cx: parentStartX,
         cy: trunkY,
         title: parent.title,
         sub: `${formatKstMonthDay(parent.startDate)} · 상위 일정 시작`,
@@ -124,6 +127,34 @@ const FlowGraph = ({ data }: { data: FlowGraphData }) => {
         muted: true,
         size: 10.5,
       });
+
+      // 상위 일정 끝 노드: 완료면 상태 색으로 줄기를 닫고, 미완료면 오늘까지 열린 고리 + 상태 라벨.
+      if (parentIsMerge) {
+        filled.push({ cx: parentEndX, cy: trunkY, color: colorOf(parent.endStatusId) });
+        hits.push({
+          cx: parentEndX,
+          cy: trunkY,
+          title: parent.title,
+          sub: `${formatKstMonthDay(parent.endDate)} · 완료`,
+        });
+      } else if (parentEndX - parentStartX > 2) {
+        const parentEndColor = colorOf(parent.endStatusId);
+        hollow.push({ cx: parentEndX, cy: trunkY, stroke: parentEndColor });
+        labels.push({
+          x: parentEndX + 10,
+          y: trunkY + 4,
+          text: nameOf(parent.endStatusId),
+          color: parentEndColor,
+          weight: 600,
+          size: 11,
+        });
+        hits.push({
+          cx: parentEndX,
+          cy: trunkY,
+          title: parent.title,
+          sub: `${formatKstMonthDay(parent.endDate)} · ${nameOf(parent.endStatusId)}`,
+        });
+      }
 
       geoms.forEach(({ branch, offX, branchY, isMerge, endX, lineEnd }) => {
         let d = `M ${offX} ${trunkY} C ${offX + CURVE} ${trunkY} ${offX} ${branchY} ${offX + CURVE} ${branchY}`;
@@ -246,13 +277,21 @@ const FlowGraph = ({ data }: { data: FlowGraphData }) => {
             y1={GRAPH_TOP - 16}
             y2={scene.height - 10}
           />
-          <text
+          <rect
             className="fill-primary"
-            fontSize={10.5}
+            height={15}
+            rx={7.5}
+            width={30}
+            x={scene.todayX - 15}
+            y={2}
+          />
+          <text
+            className="fill-text-inverse"
+            fontSize={10}
             fontWeight={600}
-            textAnchor="end"
-            x={scene.todayX - 2}
-            y={AXIS_Y}
+            textAnchor="middle"
+            x={scene.todayX}
+            y={13}
           >
             오늘
           </text>
@@ -343,11 +382,11 @@ const FlowGraph = ({ data }: { data: FlowGraphData }) => {
         <span className="mx-1 h-3.5 w-px bg-border" />
         <span className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-full bg-text-muted" />
-          줄기로 합류 = 완료
+          채워진 끝 = 완료
         </span>
         <span className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-full border-2 border-text-muted" />
-          끊긴 가지 = 진행 중·지연·미완료
+          열린 끝(고리) = 아직 진행 중, 오늘까지 이어짐
         </span>
       </div>
 
