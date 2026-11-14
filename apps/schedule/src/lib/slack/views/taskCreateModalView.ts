@@ -6,6 +6,14 @@ export const TASK_CREATE_CALLBACK_ID = "task_create_modal";
 /** 모달 각 입력 요소의 공통 action_id. block_id로 필드를 구분하므로 action_id는 통일한다. */
 export const TASK_CREATE_ACTION_ID = "input";
 
+/**
+ * static_select는 options를 최대 100개까지만 허용하고, 초과하면 필드가 아니라 뷰 전체가 거부돼
+ * 모달 자체가 열리지 않는다. 내부 팀 툴이라 팀원이 100명을 넘을 일은 사실상 없지만, 그 경우에도
+ * 모달이 깨지지 않도록 앞 100명으로 잘라 안전장치를 둔다.
+ * (참고: https://docs.slack.dev/reference/block-kit/block-elements/select-menu-element)
+ */
+const STATIC_SELECT_OPTION_LIMIT = 100;
+
 interface AssigneeOption {
   id: string;
   name: string;
@@ -44,7 +52,7 @@ export const buildTaskCreateModalView = (
         type: "static_select",
         action_id: TASK_CREATE_ACTION_ID,
         placeholder: { type: "plain_text", text: "비우면 본인" },
-        options: assignees.map((assignee) => ({
+        options: assignees.slice(0, STATIC_SELECT_OPTION_LIMIT).map((assignee) => ({
           text: { type: "plain_text", text: assignee.name },
           value: assignee.id,
         })),
