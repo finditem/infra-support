@@ -908,3 +908,11 @@ DM 텍스트 명령 대신 Slack 폼(모달)으로 일정을 등록한다. 트�
 - [x] `CLAUDE.md`: 슬래시 커맨드 엔드포인트/대시보드 설정/보고자 자동지정/`teams.leader_id` 문서화
 - [ ] 사용자 Slack 대시보드 설정: `commands` 스코프 + 슬래시 커맨드 `/일정추가` 생성(Request URL `/api/slack/commands`), Interactivity는 기존 `/api/slack/interactions` 재사용
 - [x] pnpm build / pnpm lint 검증
+
+## 일정 모달 펼치기(확장 레이아웃)
+
+일정 추가/수정 모달에 펼치기 기능을 추가한다. 접힌 상태는 기존 480px 모달을 유지하고, 펼친 상태는 화면 대부분을 덮는 2단 레이아웃(왼쪽 제목/설명/이미지/하위 일정/댓글, 오른쪽 속성 사이드바)으로 바꾼다. 입력 중인 값이 유지되도록 같은 컴포넌트 안에서 레이아웃만 전환하고, 펼침 여부는 저장하지 않는다. md 미만 화면에서는 펼치기 버튼을 숨긴다.
+
+- [x] `TaskCreateModal.tsx`: `isExpanded` 상태와 헤더 아이콘 버튼(Maximize2/Minimize2), 본문 하단 "+ 이미지" 줄의 펼치기/접기 버튼 추가
+- [x] `TaskCreateModal.tsx`: 펼친 상태 2단 레이아웃(설명란이 남은 높이를 채우고, 속성은 오른쪽 사이드바에 1열로 배치). 토글해도 댓글 입력 등 하위 컴포넌트 상태가 초기화되지 않도록 트리 순서를 유지
+- [x] pnpm build / pnpm lint 검증
