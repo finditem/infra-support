@@ -9,7 +9,8 @@ const RANGE_DAYS: Record<ReportRange, number> = { week: 7, month: 30, quarter: 9
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export const isReportRange = (value: string): value is ReportRange => value in RANGE_DAYS;
+export const isReportRange = (value: string): value is ReportRange =>
+  Object.prototype.hasOwnProperty.call(RANGE_DAYS, value);
 
 /** 특정 순간을 KST 달력 날짜 키(yyyy-MM-dd)로 환산한다. */
 const toKstDateKey = (epochMs: number) =>
