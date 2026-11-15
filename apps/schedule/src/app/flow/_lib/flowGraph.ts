@@ -233,10 +233,14 @@ export const getFlowGraph = async (
         return hasCommit || createdInWindow || isOpen;
       });
 
-      // 가지가 하나도 없으면, 그 상위 일정이 (필터 대상) 본인 것이고 기간에 생성됐을 때만 줄기만 보여준다.
+      // 가지가 하나도 없는 상위 일정은, (필터 대상) 본인 것이면서 기간에 생성됐거나 아직 진행 중일 때만 줄기를 보여준다.
+      // 진행 중 상위 일정은 수명이 오늘까지 이어지므로, 기간 이전에 생성됐어도 포함한다.
       const parentIsMembers = assigneeId === null || parent.assignee_id === assigneeId;
       const parentCreatedInWindow = within(parent.created_at);
-      if (visibleSubs.length === 0 && !(parentIsMembers && parentCreatedInWindow)) return;
+      const parentEffStatus = effectiveSubStatusId(subs) ?? parent.status_id;
+      const parentIsOpen = doneStatusId == null || parentEffStatus !== doneStatusId;
+      if (visibleSubs.length === 0 && !(parentIsMembers && (parentCreatedInWindow || parentIsOpen)))
+        return;
 
       parents.push({
         id: parent.id,
