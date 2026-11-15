@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { openTaskCreateModal } from "@/lib/slack/commands/openTaskCreateModal";
 import { verifySlackRequest } from "@/lib/slack/verifySlackRequest";
 
@@ -23,10 +23,11 @@ export const POST = async (request: Request) => {
   const params = new URLSearchParams(rawBody);
   const triggerId = params.get("trigger_id");
 
-  // 슬래시 커맨드는 3초 안에 ack해야 하고 trigger_id도 그 안에 써야 모달이 열린다.
-  // views.open은 호출 한 번이라 응답을 보내기 전에 await해도 시간 안에 끝난다.
+  // 슬래시 커맨드는 3초 안에 ack해야 한다. 모달 열기(프로필 조회 + views.open)가 느려지면
+  // ack가 그만큼 늦어져 operation_timeout이 뜰 수 있으므로, 응답을 먼저 보내고 모달 열기는
+  // after()로 넘긴다. trigger_id도 발급 후 짧은 시간 안에 써야 하므로 after()에서 지체 없이 소비한다.
   if (triggerId) {
-    await openTaskCreateModal(triggerId);
+    after(() => openTaskCreateModal(triggerId));
   }
 
   // 빈 200으로 ack하면 채널에 아무 메시지도 남기지 않는다.

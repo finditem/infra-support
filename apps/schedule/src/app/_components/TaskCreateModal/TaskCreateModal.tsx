@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { format } from "date-fns";
-import { CornerDownLeft } from "lucide-react";
+import { CornerDownLeft, Maximize2, Minimize2 } from "lucide-react";
 import { createSubtasks, createTask, deleteTask, updateTask } from "../../_lib/actions";
 import { buildBodyWithImages, extractBodyImages, stripBodyImages } from "../../_lib/bodyImages";
 import {
@@ -19,6 +19,7 @@ import { getDefaultDueDate, getMonday, getWeekLabel } from "../../_lib/kanbanUti
 import type { ProfileWithColor } from "../../_types/kanban";
 import { ModalOverlay } from "@/components/ModalOverlay";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/utils";
 import type { TaskCommentsRow, TaskStatusesRow, TasksRow } from "@/types/tables";
 import ProfilePickerPopover from "../ProfilePickerPopover";
 import type { MentionTarget } from "../../_lib/mentions";
@@ -120,6 +121,7 @@ const TaskCreateModal = ({
   const [subtaskDrafts, setSubtaskDrafts] = useState<SubtaskDraft[]>([]);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<{ alt: string; url: string } | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -338,11 +340,95 @@ const TaskCreateModal = ({
     }
   };
 
+  const propertyFields = (
+    <>
+      <ProfilePickerPopover
+        label="담당자"
+        placeholder="담당자 선택"
+        profiles={profiles}
+        selectedId={assigneeId}
+        onSelect={setAssigneeId}
+      />
+      <ProfilePickerPopover
+        label="보고자"
+        placeholder="보고자 선택"
+        profiles={profiles}
+        selectedId={reporterId}
+        onSelect={setReporterId}
+      />
+      <DatePickerPopover label="마감일" value={dueDate} onChange={setDueDate} />
+      <PriorityPickerPopover label="우선순위" value={priority} onChange={setPriority} />
+      <StatusPickerPopover
+        label="상태"
+        selectedId={statusId}
+        statuses={statuses}
+        onSelect={setStatusId}
+      />
+      <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
+        <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">프로젝트</span>
+        {parentId ? (
+          // 하위 일정은 상위 일정의 세부 작업이라 프로젝트를 독립적으로 바꿀 수 없다.
+          // 상위 일정과 어긋나면 상위 일정 상세에서조차 찾기 어려워지기 때문이다.
+          <span className="text-xs text-text-muted">
+            {getProject(initialProjectKey).label} (상위 일정과 동일)
+          </span>
+        ) : (
+          <select
+            aria-label="프로젝트"
+            className="min-w-0 flex-1 bg-transparent text-xs text-text-default outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            value={projectKey}
+            onChange={(event) => setProjectKey(event.target.value as ProjectKey)}
+          >
+            {PROJECTS.map((project) => (
+              <option key={project.key} value={project.key}>
+                {project.label}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+      <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
+        <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">주차</span>
+        <span className="text-xs text-text-default">{weekLabel}</span>
+      </div>
+    </>
+  );
+
+  const expandToggleLabel = isExpanded ? "모달 접기" : "모달 펼치기";
+  const ExpandToggleIcon = isExpanded ? Minimize2 : Maximize2;
+
+  const bodyToolbar = (
+    <div className={cn("flex items-center justify-between", isExpanded ? "py-3" : "mt-2 py-1")}>
+      <button
+        className="rounded-md px-1.5 py-1 text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
+        disabled={isProcessingImage}
+        type="button"
+        onClick={() => imageInputRef.current?.click()}
+      >
+        {isProcessingImage ? "처리 중..." : "+ 이미지"}
+      </button>
+      <button
+        className={cn(
+          "items-center gap-1 rounded-md border border-border px-2.5 py-1 text-[11px] font-medium text-text-default hover:bg-fill-neutural-subtle-hover",
+          isExpanded ? "flex" : "hidden md:flex"
+        )}
+        type="button"
+        onClick={() => setIsExpanded((prev) => !prev)}
+      >
+        <ExpandToggleIcon aria-hidden className="size-3" />
+        {isExpanded ? "접기" : "펼치기"}
+      </button>
+    </div>
+  );
+
   return (
     <>
       <ModalOverlay className="z-[200] p-5" disableEscape={!!previewImage} onClose={onClose}>
         <div
-          className="flex max-h-[85vh] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
+          className={cn(
+            "flex w-full flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-[0_24px_48px_rgba(0,0,0,0.16)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)]",
+            isExpanded ? "h-[90vh] max-w-[1200px]" : "max-h-[85vh] max-w-[480px]"
+          )}
           onKeyDown={handleKeyDown}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-border px-[18px] py-3">
@@ -352,204 +438,200 @@ const TaskCreateModal = ({
                 {isEditing ? " 일정 수정" : parentTitle ? " 새 하위 일정" : " 새 작업"}
               </strong>
             </span>
-            <button
-              aria-label="닫기"
-              className="flex size-6 items-center justify-center rounded-md bg-fill-neutural-subtle-default text-text-muted hover:bg-fill-neutural-subtle-hover"
-              type="button"
-              onClick={onClose}
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                aria-label={expandToggleLabel}
+                className={cn(
+                  "size-6 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover",
+                  isExpanded ? "flex" : "hidden md:flex"
+                )}
+                title={expandToggleLabel}
+                type="button"
+                onClick={() => setIsExpanded((prev) => !prev)}
+              >
+                <ExpandToggleIcon aria-hidden className="size-3.5" />
+              </button>
+              <button
+                aria-label="닫기"
+                className="flex size-6 items-center justify-center rounded-md bg-fill-neutural-subtle-default text-text-muted hover:bg-fill-neutural-subtle-hover"
+                type="button"
+                onClick={onClose}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
-          <div className="overflow-y-auto">
-            <div className="px-5 pt-[18px]">
-              <input
-                className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[17px] font-semibold text-text-default outline-none"
-                autoFocus
-                placeholder="작업 제목을 입력하세요"
-                type="text"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                onKeyDown={handleTitleKeyDown}
-              />
-            </div>
+          {/* 펼침 전환 시 같은 위치의 요소가 다시 마운트되지 않도록, 레이아웃에 따라 바뀌는 부분은
+              조건부 자리(false)를 남겨 형제 순서를 고정한다. 그래야 작성 중인 댓글 같은 하위
+              컴포넌트 상태가 토글 후에도 유지된다. */}
+          <div
+            className={cn(
+              "min-h-0",
+              isExpanded ? "flex flex-1 flex-col md:flex-row" : "overflow-y-auto"
+            )}
+          >
+            <div className={cn(isExpanded && "flex min-h-0 min-w-0 flex-1 flex-col")}>
+              <div className={cn(isExpanded && "flex flex-1 flex-col overflow-y-auto")}>
+                <div className={cn(isExpanded ? "px-10 pt-8" : "px-5 pt-[18px]")}>
+                  <input
+                    className={cn(
+                      "placeholder:text-text-muted/50 w-full border-none bg-transparent font-semibold text-text-default outline-none",
+                      isExpanded ? "text-2xl" : "text-[17px]"
+                    )}
+                    autoFocus
+                    placeholder="작업 제목을 입력하세요"
+                    type="text"
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    onKeyDown={handleTitleKeyDown}
+                  />
+                </div>
 
-            <div className="grid grid-cols-1 gap-[2px] px-5 py-3 sm:grid-cols-2">
-              <ProfilePickerPopover
-                label="담당자"
-                placeholder="담당자 선택"
-                profiles={profiles}
-                selectedId={assigneeId}
-                onSelect={setAssigneeId}
-              />
-              <ProfilePickerPopover
-                label="보고자"
-                placeholder="보고자 선택"
-                profiles={profiles}
-                selectedId={reporterId}
-                onSelect={setReporterId}
-              />
-              <DatePickerPopover label="마감일" value={dueDate} onChange={setDueDate} />
-              <PriorityPickerPopover label="우선순위" value={priority} onChange={setPriority} />
-              <StatusPickerPopover
-                label="상태"
-                selectedId={statusId}
-                statuses={statuses}
-                onSelect={setStatusId}
-              />
-              <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
-                <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">
-                  프로젝트
-                </span>
-                {parentId ? (
-                  // 하위 일정은 상위 일정의 세부 작업이라 프로젝트를 독립적으로 바꿀 수 없다.
-                  // 상위 일정과 어긋나면 상위 일정 상세에서조차 찾기 어려워지기 때문이다.
-                  <span className="text-xs text-text-muted">
-                    {getProject(initialProjectKey).label} (상위 일정과 동일)
-                  </span>
-                ) : (
-                  <select
-                    aria-label="프로젝트"
-                    className="min-w-0 flex-1 bg-transparent text-xs text-text-default outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    value={projectKey}
-                    onChange={(event) => setProjectKey(event.target.value as ProjectKey)}
+                {!isExpanded && (
+                  <div className="grid grid-cols-1 gap-[2px] px-5 py-3 sm:grid-cols-2">
+                    {propertyFields}
+                  </div>
+                )}
+
+                {!isExpanded && <div className="mx-5 h-px bg-border" />}
+
+                <div
+                  className={cn(isExpanded ? "flex flex-1 flex-col px-10 py-4" : "px-[46px] py-3")}
+                >
+                  <textarea
+                    ref={bodyRef}
+                    className={cn(
+                      "placeholder:text-text-muted/50 w-full resize-none border-none bg-transparent leading-[1.75] text-text-muted outline-none",
+                      isExpanded ? "min-h-60 flex-1 text-sm" : "min-h-[72px] text-[13px]"
+                    )}
+                    placeholder="설명을 추가하세요..."
+                    value={bodyText}
+                    onChange={(event) => setBodyText(event.target.value)}
+                  />
+
+                  <input
+                    ref={imageInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    type="file"
+                    onChange={(event) => {
+                      void handleImageFileSelected(event.target.files);
+                      event.target.value = "";
+                    }}
+                  />
+
+                  {imageMarkers.length > 0 && (
+                    <div className="mt-2 grid grid-cols-4 gap-2">
+                      {imageMarkers.map((image) => {
+                        const url = image.kind === "existing" ? image.url : image.previewUrl;
+                        return (
+                          <div
+                            key={image.id}
+                            className="group relative aspect-square overflow-hidden rounded-[10px] border border-border"
+                          >
+                            <button
+                              aria-label="이미지 확대보기"
+                              className="block size-full cursor-zoom-in"
+                              type="button"
+                              onClick={() => setPreviewImage({ alt: image.alt, url })}
+                            >
+                              <img alt={image.alt} className="size-full object-cover" src={url} />
+                            </button>
+                            <button
+                              aria-label="이미지 삭제"
+                              className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-md border border-border bg-surface-elevated text-[11px] text-text-muted opacity-0 hover:bg-fill-neutural-subtle-hover group-hover:opacity-100"
+                              type="button"
+                              onClick={() => removeImageMarker(image.id)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {!isExpanded && bodyToolbar}
+                </div>
+
+                {canAddSubtasks && (
+                  <div
+                    className={cn(
+                      "flex flex-col gap-2 border-t border-border py-3",
+                      isExpanded ? "px-10" : "px-5"
+                    )}
                   >
-                    {PROJECTS.map((project) => (
-                      <option key={project.key} value={project.key}>
-                        {project.label}
-                      </option>
+                    <span className="text-[11px] font-medium text-text-muted">하위 일정</span>
+
+                    {subtaskDrafts.map((draft) => (
+                      <div
+                        key={draft.id}
+                        className="flex flex-col gap-1 rounded-[10px] border border-border p-2.5"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[13px] font-medium text-text-default outline-none"
+                            placeholder="하위 일정 제목"
+                            type="text"
+                            value={draft.title}
+                            onChange={(event) =>
+                              updateSubtaskDraft(draft.id, { title: event.target.value })
+                            }
+                          />
+                          <button
+                            aria-label="하위 일정 삭제"
+                            className="flex size-5 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
+                            type="button"
+                            onClick={() => removeSubtaskDraft(draft.id)}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <textarea
+                          className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none bg-transparent text-xs leading-[1.6] text-text-muted outline-none"
+                          placeholder="설명을 추가하세요..."
+                          value={draft.body}
+                          onChange={(event) =>
+                            updateSubtaskDraft(draft.id, { body: event.target.value })
+                          }
+                        />
+                      </div>
                     ))}
-                  </select>
+
+                    <button
+                      className="rounded-[10px] border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary"
+                      type="button"
+                      onClick={addSubtaskDraft}
+                    >
+                      + 하위 일정 추가
+                    </button>
+                  </div>
+                )}
+
+                {isEditing && task && onCommentsChange && (
+                  <TaskComments
+                    className={cn("border-t border-border py-4", isExpanded ? "px-10" : "px-5")}
+                    comments={comments}
+                    currentProfileId={currentProfileId}
+                    mentionTargets={mentionTargets}
+                    profiles={profiles}
+                    taskId={task.id}
+                    onCommentsChange={onCommentsChange}
+                  />
                 )}
               </div>
-              <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5">
-                <span className="w-11 shrink-0 text-[11px] font-medium text-text-muted">주차</span>
-                <span className="text-xs text-text-default">{weekLabel}</span>
-              </div>
-            </div>
 
-            <div className="mx-5 h-px bg-border" />
-
-            <div className="px-[46px] py-3">
-              <textarea
-                ref={bodyRef}
-                className="placeholder:text-text-muted/50 min-h-[72px] w-full resize-none border-none bg-transparent text-[13px] leading-[1.75] text-text-muted outline-none"
-                placeholder="설명을 추가하세요..."
-                value={bodyText}
-                onChange={(event) => setBodyText(event.target.value)}
-              />
-
-              <input
-                ref={imageInputRef}
-                className="hidden"
-                accept="image/*"
-                type="file"
-                onChange={(event) => {
-                  void handleImageFileSelected(event.target.files);
-                  event.target.value = "";
-                }}
-              />
-              <button
-                className="rounded-md px-1.5 py-1 text-[11px] font-medium text-text-muted hover:bg-fill-neutural-subtle-hover disabled:opacity-50"
-                disabled={isProcessingImage}
-                type="button"
-                onClick={() => imageInputRef.current?.click()}
-              >
-                {isProcessingImage ? "처리 중..." : "+ 이미지"}
-              </button>
-
-              {imageMarkers.length > 0 && (
-                <div className="mt-2 grid grid-cols-4 gap-2">
-                  {imageMarkers.map((image) => {
-                    const url = image.kind === "existing" ? image.url : image.previewUrl;
-                    return (
-                      <div
-                        key={image.id}
-                        className="group relative aspect-square overflow-hidden rounded-[10px] border border-border"
-                      >
-                        <button
-                          aria-label="이미지 확대보기"
-                          className="block size-full cursor-zoom-in"
-                          type="button"
-                          onClick={() => setPreviewImage({ alt: image.alt, url })}
-                        >
-                          <img alt={image.alt} className="size-full object-cover" src={url} />
-                        </button>
-                        <button
-                          aria-label="이미지 삭제"
-                          className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-md border border-border bg-surface-elevated text-[11px] text-text-muted opacity-0 hover:bg-fill-neutural-subtle-hover group-hover:opacity-100"
-                          type="button"
-                          onClick={() => removeImageMarker(image.id)}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+              {isExpanded && (
+                <div className="mx-10 shrink-0 border-t border-border">{bodyToolbar}</div>
               )}
             </div>
 
-            {canAddSubtasks && (
-              <div className="flex flex-col gap-2 border-t border-border px-5 py-3">
-                <span className="text-[11px] font-medium text-text-muted">하위 일정</span>
-
-                {subtaskDrafts.map((draft) => (
-                  <div
-                    key={draft.id}
-                    className="flex flex-col gap-1 rounded-[10px] border border-border p-2.5"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        className="placeholder:text-text-muted/50 w-full border-none bg-transparent text-[13px] font-medium text-text-default outline-none"
-                        placeholder="하위 일정 제목"
-                        type="text"
-                        value={draft.title}
-                        onChange={(event) =>
-                          updateSubtaskDraft(draft.id, { title: event.target.value })
-                        }
-                      />
-                      <button
-                        aria-label="하위 일정 삭제"
-                        className="flex size-5 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-fill-neutural-subtle-hover"
-                        type="button"
-                        onClick={() => removeSubtaskDraft(draft.id)}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    <textarea
-                      className="placeholder:text-text-muted/50 min-h-10 w-full resize-none border-none bg-transparent text-xs leading-[1.6] text-text-muted outline-none"
-                      placeholder="설명을 추가하세요..."
-                      value={draft.body}
-                      onChange={(event) =>
-                        updateSubtaskDraft(draft.id, { body: event.target.value })
-                      }
-                    />
-                  </div>
-                ))}
-
-                <button
-                  className="rounded-[10px] border border-dashed border-border py-2 text-xs font-medium text-text-muted hover:border-primary hover:text-primary"
-                  type="button"
-                  onClick={addSubtaskDraft}
-                >
-                  + 하위 일정 추가
-                </button>
-              </div>
-            )}
-
-            {isEditing && task && onCommentsChange && (
-              <TaskComments
-                className="border-t border-border px-5 py-4"
-                comments={comments}
-                currentProfileId={currentProfileId}
-                mentionTargets={mentionTargets}
-                profiles={profiles}
-                taskId={task.id}
-                onCommentsChange={onCommentsChange}
-              />
+            {isExpanded && (
+              <aside className="flex shrink-0 flex-col gap-3 overflow-y-auto border-t border-border bg-surface px-5 py-6 md:w-80 md:border-l md:border-t-0">
+                <span className="px-2 text-[11px] font-semibold text-text-muted">속성</span>
+                <div className="flex flex-col gap-1">{propertyFields}</div>
+              </aside>
             )}
           </div>
 
